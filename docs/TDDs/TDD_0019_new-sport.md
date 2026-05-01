@@ -42,7 +42,7 @@ Se definirá la entidad `Deporte` con las siguientes propiedades y restricciones
 - `additional_price`: Número decimal positivo (default 0).
 - `requires_medical_certificate`: Booleano.
 - `createdAt`: Fecha de creación autogenerada.
-- `logical_delete`: Fecha de borrado lógico o nulo.
+- `logical_delete`: Fecha de borrado lógico o nulo (default null).
 
 ### Contrato de API (@alentapp/shared)
 
