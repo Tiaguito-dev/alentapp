@@ -118,3 +118,4 @@ migración de Prisma. La migración es sencilla porque:
 - Solo cambia el tipo en el schema de Prisma (`Float` → `Decimal`) y la
   representación en memoria del backend.
 - El frontend no se ve afectado.
+
