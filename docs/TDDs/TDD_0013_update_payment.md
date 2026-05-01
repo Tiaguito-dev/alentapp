@@ -25,12 +25,56 @@ Permitir al Tesorero modificar un pago existente en dos escenarios distintos per
 - Si el pago está en estado `Pagado` o `Cancelado`, la edición debe rechazarse para preservar la inmutabilidad financiera.
 - No se permite editar `socioId`, `mes`, `anio` ni `estado` por esta vía: cambiarlos sería re-emitir el pago, no modificarlo.
 - Al menos un campo modificable debe estar presente en el body; un PATCH vacío debe rechazarse.
+
 **Marcado como pagado:**
 - Solo se puede marcar como pagado un pago en estado `Pendiente`. Marcar uno ya `Pagado` o `Cancelado` debe rechazarse.
 - La operación debe completar `fechaPago` con la fecha y hora provistas; si no se provee, se usa `now()`.
 - La operación debe transicionar el `estado` a `Pagado`.
 
 
+## Diseño Técnico (RFC)
+ 
+### Modelo de Datos
+
+No se introducen cambios al modelo definido en TDD-0012. Se reutilizan los mismos campos.
+ 
+### Contrato de API (@alentapp/shared)
+
+Se exponen dos endpoints diferenciados para mantener explícita la semántica de cada operación:
+ 
+#### 1 Edición de campos
+- Endpoint: `PATCH /api/v1/pagos/:id`
+- Request Body (UpdatePaymentRequest):
+```ts
+{
+    monto?: number;            // > 0
+    fechaVencimiento?: string; // ISO Date YYYY-MM-DD
+}
+```
+- Response: 200 OK con el PaymentResponse actualizado.
+
+#### 2 Marcado como pagado
+- Endpoint: `PATCH /api/v1/pagos/:id/pagar`
+- Request Body (MarkPaymentAsPaidRequest):
+```ts
+{
+    fechaPago?: string; // ISO DateTime, opcional. Si no se envía, se usa now() del servidor.
+}
+```
+- Response: 200 OK con el PaymentResponse actualizado (`estado: 'Pagado'`, `fechaPago` completo).
+
+**Justificación de la separación**: usar un único `PATCH /api/v1/pagos/:id` con un campo `estado` opcional permitiría que un cliente cambie el estado mediante el mismo verbo que edita otros campos. Eso aumenta el riesgo de transiciones accidentales. Endpoints orientados a acción (`/pagar`, y en TDD-0014 `/cancelar`) hacen explícita la transición de estado.
+ 
+### Componentes de Arquitectura Hexagonal
+
+1. **Puerto**: `PaymentRepository` (métodos `findById(id)` y `update(payment)`).
+2. **Entidad de Dominio**: `Payment` se amplía con dos métodos que encapsulan las reglas de transición:
+   - `updateFields({ monto?, fechaVencimiento? })`: rechaza la operación si `estado != Pendiente`.
+   - `markAsPaid(fechaPago)`: rechaza la operación si `estado != Pendiente`; transiciona el estado a `Pagado` y completa la fecha.
+3. **Caso de Uso**: `UpdatePaymentUseCase` (recupera el pago vía `findById`, invoca `updateFields` sobre la entidad y delega la persistencia al repositorio).
+4. **Caso de Uso**: `MarkPaymentAsPaidUseCase` (recupera el pago, invoca `markAsPaid` y delega la persistencia).
+5. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
+6. **Adaptador de Entrada**: `PaymentController` (Rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar`, que extraen el `id` y mapean excepciones a códigos HTTP).
 
 ## Observaciones Adicionales
 
