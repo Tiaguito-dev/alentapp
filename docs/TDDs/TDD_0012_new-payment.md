@@ -37,7 +37,7 @@ Se definirá la entidad `Payment` con las siguientes propiedades y restricciones
 - `id`: identificador único universal (UUID).
 - `monto`: número de punto flotante, mayor a cero. 
 - `mes`: entero entre 1 y 12.
-- `anio`: entero. Se evita el carácter `ñ` en el identificador para preservar compatibilidad con herramientas y exports.
+- `anio`: entero. 
 - `estado`: enumeración (`Pendiente`, `Pagado`, `Cancelado`). El estado `Vencido` se agrega pero no se persiste: se calcula al leer cuando `estado = Pendiente` y `fechaVencimiento < hoy`. 
 - `fechaVencimiento`: fecha (sin hora).
 - `fechaPago`: fecha y hora, nullable. Nulo en el alta.
@@ -81,6 +81,28 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 3. **Adaptador de Salida**: `PostgresPaymentRepository` (creación usando el método `create` de Prisma; la unicidad de pagos activos por (socio, mes, año) se garantiza con un índice único parcial en la base de datos).
 4. **Adaptador de Entrada**: `PaymentController` (Ruta `POST /api/v1/pagos` que valida el payload y devuelve el pago creado con status 201).
 
+## Casos de Borde y Errores
+ 
+| Escenario                                              | Resultado Esperado                                                              | Código HTTP               |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------- | ------------------------- |
+| Falta un campo requerido                               | Mensaje: "El campo {campo} es obligatorio"                                      | 400 Bad Request           |
+| Monto ≤ 0                                              | Mensaje: "El monto debe ser mayor a cero"                                       | 400 Bad Request           |
+| Mes fuera de rango (no entre 1 y 12)                   | Mensaje: "El mes debe estar entre 1 y 12"                                       | 400 Bad Request           |
+| Año fuera de rango razonable                           | Mensaje: "El año debe estar entre {min} y {max}"                                | 400 Bad Request           |
+| Fecha de vencimiento inválida o en formato incorrecto  | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"                      | 400 Bad Request           |
+| Socio inexistente                                      | Mensaje: "El socio especificado no existe"                                      | 404 Not Found             |
+| Pago activo duplicado para (socio, mes, año)           | Mensaje: "Ya existe un pago activo para este socio en {mes}/{año}"              | 409 Conflict              |
+| Cliente envía un `estado` distinto de `Pendiente`      | Se ignora ; se persiste con `estado = Pendiente`                                | 201 Created               |
+| Error de conexión a la base de datos                   | Mensaje: "Error interno, reintente más tarde"                                   | 500 Internal Server Error |
+
+## Plan de Implementación
+
+1. Definir el tipo `CreatePaymentRequest` y el tipo `Payment` en el paquete `@alentapp/shared`.
+2. Agregar el modelo `Payment` al schema de Prisma con su índice único parcial y ejecutar la migración.
+3. Crear el puerto `PaymentRepository` y la entidad `Payment` en el dominio (el estado al crear debe ser siempre `Pendiente`).
+4. Implementar el `PostgresPaymentRepository` y el caso de uso `CreatePaymentUseCase`.
+5. Exponer la ruta `POST /api/v1/pagos` en el `PaymentController` y registrarla en la app de Fastify.
+6. Crear el formulario de alta en el frontend y conectarlo al endpoint.
 
 ## Observaciones Adicionales
 
