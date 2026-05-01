@@ -76,6 +76,41 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 5. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
 6. **Adaptador de Entrada**: `PaymentController` (Rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar`, que extraen el `id` y mapean excepciones a códigos HTTP).
 
+## Casos de Borde y Errores
+ 
+### Edición de campos (`PATCH /api/v1/pagos/:id`)
+ 
+| Escenario                                  | Resultado Esperado                                            | Código HTTP               |
+| ------------------------------------------ | ------------------------------------------------------------- | ------------------------- |
+| Pago inexistente                           | Mensaje: "El pago no existe"                                  | 404 Not Found             |
+| Pago en estado `Pagado` o `Cancelado`      | Mensaje: "No se puede modificar un pago en estado {estado}"   | 409 Conflict              |
+| Body vacío (ningún campo enviado)          | Mensaje: "Debe proveer al menos un campo a modificar"         | 400 Bad Request           |
+| Monto enviado ≤ 0                          | Mensaje: "El monto debe ser mayor a cero"                     | 400 Bad Request           |
+| Fecha de vencimiento con formato inválido  | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"    | 400 Bad Request           |
+| Cliente envía un campo no editable         | Se ignora  (no se persiste el campo prohibido)                | 200 OK                    |
+| Error de conexión a la base de datos       | Mensaje: "Error interno, reintente más tarde"                 | 500 Internal Server Error |
+ 
+### Marcado como pagado (`PATCH /api/v1/pagos/:id/pagar`)
+ 
+| Escenario                              | Resultado Esperado                                              | Código HTTP               |
+| -------------------------------------- | --------------------------------------------------------------- | ------------------------- |
+| Pago inexistente                       | Mensaje: "El pago no existe"                                    | 404 Not Found             |
+| Pago ya está en estado `Pagado`        | Mensaje: "El pago ya fue marcado como pagado"                   | 409 Conflict              |
+| Pago en estado `Cancelado`             | Mensaje: "No se puede marcar como pagado un pago cancelado"     | 409 Conflict              |
+| `fechaPago` con formato inválido       | Mensaje: "Formato de fecha y hora inválido"                     | 400 Bad Request           |
+| Operación exitosa                      | Devuelve el pago actualizado con `estado: 'Pagado'`             | 200 OK                    |
+| Error de conexión a la base de datos   | Mensaje: "Error interno, reintente más tarde"                   | 500 Internal Server Error |
+ 
+
+## Plan de Implementación
+
+1. Definir los tipos `UpdatePaymentRequest` y `MarkPaymentAsPaidRequest` en el paquete `@alentapp/shared`.
+2. Ampliar el puerto `PaymentRepository` con el método `update` y su implementación en `PostgresPaymentRepository`.
+3. Agregar los métodos `updateFields` y `markAsPaid` a la entidad `Payment`, asegurando que rechacen la operación si el pago no está en estado `Pendiente`.
+4. Implementar los casos de uso `UpdatePaymentUseCase` y `MarkPaymentAsPaidUseCase`.
+5. Exponer las rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar` en el `PaymentController` y registrarlas en la app de Fastify.
+6. En el frontend, agregar la acción "Editar" (modal con monto y fecha) y la acción "Marcar como pagado" (botón con confirmación) en la tabla de pagos.
+
 ## Observaciones Adicionales
 
 ### Por qué solo se permiten editar `monto` y `fechaVencimiento`
