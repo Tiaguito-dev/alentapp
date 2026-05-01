@@ -41,11 +41,9 @@ No se introducen cambios al modelo definido en TDD-0012. Se reutilizan los mismo
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `PaymentRepository` (métodos `findById(id)` y `update(payment)`, ya definidos en TDD-0013).
-2. **Entidad de Dominio**: `Payment` se amplía con un método que encapsula la regla de transición:
-   - `cancel()`: rechaza la operación si `status === 'Paid'`; transiciona a `Canceled` si está en `Pending`; no hace nada si ya está en `Canceled`.
-3. **Caso de Uso**: `CancelPaymentUseCase` (recupera el pago vía `findById`, invoca `cancel` sobre la entidad y delega la persistencia al repositorio).
-4. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
-5. **Adaptador de Entrada**: `PaymentController` (Ruta `PATCH /api/v1/pagos/:id/cancelar` que extrae el `id` y mapea excepciones a códigos HTTP).
+2. **Caso de Uso**: `CancelPaymentUseCase` (recupera el pago vía `findById`; si `status === 'Paid'` lanza error; si `status === 'Canceled'` devuelve el pago sin cambios para mantener idempotencia; si `status === 'Pending'` transiciona el `status` a `Canceled` y delega la persistencia al repositorio).
+3. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
+4. **Adaptador de Entrada**: `PaymentController` (Ruta `PATCH /api/v1/pagos/:id/cancelar` que extrae el `id` y mapea excepciones a códigos HTTP).
 
 ## Casos de Borde y Errores
  
@@ -60,10 +58,9 @@ No se introducen cambios al modelo definido en TDD-0012. Se reutilizan los mismo
  
 ## Plan de Implementación
 
-1. Agregar el método `cancel` a la entidad `Payment`, asegurando que rechace la operación si el pago está en estado `Paid` y que sea idempotente si ya está en `Canceled`.
-2. Implementar el caso de uso `CancelPaymentUseCase`.
-3. Exponer la ruta `PATCH /api/v1/pagos/:id/cancelar` en el `PaymentController` y registrarla en la app de Fastify.
-4. En el frontend, enlazar el botón "Cancelar" en la tabla de pagos con una confirmación previa que advierta que la operación no se puede deshacer.
+1. Implementar el caso de uso `CancelPaymentUseCase`, que rechaza la operación si el pago está en estado `Paid` y es idempotente si ya está en `Canceled`.
+2. Exponer la ruta `PATCH /api/v1/pagos/:id/cancelar` en el `PaymentController` y registrarla en la app de Fastify.
+3. En el frontend, enlazar el botón "Cancelar" en la tabla de pagos con una confirmación previa que advierta que la operación no se puede deshacer.
 
 ## Observaciones Adicionales
 

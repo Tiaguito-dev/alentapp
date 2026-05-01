@@ -66,13 +66,10 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `PaymentRepository` (métodos `findById(id)` y `update(payment)`).
-2. **Entidad de Dominio**: `Payment` se amplía con dos métodos que encapsulan las reglas de transición:
-   - `updateFields({ amount?, due_date? })`: rechaza la operación si `status != Pending`.
-   - `markAsPaid(payment_date)`: rechaza la operación si `status != Pending`; transiciona el estado a `Paid` y completa la fecha.
-3. **Caso de Uso**: `UpdatePaymentUseCase` (recupera el pago vía `findById`, invoca `updateFields` sobre la entidad y delega la persistencia al repositorio).
-4. **Caso de Uso**: `MarkPaymentAsPaidUseCase` (recupera el pago, invoca `markAsPaid` y delega la persistencia).
-5. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
-6. **Adaptador de Entrada**: `PaymentController` (Rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar`, que extraen el `id` y mapean excepciones a códigos HTTP).
+2. **Caso de Uso**: `UpdatePaymentUseCase` (recupera el pago vía `findById`; si `status != 'Pending'` lanza error; valida los nuevos valores de `amount` y/o `due_date`; aplica los cambios y delega la persistencia al repositorio).
+3. **Caso de Uso**: `MarkPaymentAsPaidUseCase` (recupera el pago vía `findById`; si `status != 'Pending'` lanza error; transiciona el `status` a `Paid` y completa `payment_date` con la fecha provista o `now()`; delega la persistencia al repositorio).
+4. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
+5. **Adaptador de Entrada**: `PaymentController` (Rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar`, que extraen el `id` y mapean excepciones a códigos HTTP).
 
 ## Casos de Borde y Errores
  

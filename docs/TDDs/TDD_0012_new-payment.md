@@ -32,7 +32,7 @@ Permitir al Tesorero registrar de forma digital la obligación de pago de un soc
  
 ### Modelo de Datos
 
-Se definirá la entidad `Payment` con las siguientes propiedades y restricciones:
+Se definirá el modelo `Payment` con las siguientes propiedades y restricciones:
 
 - `id`: identificador único universal (UUID).
 - `amount`: número de punto flotante, mayor a cero. 
@@ -76,7 +76,7 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `PaymentRepository`(métodos `create(payment)` y `existsActiveForPeriod(member_id, month, year)`). También se reutiliza `MemberRepository` (método `findById`) para validar la existencia del socio.
-2. **Caso de Uso**: `CreatePaymentUseCase` (verifica existencia del socio, verifica que no haya un pago activo para el mismo período, construye la entidad `Payment` con estado `Pending`).
+2. **Caso de Uso**: `CreatePaymentUseCase` (verifica existencia del socio, verifica que no haya un pago activo para el mismo período, construye el objeto `Payment` con `status = Pending` y `payment_date = null`, y delega la persistencia al repositorio).
 3. **Adaptador de Salida**: `PostgresPaymentRepository` (creación usando el método `create` de Prisma; la unicidad de pagos activos por (socio, mes, año) se garantiza con un índice único parcial en la base de datos).
 4. **Adaptador de Entrada**: `PaymentController` (Ruta `POST /api/v1/pagos` que valida el payload y devuelve el pago creado con status 201).
 
@@ -98,8 +98,8 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 
 1. Definir el tipo `CreatePaymentRequest` y el tipo `Payment` en el paquete `@alentapp/shared`.
 2. Agregar el modelo `Payment` al schema de Prisma con su índice único parcial y ejecutar la migración.
-3. Crear el puerto `PaymentRepository` y la entidad `Payment` en el dominio (el estado al crear debe ser siempre `Pending`).
-4. Implementar el `PostgresPaymentRepository` y el caso de uso `CreatePaymentUseCase`.
+3. Crear el puerto `PaymentRepository` en el dominio.
+4. Implementar el `PostgresPaymentRepository` y el caso de uso `CreatePaymentUseCase` (este último contiene la lógica de validación del socio, unicidad del período y forzado del estado a `Pending`).
 5. Exponer la ruta `POST /api/v1/pagos` en el `PaymentController` y registrarla en la app de Fastify.
 6. Crear el formulario de alta en el frontend y conectarlo al endpoint.
 
