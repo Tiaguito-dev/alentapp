@@ -57,7 +57,7 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 1. **Puerto**: `PaymentRepository` (métodos `findById(id)`, `findMany(filters, page, limit)` y `countMatching(filters)`, donde `filters` solo acepta condiciones sobre el `estado` persistido y la `fechaVencimiento`).
 2. **Caso de Uso**: `ListPaymentsUseCase` (traduce el filtro virtual `estado = 'Vencido'` a `estado = 'Pendiente' AND fechaVencimiento < hoy` y el filtro `estado = 'Pendiente'` a `estado = 'Pendiente' AND fechaVencimiento >= hoy`; ejecuta la consulta paginada y resuelve el `estado` de cada pago antes de devolverlo).
 3. **Caso de Uso**: `GetPaymentByIdUseCase` (recupera un pago por ID y resuelve su `estado` antes de devolverlo).
-4. **Adaptador de Salida**: `PostgresPaymentRepository` (consulta usando los métodos `findMany` y `countMatching` de Prisma).
+4. **Adaptador de Salida**: `PostgresPaymentRepository` (consulta usando los métodos `findMany` y `count` de Prisma).
 5. **Adaptador de Entrada**: `PaymentController` (Rutas `GET /api/v1/pagos` y `GET /api/v1/pagos/:id` que validan los query params y devuelven status 200).
 
 ## Casos de Borde y Errores

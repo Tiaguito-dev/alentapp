@@ -20,7 +20,7 @@ Permitir al Tesorero registrar de forma digital la obligación de pago de un soc
 
 ### Criterios de Aceptación
 
-- El sistema debe crear el pago siempre en estado `Pendiente` por defecto. Cualquier intento del cliente de fijar otro estado en el alta debe ser ignorado o rechazado.
+- El sistema debe crear el pago siempre en estado `Pendiente` por defecto. Cualquier intento del cliente de fijar otro estado en el alta debe ser ignorado y reemplazado por `Pendiente`.
 - El sistema debe rechazar el alta si ya existe un pago **no cancelado** para la misma combinación (socio, mes, año). Esto permite re-emitir un pago cancelado pero impide duplicados activos.
 - El sistema debe validar que el monto sea estrictamente mayor a cero.
 - El sistema debe validar que el mes esté entre 1 y 12, y que el año esté en un rango razonable (entre el año actual menos 1 y el año actual más 1).

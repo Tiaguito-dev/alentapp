@@ -22,7 +22,7 @@ Permitir al Tesorero anular un pago que fue cargado por error o que ya no corres
 
 - El sistema debe pedir una confirmación explícita en el frontend antes de proceder con la cancelación.
 - El sistema debe rechazar la cancelación de un pago en estado `Pagado` (un pago cobrado solo puede revertirse mediante un proceso de reembolso, fuera de alcance).
-- El sistema debe permitir cancelar un pago tanto en estado `Pendiente` como cuando su `estadoEfectivo` calculado es `Vencido` (es decir, sigue siendo `Pendiente` en BD pero su fecha de vencimiento ya pasó).
+- El sistema debe permitir cancelar un pago tanto en estado `Pendiente` con vencimiento futuro como en estado `Pendiente` con vencimiento pasado (que al consultarse aparece como `Vencido`).
 - La cancelación debe ser idempotente: cancelar un pago ya `Cancelado` no debe arrojar error; debe responder éxito sin alterar el registro.
 - No se permite borrar físicamente el registro bajo ninguna circunstancia.
 
