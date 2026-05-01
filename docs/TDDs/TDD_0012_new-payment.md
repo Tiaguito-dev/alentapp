@@ -16,7 +16,7 @@ Permitir al Tesorero registrar de forma digital la obligación de pago de un soc
 ### User Persona
 
 - Nombre: Lautaro (Tesorero).
-- Necesidad: Generar las cuotas del mes para los socios sin riesgo de cobrar dos veces el mismo período ni saltearse a un socio. Por ejemplo, evitar cobrarle la cuota dos veces del mismo periodo a un mismo socio. 
+- Necesidad: Generar las cuotas del mes para los socios sin riesgo de cobrar dos veces el mismo período ni saltearse a un socio. Por ejemplo, si Lautaro carga las cuotas de mayo y un compañero ya las había cargado a la mitad, el sistema debe avisarle en lugar de duplicar pagos. 
 
 ### Criterios de Aceptación
 
@@ -70,7 +70,6 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
     estado: 'Pendiente';      // siempre Pendiente al crear
     fechaVencimiento: string; // ISO Date
     fechaPago: null;
-    creadoEl: string;         // ISO DateTime
 }
 ```
  
