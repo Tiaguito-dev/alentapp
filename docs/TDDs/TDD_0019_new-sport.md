@@ -13,12 +13,12 @@ titulo: Registro de Nuevos Deportes
 
 ### Objetivo
 
-Eliminar el registro manual de los deportes en formato papel, permitiendo que un administrativo dé de alta a un deportede forma digital, asegurando la integridad de los datos desde el primer momento.
+Eliminar el registro manual de los deportes en formato papel, permitiendo que un administrativo dé de alta a un deporte de forma digital, asegurando la integridad de los datos desde el primer momento.
 
 ### User Persona
 
 - Nombre: Juanceto (Administrador).
-- Necesidad: Registrar los datos de los nuevos deportes que se incorporan al negocio para que los miembros puedan inscribirse. No puede permitirse nombres de deportes duplicados que ya estén registrados en el reservorio de datos, capacidad máxima de inscripciones sin detallar, ni que la especificación de que si el miembro requere o no certificado médico esté vacía.
+- Necesidad: Registrar los datos de los nuevos deportes que se incorporan al negocio para que los miembros puedan inscribirse. No puede permitirse nombres de deportes duplicados que ya estén registrados en el reservorio de datos, capacidad máxima de inscripciones sin detallar, ni que la especificación de que si el miembro requiere o no certificado médico esté vacía.
 
 ### Criterios de Aceptación
 
@@ -31,7 +31,7 @@ Eliminar el registro manual de los deportes en formato papel, permitiendo que un
 
 ## Diseño Técnico (RFC)
 
-### Modelo de Datos
+### Modelo de Datos 
 
 Se definirá la entidad `Deporte` con las siguientes propiedades y restricciones:
 
@@ -42,7 +42,7 @@ Se definirá la entidad `Deporte` con las siguientes propiedades y restricciones
 - `additional_price`: Número decimal positivo (default 0).
 - `requires_medical_certificate`: Booleano.
 - `createdAt`: Fecha de creación autogenerada.
-- `baja`: Fecha de borrado lógico o nulo.
+- `logical_delete`: Fecha de borrado lógico o nulo.
 
 ### Contrato de API (@alentapp/shared)
 
@@ -63,9 +63,9 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 
 ### Componentes de Arquitectura Hexagonal
 
-1. Puerto: DeporteRepository (Interface en el Dominio).
+1. Puerto: SportRepository (Interface en el Dominio).
 2. Caso de Uso: CreateSport (Lógica que verifica si el nombre del deporte ya existe antes de llamar al repositorio).
-3. Adaptador de Salida: DB persistence adapter (Implementación real en BD).
+3. Adaptador de Salida: PrismaSportRepository (Implementación del puerto SportRepository usando Prisma sobre PostgreSQL).
 4. Adaptador de Entrada: SportController (Ruta HTTP).
 
 ## Casos de Borde y Errores
@@ -88,3 +88,4 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 - Se asume que el proceso de registro de un nuevo deporte se realiza de forma manual por un administrativo y que el sistema actual no tiene una funcionalidad digital para esto.
 - Se opta porque solo el administrador (rol con permisos privilegiados, distinto al rol del administrativo) pueda registrar nuevos deportes, ya que se asume que no cualquiera debería tener la capacidad de dar de alta nuevos deportes a los que puedan inscribirse los miembros, por lo que es considerada como una tarea crítica para el impacto en el negocio, que requiere control y supervisión.
 - Respecto al CA N3, en caso de que el usuario deje el campo de precio adicional vacío, se interpretará como que el precio adicional es cero, ya que no se puede asumir un valor negativo ni dejarlo sin especificar.
+- En caso de que el usuario deje el campo precio adicional vacío, se interpretará como que el precio adicional es cero, ya que no se puede asumir un valor negativo ni dejarlo sin especificar.

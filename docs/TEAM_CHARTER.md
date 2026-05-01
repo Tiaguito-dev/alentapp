@@ -14,7 +14,7 @@
 | Nombre                        | GitHub               | Email                         | Rol principal              | Entidad asignada       |
 | ----------------------------- | -------------------- | --------------------          | -------------------------- | ---------------------- |
 | Felipe Pianelli               | fpianelli            | fpianelli@alu.frlp.utn.edu.ar | Desarrollo                 | **Payment**            |
-| Tiago Solis                   | Tiaguito-dev         | tiagosolis3@gmail.com         | Desarrollo                 | **Sport                |
+| Tiago Solis                   | Tiaguito-dev         | tiagosolis3@gmail.com         | Desarrollo                 | **Sport**              |
 | Facundo Gomez                 |                      |                               | Desarrollo                 |                        |
 | Federico Alvarez Pieroni      |                      |                               | Desarrollo                 |                        |
 | Santiago Sereno               |                      |                               | Desarrollo                 |                        |
