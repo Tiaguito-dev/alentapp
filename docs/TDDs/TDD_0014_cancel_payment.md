@@ -47,7 +47,23 @@ No se introducen cambios al modelo definido en TDD-0012. Se reutilizan los mismo
 4. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
 5. **Adaptador de Entrada**: `PaymentController` (Ruta `PATCH /api/v1/pagos/:id/cancelar` que extrae el `id` y mapea excepciones a códigos HTTP).
 
+## Casos de Borde y Errores
+ 
+| Escenario                              | Resultado Esperado                                                   | Código HTTP               |
+| -------------------------------------- | -------------------------------------------------------------------- | ------------------------- |
+| Pago inexistente                       | Mensaje: "El pago no existe"                                         | 404 Not Found             |
+| Pago en estado `Pagado`                | Mensaje: "No se puede cancelar un pago ya cobrado"                   | 409 Conflict              |
+| Pago en estado `Pendiente`             | Devuelve el pago actualizado con `estado: 'Cancelado'`               | 200 OK                    |
+| Pago `Pendiente` con vencimiento pasado (Vencido)| Devuelve el pago actualizado con `estado: 'Cancelado'`     | 200 OK                    |
+| Pago ya en estado `Cancelado`          | Devuelve el pago tal cual está                                       | 200 OK                    |
+| Error de conexión a la base de datos   | Mensaje: "Error interno, reintente más tarde"                        | 500 Internal Server Error |
+ 
+## Plan de Implementación
 
+1. Agregar el método `cancel` a la entidad `Payment`, asegurando que rechace la operación si el pago está en estado `Pagado` y que sea idempotente si ya está en `Cancelado`.
+2. Implementar el caso de uso `CancelPaymentUseCase`.
+3. Exponer la ruta `PATCH /api/v1/pagos/:id/cancelar` en el `PaymentController` y registrarla en la app de Fastify.
+4. En el frontend, enlazar el botón "Cancelar" en la tabla de pagos con una confirmación previa que advierta que la operación no se puede deshacer.
 
 ## Observaciones Adicionales
 
