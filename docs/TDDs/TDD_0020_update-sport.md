@@ -32,9 +32,9 @@ Permitir que un administrador modifique la información de un deporte ya registr
 
 ### Contrato de API (@alentapp/shared)
 
-Se utilizará el paquete compartido para definir el cuerpo de la petición. Todos los campos son opcionales ya que se trata de una actualización parcial (PATCH a nivel de negocio, aunque el endpoint implemente PUT).
+Se utilizará el paquete compartido para definir el cuerpo de la petición. Todos los campos son opcionales ya que se trata de una actualización parcial.
 
-- Endpoint: `PUT /api/v1/deportes/:id`
+- Endpoint: `PATCH /api/v1/sports/:id`
 - Request Body (UpdateSportRequest):
 
 ```ts
@@ -59,7 +59,7 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. Todo
 
 | Escenario                  | Resultado Esperado                                   | Código HTTP actual        |
 | -------------------------- | -----------------------------------------------------| ------------------------- |
-| Deporte no existente       | Mensaje: "No existe deporte con ese id"              | 400 Bad Request           |
+| Deporte no existente       | Mensaje: "No existe deporte con ese id"              | 404 Not Found             |
 | Nombre ya registrado en un deporte activo       | Mensaje: "Ya existe un deporte con ese nombre"       | 409 Conflict              |
 | Capacidad máxima ≤ 0       | Mensaje: "La capacidad máxima debe ser mayor a cero" | 400 Bad Request           |
 | Precio adicional < 0       | Mensaje: "El precio adicional no puede ser negativo" | 400 Bad Request           |
@@ -70,7 +70,7 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. Todo
 1. Actualizar las interfaces en el paquete `@alentapp/shared` (`UpdateSportRequest`).
 2. Ampliar el `SportRepository` con el método `update`.
 3. Implementar la lógica en `UpdateSportUseCase` utilizando el `SportValidator` centralizado.
-4. Crear la ruta `PUT` en el controlador y enlazarla a la app de Fastify.
+4. Crear la ruta `PATCH` en el controlador y enlazarla a la app de Fastify.
 5. Consumir el endpoint desde el servicio de Frontend y reutilizar el modal de creación para permitir la edición.
 
 ### Observaciones adicionales: motivos de decisión
@@ -78,4 +78,4 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. Todo
 - Solo el administrador (rol con permisos privilegiados) puede modificar deportes, por los mismos motivos expuestos en TDD-0019: se trata de una tarea crítica para el negocio que requiere control y supervisión.
 - La verificación de unicidad de nombre excluye al propio deporte que se está editando (para evitar un falso positivo al guardar sin cambiar el nombre) y se realiza únicamente contra deportes activos (`logical_delete = null`), en línea con la decisión tomada en TDD-0019. Un deporte dado de baja lógicamente no bloquea el registro de un nuevo deporte con el mismo nombre, ni la edición de otro deporte para adoptar ese nombre, ya que desde la perspectiva del negocio ese nombre queda liberado al darse de baja.
 - Si el campo additional_price se envía como null o vacío, se interpreta como cero, en línea con la decisión tomada en TDD-0019.
-- Se opta por PUT en el endpoint aunque el comportamiento sea una actualización parcial (campos opcionales), manteniendo consistencia con la convención ya establecida en TDD-0002. 
+- Se opta por PATCH en el endpoint aunque el comportamiento sea una actualización parcial (campos opcionales), manteniendo consistencia con la convención ya establecida en TDD-0002. 

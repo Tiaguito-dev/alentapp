@@ -31,9 +31,9 @@ Permitir que un administrador elimine un deporte del sistema de forma lógica, d
 
 ### Contrato de API (@alentapp/shared)
 
-Se utilizará el paquete compartido para definir el cuerpo de la petición. Todos los campos son opcionales ya que se trata de una actualización parcial (PATCH a nivel de negocio, aunque el endpoint implemente PUT).
+Se utilizará el paquete compartido para definir el cuerpo de la petición. La eliminación es una operación que no requiere datos en el cuerpo, y se implementará como una operación de actualización lógica, aunque el endpoint implemente DELETE. Esta eliminación se puede ver reflejada porque en las consultas de deportes (TDD-0022) solo se recuperan aquellos que no tengan logical_delete seteado.
 
-- Endpoint: `DELETE /api/v1/deportes/:id`
+- Endpoint: `DELETE /api/v1/sports/:id`
 - Request Body (DeleteSportRequest):
 
 ### Componentes de Arquitectura Hexagonal
@@ -47,7 +47,7 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. Todo
 
 | Escenario                  | Resultado Esperado                                   | Código HTTP actual        |
 | -------------------------- | -----------------------------------------------------| ------------------------- |
-| Deporte no existente       | Mensaje: "No existe deporte con ese id"              | 400 Bad Request           |
+| Deporte no existente       | Mensaje: "No existe deporte con ese id"              | 404 Not Found             |
 | Deporte ya dado de baja    | Mensaje: "El deporte ya está dado de baja"           | 400 Bad Request           |
 | Error de conexión a DB     | Mensaje: "Error interno, reintente más tarde"        | 500 Internal Server Error |
 

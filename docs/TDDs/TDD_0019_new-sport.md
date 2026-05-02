@@ -36,7 +36,7 @@ Eliminar el registro manual de los deportes en formato papel, permitiendo que un
 Se definirá la entidad `Deporte` con las siguientes propiedades y restricciones:
 
 - `id`: Identificador único universal (UUID).
-- `name`: Cadena de texto único.
+- `name`: Cadena de texto.
 - `description`: Cadena de texto o nulo.
 - `max_capacity`: Número entero positivo mayor a cero.
 - `additional_price`: Número decimal positivo (default 0).
@@ -48,7 +48,7 @@ Se definirá la entidad `Deporte` con las siguientes propiedades y restricciones
 
 Definiremos los tipos en el paquete compartido para asegurar sincronización:
 
-- Endpoint: `POST /api/v1/deportes`
+- Endpoint: `POST /api/v1/sports`
 - Request Body (CreateSportRequest):
 
 ```ts
