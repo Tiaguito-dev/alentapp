@@ -15,7 +15,7 @@
 | ----------------------------- | -------------------- | --------------------          | -------------------------- | ---------------------- |
 | Felipe Pianelli               | fpianelli            | fpianelli@alu.frlp.utn.edu.ar | Desarrollo                 | **Payment**            |
 | Tiago Solis                   |                      |                               | Desarrollo                 |                        |
-| Facundo Gomez                 |                      |                               | Desarrollo                 |                        |
+| Facundo Gomez                 | Adrian238750         | lfacundo2335@gmail.com        | Desarrollo                 | **Discipline**
 | Federico Alvarez Pieroni      |                      |                               | Desarrollo                 |                        |
 | Santiago Sereno               |                      |                               | Desarrollo                 |                        |
 
@@ -42,7 +42,7 @@
 | ------------------------- | ------------------------------------------------ | ---------------------------- |
 | Felipe Pianelli           | Todos los días                                   | a partir de las 14 hs        |
 | Tiago Solis               | `Completar`                                      | `Completar`                  |
-| Facundo Gomez             | `Completar`                                      | `Completar`                  |
+| Facundo Gomez             | Todos los dias                                   | a partir de las 9 hs         |
 | Federico Alvarez Pieroni  | `Completar`                                      | `Completar`                  |
 | Santiago Sereno           | `Completar`                                      | `Completar`                  |
 
@@ -69,6 +69,6 @@ Al sumarse a este charter, los integrantes se comprometen a respetar el workflow
 | ------------------------- | ---------------------------------------- |
 | Felipe Pianelli           | Felipe Pianelli                          |
 | Tiago Solis               | `Completar`                              |
-| Facundo Gomez             | `Completar`                              |
+| Facundo Gomez             | Facundo Gomez                            |
 | Federico Alvarez Pieroni  | `Completar`                              |
 | Santiago Sereno           | `Completar`                              |
