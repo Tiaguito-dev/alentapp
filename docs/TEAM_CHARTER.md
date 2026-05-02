@@ -14,17 +14,17 @@
 | Nombre                        | GitHub               | Email                         | Rol principal              | Entidad asignada       |
 | ----------------------------- | -------------------- | --------------------          | -------------------------- | ---------------------- |
 | Felipe Pianelli               | fpianelli            | fpianelli@alu.frlp.utn.edu.ar | Desarrollo                 | **Payment**            |
-| Tiago Solis                   |                      |                               | Desarrollo                 |                        |
-| Facundo Gomez                 | Adrian238750         | lfacundo2335@gmail.com        | Desarrollo                 | **Discipline**
+| Facundo Gomez                 | Adrian238750         | lfacundo2335@gmail.com        | Desarrollo                 | **Discipline**         |
+| Tiago Solis                   | Tiaguito-dev         | tiagosolis3@gmail.com         | Desarrollo                 | **Sport**              |
 | Federico Alvarez Pieroni      |                      |                               | Desarrollo                 |                        |
-| Santiago Sereno               |                      |                               | Desarrollo                 |                        |
+| Santiago Sereno               |      SSerenito       | santisere03@gmail.com         | Desarrollo                 |  **Locker**            |
 
 
 ### Responsabilidades transversales (rotativas)
 
 | Rol                  | Responsabilidad                                              | Asignado a                       |
 | -------------------- | ------------------------------------------------------------ | -------------------------------- |
-| Coordinador de fork  | Mantiene el repo del fork                                    |                                  |
+| Coordinador de fork  | Mantiene el repo del fork                                    | Tiago Solis                      |
 | Reviewers            | Verifica que los TDDs antes del merge                        | todos los integrantes del equipo |
 | Comunicación cátedra | Centraliza dudas y las hace en GitHub Discussions            | Felipe Pianelli                  |
 
@@ -41,10 +41,10 @@
 | Integrante                | Días que tiene disponibilidad para trabajar      | Franja horaria habitual      |
 | ------------------------- | ------------------------------------------------ | ---------------------------- |
 | Felipe Pianelli           | Todos los días                                   | a partir de las 14 hs        |
-| Tiago Solis               | `Completar`                                      | `Completar`                  |
 | Facundo Gomez             | Todos los dias                                   | a partir de las 9 hs         |
+| Tiago Solis               | Miércoles y Viernes - Fines de sem y feriados NL | 14hs a 17hs - todo el día    |
 | Federico Alvarez Pieroni  | `Completar`                                      | `Completar`                  |
-| Santiago Sereno           | `Completar`                                      | `Completar`                  |
+| Santiago Sereno           |  Todos los días                                  | a partir de las 12:00 hs     |
 
 ## 4. Toma de Decisiones
 
@@ -68,7 +68,9 @@ Al sumarse a este charter, los integrantes se comprometen a respetar el workflow
 | Integrante                | Firma                                    |
 | ------------------------- | ---------------------------------------- |
 | Felipe Pianelli           | Felipe Pianelli                          |
-| Tiago Solis               | `Completar`                              |
 | Facundo Gomez             | Facundo Gomez                            |
+| Tiago Solis               | Tiago Solis                              |
 | Federico Alvarez Pieroni  | `Completar`                              |
-| Santiago Sereno           | `Completar`                              |
+| Santiago Sereno           | Santiago Sereno                          |
+
+
