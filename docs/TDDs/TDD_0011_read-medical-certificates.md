@@ -12,7 +12,7 @@ titulo: Consulta de Certificados Médicos
 
 ### Objetivo
 
-Permitir al administrativo consultar los certificados médicos del sistema con filtros relevantes para control y auditoría: por socio, por estado (activo o invalidado) y por rango de fechas de vencimiento.
+Permitir al administrativo consultar los certificados médicos del sistema con filtros relevantes para control y auditoría: por socio, por estado (activo o invalidado) y por fecha de vencimiento.
 
 ### User Persona
 
@@ -21,7 +21,7 @@ Permitir al administrativo consultar los certificados médicos del sistema con f
 
 ### Criterios de Aceptación
 
-- El sistema debe permitir filtrar por: `member_id`, `is_validated`, `expiry_date_from` y `expiry_date_to`.
+- El sistema debe permitir filtrar por: `member_id`, `is_validated` y `expiry_date`.
 - El sistema debe permitir recuperar un certificado puntual por su `id`.
 - Cada certificado devuelto debe incluir todos sus campos: `id`, `member_id`, `issue_date`, `expiry_date`, `doctor_license`, `is_validated` y `created_at`.
 - El listado debe estar paginado para evitar traer todos los registros en clubes con historial extenso.
@@ -46,8 +46,7 @@ No se introducen cambios al modelo definido en TDD-0008. La consulta opera sobre
 {
   member_id?:       string;  // UUID del socio
   is_validated?:    boolean; // true = activos, false = invalidados
-  expiry_date_from?: string; // ISO Date YYYY-MM-DD (inclusivo)
-  expiry_date_to?:   string; // ISO Date YYYY-MM-DD (inclusivo)
+  expiry_date?:     string;  // ISO Date YYYY-MM-DD
   page?:           number;  // default 1
   limit?:          number;  // default 20, máx 100
 }
@@ -98,8 +97,7 @@ Donde cada `MedicalCertificateResponse` es:
 | Certificado inexistente (consulta por ID)        | Mensaje: "El certificado no existe"                                   | 404 Not Found             |
 | `limit` mayor al máximo permitido (100)          | Se acota a 100                                                        | 200 OK                    |
 | `page` ≤ 0                                       | Mensaje: "El parámetro page debe ser mayor a cero"                    | 400 Bad Request           |
-| `expiry_date_from` con formato inválido          | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"            | 400 Bad Request           |
-| `expiry_date_from` posterior a `expiry_date_to`  | Mensaje: "La fecha de inicio del rango debe ser anterior a la de fin" | 400 Bad Request           |
+| `expiry_date` con formato inválido               | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"            | 400 Bad Request           |
 | `member_id` con formato UUID inválido            | Mensaje: "Formato de ID inválido"                                     | 400 Bad Request           |
 | Sin resultados                                   | Devuelve lista vacía con `total: 0`                                   | 200 OK                    |
 | Error de conexión a la base de datos             | Mensaje: "Error interno, reintente más tarde"                         | 500 Internal Server Error |
@@ -110,13 +108,13 @@ Donde cada `MedicalCertificateResponse` es:
 2. Ampliar el puerto `MedicalCertificateRepository` con los métodos `findMany` y `countMatching`, junto con su implementación en `PostgresMedicalCertificateRepository` (`findById` ya existe desde TDD-0009 y no requiere reimplementación).
 3. Implementar los casos de uso `ListMedicalCertificatesUseCase` y `GetMedicalCertificateByIdUseCase`.
 4. Exponer las rutas `GET /api/v1/medical-certificates` y `GET /api/v1/medical-certificates/:id` en el `MedicalCertificateController` y registrarlas en la app de Fastify.
-5. En el frontend, agregar la vista de listado con filtros (socio, estado, rango de vencimiento) y paginación.
+5. En el frontend, agregar la vista de listado con filtros (socio, estado, fecha de vencimiento) y paginación.
 
 ## Observaciones Adicionales
 
 **Paginación**: el endpoint pagina los resultados con defaults `page=1` y `limit=20`. El cliente puede ajustar `limit` hasta 100 para casos donde necesite traer más registros (ej: exportar el historial completo de certificados de un socio).
 
-**Filtro por vencimiento próximo**: el filtro `expiry_date_to` permite implementar en el frontend una vista de "certificados por vencer en los próximos N días" simplemente enviando `expiry_date_to = hoy + N días`, sin lógica adicional en el backend.
+**Filtro por fecha de vencimiento**: el filtro `expiry_date` sirve para buscar certificados que vencen en una fecha puntual. Si más adelante hiciera falta consultar vencimientos dentro de un período, eso se podría agregar como una ampliación aparte.
 
 
 
