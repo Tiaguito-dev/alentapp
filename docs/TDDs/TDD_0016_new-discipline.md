@@ -1,9 +1,9 @@
+---
 id: 0016
 estado: propuesto
 autor: Facundo Gomez
 fecha: 2026-05-01
 titulo: Alta de Disciplina
-
 ---
 
 # TDD-0016: Alta de Disciplina
@@ -23,7 +23,6 @@ Permitir la creación de nuevas disciplinas deportivas dentro del sistema Alenta
 
 * El sistema debe permitir crear una disciplina con nombre y fechas válidas.
 * El sistema debe validar que `end_date` sea estrictamente mayor que `start_date`.
-* El sistema debe rechazar la creación si `end_date` es menor o igual a `start_date`.
 * El sistema debe validar que el campo `name` no esté vacío.
 * El sistema debe almacenar correctamente la disciplina en la base de datos.
 * El sistema debe devolver la disciplina creada con su identificador único.
@@ -83,11 +82,11 @@ Adaptador de Entrada: DisciplineController (Ruta HTTP encargada de recibir la re
 | ------------------------- | ------------------------------------------------------ | ------------------------- |
 | end_date <= start_date    | Error: "La fecha de fin debe ser mayor a la de inicio" | 400 Bad Request           |
 | Nombre vacío              | Error: "El nombre es obligatorio"                      | 400 Bad Request           |
-| Formato de fecha inválido | Error: de validación                                    | 400 Bad Request           |
-| Error interno             | Error:genérico del servidor                            | 500 Internal Server Error |
+| Formato de fecha inválido | Error: de validación                                   | 400 Bad Request           |
+| Error de conexión a DB    | Mensaje:"Error interno, reintente más tarde"           |500 Internal Server Error  |
+
 
 ## Plan de Implementación
-
 
 1. Actualizar esquema agregando el modelo Discipline y generar la migración.
 2. Definir tipos de Request/Response en @alentapp/shared.

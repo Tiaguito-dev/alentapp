@@ -1,9 +1,9 @@
+---
 id: 0017
 estado: propuesto
 autor: Facundo Gomez
 fecha: 2026-05-01
 titulo: Modificación de Disciplina
-
 ---
 
 # TDD-0017: Modificación de Disciplina
@@ -24,7 +24,6 @@ Permitir la actualización de disciplinas existentes dentro del sistema, garanti
 * El sistema debe permitir modificar una disciplina existente.
 * El sistema debe permitir modificaciones parciales sin afectar los campos no enviados.
 * El sistema debe validar que `end_date > start_date` si se modifican fechas.
-* El sistema debe rechazar modificaciones inválidas.
 * El sistema debe devolver la disciplina actualizada.
 * El sistema debe informar si la disciplina no existe.
 
@@ -70,7 +69,7 @@ Se mantiene la estructura de la entidad `Discipline`
 | ID inexistente         | Recurso no encontrado | 404 Not Found             |
 | end_date <= start_date | Error de validación   | 400 Bad Request           |
 | Datos inválidos        | Error de validación   | 400 Bad Request           |
-| Error interno          | Error genérico        | 500 Internal Server Error |
+| Error de conexión a DB | Mensaje:"Error interno, reintente más tarde"|500 Internal Server Error|
 
 ## Plan de Implementación
 
