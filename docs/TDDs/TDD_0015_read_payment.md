@@ -34,7 +34,7 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 ### Contrato de API (@alentapp/shared)
 
 #### 1 Listado 
-- Endpoint: `GET /api/v1/pagos`
+- Endpoint: `GET /api/v1/payments`
 - Query Params:
 ```ts
 {
@@ -49,7 +49,7 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 - Response: 200 OK con la lista de pagos. Cada pago se devuelve con su `status` ya resuelto (los pagos `Pending` con `due_date < hoy` se devuelven como `Overdue`).
 
 #### 2 Detalle por ID
-- Endpoint: `GET /api/v1/pagos/:id`
+- Endpoint: `GET /api/v1/payments/:id`
 - Response: 200 OK con el pago, con su `status` ya resuelto (los pagos `Pending` con `due_date < hoy` se devuelven como `Overdue`).
 
 ### Componentes de Arquitectura Hexagonal
@@ -58,7 +58,7 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 2. **Caso de Uso**: `ListPaymentsUseCase` (traduce el filtro virtual `status = 'Overdue'` a `status = 'Pending' AND due_date < hoy` y el filtro `status = 'Pending'` a `status = 'Pending' AND due_date >= hoy`; ejecuta la consulta paginada y resuelve el `status` de cada pago antes de devolverlo).
 3. **Caso de Uso**: `GetPaymentByIdUseCase` (recupera un pago por ID y resuelve su `status` antes de devolverlo).
 4. **Adaptador de Salida**: `PostgresPaymentRepository` (consulta usando los métodos `findMany` y `count` de Prisma).
-5. **Adaptador de Entrada**: `PaymentController` (Rutas `GET /api/v1/pagos` y `GET /api/v1/pagos/:id` que validan los query params y devuelven status 200).
+5. **Adaptador de Entrada**: `PaymentController` (Rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id` que validan los query params y devuelven status 200).
 
 ## Casos de Borde y Errores
 
@@ -79,7 +79,7 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 1. Definir los tipos del query params y del response paginado en el paquete `@alentapp/shared`.
 2. Ampliar el puerto `PaymentRepository` con los métodos `findById`, `findMany` y `countMatching`, junto con su implementación en `PostgresPaymentRepository`.
 3. Implementar los casos de uso `ListPaymentsUseCase` y `GetPaymentByIdUseCase`, incluyendo la traducción del filtro `Overdue` a condiciones sobre la base de datos y la resolución del `status` antes de devolver cada pago.
-4. Exponer las rutas `GET /api/v1/pagos` y `GET /api/v1/pagos/:id` en el `PaymentController` y registrarlas en la app de Fastify.
+4. Exponer las rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id` en el `PaymentController` y registrarlas en la app de Fastify.
 5. En el frontend, agregar la vista de listado con filtros (socio, mes/año, estado) y paginación.
 
 ## Observaciones Adicionales

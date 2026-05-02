@@ -43,7 +43,7 @@ No se introducen cambios al modelo definido en TDD-0012. Se reutilizan los mismo
 Se exponen dos endpoints diferenciados para mantener explícita la semántica de cada operación:
  
 #### 1 Edición de campos
-- Endpoint: `PATCH /api/v1/pagos/:id`
+- Endpoint: `PATCH /api/v1/payments/:id`
 - Request Body (UpdatePaymentRequest):
 ```ts
 {
@@ -54,7 +54,7 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 - Response: 200 OK con el PaymentResponse actualizado.
 
 #### 2 Marcado como pagado
-- Endpoint: `PATCH /api/v1/pagos/:id/pagar`
+- Endpoint: `PATCH /api/v1/payments/:id/pay`
 - Request Body (MarkPaymentAsPaidRequest):
 ```ts
 {
@@ -70,11 +70,11 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 3. **Caso de Uso**: `UpdatePaymentUseCase` (recupera el pago vía `findById`; si `status != 'Pending'` lanza error; delega las validaciones de `amount` y/o `due_date` en `PaymentValidator`; aplica los cambios y delega la persistencia al repositorio).
 4. **Caso de Uso**: `MarkPaymentAsPaidUseCase` (recupera el pago vía `findById`; si `status != 'Pending'` lanza error; delega la validación de `payment_date` en `PaymentValidator` cuando se provee; transiciona el `status` a `Paid` y completa `payment_date` con la fecha provista o `now()`; delega la persistencia al repositorio).
 5. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
-6. **Adaptador de Entrada**: `PaymentController` (rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar`, que extraen el `id` y mapean excepciones a códigos HTTP).
+6. **Adaptador de Entrada**: `PaymentController` (rutas `PATCH /api/v1/payments/:id` y `PATCH /api/v1/payments/:id/pay`, que extraen el `id` y mapean excepciones a códigos HTTP).
 
 ## Casos de Borde y Errores
  
-### Edición de campos (`PATCH /api/v1/pagos/:id`)
+### Edición de campos (`PATCH /api/v1/payments/:id`)
  
 | Escenario                                  | Resultado Esperado                                            | Código HTTP               |
 | ------------------------------------------ | ------------------------------------------------------------- | ------------------------- |
@@ -86,7 +86,7 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 | Cliente envía un campo no editable         | Se ignora  (no se persiste el campo prohibido)                | 200 OK                    |
 | Error de conexión a la base de datos       | Mensaje: "Error interno, reintente más tarde"                 | 500 Internal Server Error |
  
-### Marcado como pagado (`PATCH /api/v1/pagos/:id/pagar`)
+### Marcado como pagado (`PATCH /api/v1/payments/:id/pay`)
  
 | Escenario                              | Resultado Esperado                                              | Código HTTP               |
 | -------------------------------------- | --------------------------------------------------------------- | ------------------------- |
@@ -104,14 +104,14 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 2. Ampliar el puerto `PaymentRepository` con el método `update` y su implementación en `PostgresPaymentRepository`.
 3. Agregar el método `validatePaymentDate(paymentDate)` al `PaymentValidator` definido en TDD-0012.
 4. Implementar los casos de uso `UpdatePaymentUseCase` y `MarkPaymentAsPaidUseCase`, delegando las validaciones de campos en `PaymentValidator` y manejando el chequeo del estado `Pending` directamente en cada caso de uso.
-5. Exponer las rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar` en el `PaymentController` y registrarlas en la app de Fastify.
+5. Exponer las rutas `PATCH /api/v1/payments/:id` y `PATCH /api/v1/payments/:id/pay` en el `PaymentController` y registrarlas en la app de Fastify.
 6. En el frontend, agregar la acción "Editar" (modal con monto y fecha) y la acción "Marcar como pagado" (botón con confirmación) en la tabla de pagos.
 
 ## Observaciones Adicionales
 
 ### Justificación de la separación en el contrato de API
 
-Usar un único `PATCH /api/v1/pagos/:id` con un campo `status` opcional permitiría que un cliente cambie el estado mediante el mismo verbo que edita otros campos. Eso aumenta el riesgo de transiciones accidentales. Endpoints orientados a acción (`/pagar`, y en TDD-0014 `/cancelar`) hacen explícita la transición de estado.
+Usar un único `PATCH /api/v1/payments/:id` con un campo `status` opcional permitiría que un cliente cambie el estado mediante el mismo verbo que edita otros campos. Eso aumenta el riesgo de transiciones accidentales. Endpoints orientados a acción (`/pay`, y en TDD-0014 `/cancel`) hacen explícita la transición de estado.
 
 ### Por qué solo se permiten editar `amount` y `due_date`
 
@@ -122,8 +122,8 @@ La modificación está acotada a estos dos campos porque son los únicos que pue
 - **`month` y `year`**: definen a qué período corresponde la cuota. Cambiarlos significaría que el pago dejó de cubrir el mes original y pasó a cubrir otro, alterando los reportes históricos de cobranza. Además, podrían colisionar con el índice único parcial sobre (`member_id`, `month`, `year`) si ya existe un pago activo para el período de destino. Si se necesita cambiar el período, lo correcto es cancelar el pago actual y emitir uno nuevo.
 
 - **`status`**: cada transición de estado tiene reglas de negocio propias y debe quedar registrada como una acción explícita y auditable:
-  - `Pending → Paid`: se realiza vía `PATCH /api/v1/pagos/:id/pagar` (definido en este mismo TDD), que requiere completar `payment_date`.
-  - `Pending → Canceled`: se realiza vía `PATCH /api/v1/pagos/:id/cancelar` (definido en TDD-0014).
+  - `Pending → Paid`: se realiza vía `PATCH /api/v1/payments/:id/pay` (definido en este mismo TDD), que requiere completar `payment_date`.
+  - `Pending → Canceled`: se realiza vía `PATCH /api/v1/payments/:id/cancel` (definido en TDD-0014).
   - Cualquier otra transición (ej: `Paid → Pending`, `Canceled → Pending`) está prohibida por la regla de inmutabilidad financiera del enunciado.
   
   Permitir editar `status` desde un endpoint genérico abriría la puerta a saltearse estas reglas y a transiciones accidentales. 

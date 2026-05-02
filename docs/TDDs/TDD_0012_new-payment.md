@@ -38,7 +38,7 @@ Se definirá el modelo `Payment` con las siguientes propiedades y restricciones:
 - `amount`: número de punto flotante, mayor a cero. 
 - `month`: entero entre 1 y 12.
 - `year`: entero. 
-- `status`: enumeración (`Pending`, `Paid`, `Canceled`). El estado `Overdue` se agrega pero no se persiste: se calcula al leer cuando `status = Pending` y `due_date < hoy`. 
+- `status`: enumeración (`Pending`, `Paid`, `Canceled`). 
 - `due_date`: fecha (sin hora).
 - `payment_date`: fecha y hora, nullable. Nulo en el alta.
 - `member_id`: UUID, FK a `Member`.
@@ -47,7 +47,7 @@ Se definirá el modelo `Payment` con las siguientes propiedades y restricciones:
 
 Definiremos los tipos en el paquete compartido para asegurar sincronización entre frontend y backend.
 
-- Endpoint: `POST /api/v1/pagos`
+- Endpoint: `POST /api/v1/payments`
 - Request Body (CreatePaymentRequest):
 
 ```ts
@@ -76,10 +76,10 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `PaymentRepository`(métodos `create(payment)` y `existsActiveForPeriod(member_id, month, year)`). También se reutiliza `MemberRepository` (método `findById`) para validar la existencia del socio.
-2. **Servicio de Dominio**: `PaymentValidator` (centraliza las validaciones de campos: `validateAmount(amount)` verifica que sea mayor a cero; `validatePeriod(month, year)` verifica que el mes esté entre 1 y 12 y el año en rango razonable; `validateDueDate(dueDate)` verifica que la fecha tenga formato ISO válido `YYYY-MM-DD`).
+2. **Servicio de Dominio**: `PaymentValidator` (centraliza las validaciones de campos: `validateAmount(amount)` verifica que sea mayor a cero; `validatePeriod(month, year)` verifica que el mes esté entre 1 y 12 y el año en rango razonable; `validateDueDate(due_date)` verifica que la fecha tenga formato ISO válido `YYYY-MM-DD`).
 3. **Caso de Uso**: `CreatePaymentUseCase` (delega las validaciones de campos en `PaymentValidator`; verifica existencia del socio vía `MemberRepository`; verifica que no haya un pago activo para el mismo período vía `existsActiveForPeriod`; construye el objeto `Payment` con `status = Pending` y `payment_date = null`; delega la persistencia al repositorio).
 4. **Adaptador de Salida**: `PostgresPaymentRepository` (creación usando el método `create` de Prisma; la unicidad de pagos activos por (socio, mes, año) se garantiza con un índice único parcial en la base de datos).
-5. **Adaptador de Entrada**: `PaymentController` (Ruta `POST /api/v1/pagos` que valida el payload y devuelve el pago creado con status 201).
+5. **Adaptador de Entrada**: `PaymentController` (Ruta `POST /api/v1/payments` que valida el payload y devuelve el pago creado con status 201).
 
 ## Casos de Borde y Errores
  
@@ -102,7 +102,7 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 3. Crear el puerto `PaymentRepository` en el dominio.
 4. Implementar el `PaymentValidator` con los métodos `validateAmount`, `validatePeriod` y `validateDueDate`.
 5. Implementar el `PostgresPaymentRepository` y el caso de uso `CreatePaymentUseCase` , delegando las validaciones de campos en `PaymentValidator`.
-6. Exponer la ruta `POST /api/v1/pagos` en el `PaymentController` y registrarla en la app de Fastify.
+6. Exponer la ruta `POST /api/v1/payments` en el `PaymentController` y registrarla en la app de Fastify.
 7. Crear el formulario de alta en el frontend y conectarlo al endpoint.
 
 ## Observaciones Adicionales
@@ -111,5 +111,5 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 
 **No pueden existir dos pagos activos para el mismo (socio, mes, año)**, pero **sí debe permitirse re-emitir un pago si el anterior fue cancelado**. Por ejemplo: si se cargó la cuota de mayo de un socio por error, se cancela y se vuelve a cargar correctamente — los dos registros conviven en la base, uno cancelado y otro activo.
 
-Para hacer cumplir esa regla se utiliza un **índice único parcial** sobre la combinación (`memberId`, `month`, `year`), filtrado por `status != 'Canceled'`. La palabra "parcial" significa que la restricción de unicidad no aplica a todas las filas, sino solo a aquellas cuyo estado no es `Canceled`. 
+Para hacer cumplir esa regla se utiliza un **índice único parcial** sobre la combinación (`member_id`, `month`, `year`), filtrado por `status != 'Canceled'`. La palabra "parcial" significa que la restricción de unicidad no aplica a todas las filas, sino solo a aquellas cuyo estado no es `Canceled`. 
 
