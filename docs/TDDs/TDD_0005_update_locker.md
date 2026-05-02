@@ -29,7 +29,7 @@ Permitir a los administrativos corregir o modificar la información de un locker
 
 ### Contrato de API (@alentapp/shared)
 
-- Endpoint: `PUT /api/v1/lockers/:id`
+- Endpoint: `PATCH /api/v1/lockers/:id`
 - Request Body (UpdateLockerRequest):
 ```ts
 {
@@ -60,7 +60,7 @@ Permitir a los administrativos corregir o modificar la información de un locker
 1. Actualizar las interfaces en el paquete `@alentapp/shared` (`UpdateLockerRequest`).
 2. Ampliar el `LockerRepository` con el método `update`.
 3. Implementar la lógica en `UpdateLockerUseCase` utilizando el `LockerValidator`
-4. Crear la ruta `PUT` en el controlador y enlazarla a la app de Fastify.
+4. Crear la ruta `PATCH` en el controlador y enlazarla a la app de Fastify.
 5. Consumir el endpoint desde el servicio de Frontend y reutilizar el modal de creación para permitir la edición.
 
 ## Observaciones Adicionales
