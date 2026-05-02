@@ -17,7 +17,7 @@
 | Tiago Solis                   | Tiaguito-dev         | tiagosolis3@gmail.com         | Desarrollo                 | **Sport**              |
 | Facundo Gomez                 |                      |                               | Desarrollo                 |                        |
 | Federico Alvarez Pieroni      |                      |                               | Desarrollo                 |                        |
-| Santiago Sereno               |                      |                               | Desarrollo                 |                        |
+| Santiago Sereno               |      SSerenito       | santisere03@gmail.com         | Desarrollo                 |  **Locker**            |
 
 
 ### Responsabilidades transversales (rotativas)
@@ -44,7 +44,7 @@
 | Tiago Solis               | Miércoles y Viernes - Fines de sem y feriados NL | 14hs a 17hs - todo el día    |
 | Facundo Gomez             | `Completar`                                      | `Completar`                  |
 | Federico Alvarez Pieroni  | `Completar`                                      | `Completar`                  |
-| Santiago Sereno           | `Completar`                                      | `Completar`                  |
+| Santiago Sereno           |  Todos los días                                  | a partir de las 12:00 hs     |
 
 ## 4. Toma de Decisiones
 
@@ -71,4 +71,6 @@ Al sumarse a este charter, los integrantes se comprometen a respetar el workflow
 | Tiago Solis               | Tiago Solis                              |
 | Facundo Gomez             | `Completar`                              |
 | Federico Alvarez Pieroni  | `Completar`                              |
-| Santiago Sereno           | `Completar`                              |
+| Santiago Sereno           | Santiago Sereno                          |
+
+
