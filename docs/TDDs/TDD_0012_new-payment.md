@@ -96,7 +96,7 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 
 ## Plan de Implementación
 
-1. Definir el tipo `CreatePaymentRequest` y el tipo `Payment` en el paquete `@alentapp/shared`.
+1. Definir el tipo `CreatePaymentRequest` y el tipo `PaymentResponse` en el paquete `@alentapp/shared`.
 2. Agregar el modelo `Payment` al schema de Prisma con su índice único parcial y ejecutar la migración.
 3. Crear el puerto `PaymentRepository` en el dominio.
 4. Implementar el `PostgresPaymentRepository` y el caso de uso `CreatePaymentUseCase` (este último contiene la lógica de validación del socio, unicidad del período y forzado del estado a `Pending`).
