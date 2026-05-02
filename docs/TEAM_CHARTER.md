@@ -14,8 +14,8 @@
 | Nombre                        | GitHub               | Email                         | Rol principal              | Entidad asignada       |
 | ----------------------------- | -------------------- | --------------------          | -------------------------- | ---------------------- |
 | Felipe Pianelli               | fpianelli            | fpianelli@alu.frlp.utn.edu.ar | Desarrollo                 | **Payment**            |
+| Facundo Gomez                 | Adrian238750         | lfacundo2335@gmail.com        | Desarrollo                 | **Discipline**         |
 | Tiago Solis                   | Tiaguito-dev         | tiagosolis3@gmail.com         | Desarrollo                 | **Sport**              |
-| Facundo Gomez                 |                      |                               | Desarrollo                 |                        |
 | Federico Alvarez Pieroni      |                      |                               | Desarrollo                 |                        |
 | Santiago Sereno               |      SSerenito       | santisere03@gmail.com         | Desarrollo                 |  **Locker**            |
 
@@ -41,8 +41,8 @@
 | Integrante                | Días que tiene disponibilidad para trabajar      | Franja horaria habitual      |
 | ------------------------- | ------------------------------------------------ | ---------------------------- |
 | Felipe Pianelli           | Todos los días                                   | a partir de las 14 hs        |
+| Facundo Gomez             | Todos los dias                                   | a partir de las 9 hs         |
 | Tiago Solis               | Miércoles y Viernes - Fines de sem y feriados NL | 14hs a 17hs - todo el día    |
-| Facundo Gomez             | `Completar`                                      | `Completar`                  |
 | Federico Alvarez Pieroni  | `Completar`                                      | `Completar`                  |
 | Santiago Sereno           |  Todos los días                                  | a partir de las 12:00 hs     |
 
@@ -68,8 +68,8 @@ Al sumarse a este charter, los integrantes se comprometen a respetar el workflow
 | Integrante                | Firma                                    |
 | ------------------------- | ---------------------------------------- |
 | Felipe Pianelli           | Felipe Pianelli                          |
+| Facundo Gomez             | Facundo Gomez                            |
 | Tiago Solis               | Tiago Solis                              |
-| Facundo Gomez             | `Completar`                              |
 | Federico Alvarez Pieroni  | `Completar`                              |
 | Santiago Sereno           | Santiago Sereno                          |
 
