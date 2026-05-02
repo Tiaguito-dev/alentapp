@@ -21,9 +21,9 @@ Permitir al administrativo consultar los certificados médicos del sistema con f
 
 ### Criterios de Aceptación
 
-- El sistema debe permitir filtrar por: `memberId`, `isInvalidated`, `expiryDateFrom` y `expiryDateTo`.
+- El sistema debe permitir filtrar por: `member_id`, `is_validated`, `expiry_date_from` y `expiry_date_to`.
 - El sistema debe permitir recuperar un certificado puntual por su `id`.
-- Cada certificado devuelto debe incluir todos sus campos: `id`, `memberId`, `issueDate`, `expiryDate`, `doctorLicense`, `isInvalidated` y `createdAt`.
+- Cada certificado devuelto debe incluir todos sus campos: `id`, `member_id`, `issue_date`, `expiry_date`, `doctor_license`, `is_validated` y `created_at`.
 - El listado debe estar paginado para evitar traer todos los registros en clubes con historial extenso.
 - Si no se aplica ningún filtro, se devuelven todos los certificados paginados.
 
@@ -33,7 +33,7 @@ Permitir al administrativo consultar los certificados médicos del sistema con f
 
 No se introducen cambios al modelo definido en TDD-0008. La consulta opera sobre los mismos campos persistidos:
 
-- `id`, `issue_date`, `expiry_date`, `doctor_license`, `is_invalidated`, `member_id`, `created_at`.
+- `id`, `issue_date`, `expiry_date`, `doctor_license`, `is_validated`, `member_id`, `created_at`.
 
 ### Contrato de API (@alentapp/shared)
 
@@ -44,10 +44,10 @@ No se introducen cambios al modelo definido en TDD-0008. La consulta opera sobre
 
 ```ts
 {
-  memberId?:       string;  // UUID del socio
-  isInvalidated?:  boolean; // true = invalidados, false = activos
-  expiryDateFrom?: string;  // ISO Date YYYY-MM-DD (inclusivo)
-  expiryDateTo?:   string;  // ISO Date YYYY-MM-DD (inclusivo)
+  member_id?:       string;  // UUID del socio
+  is_validated?:    boolean; // true = activos, false = invalidados
+  expiry_date_from?: string; // ISO Date YYYY-MM-DD (inclusivo)
+  expiry_date_to?:   string; // ISO Date YYYY-MM-DD (inclusivo)
   page?:           number;  // default 1
   limit?:          number;  // default 20, máx 100
 }
@@ -69,12 +69,12 @@ Donde cada `MedicalCertificateResponse` es:
 ```ts
 {
   id:            string;
-  memberId:      string;
-  issueDate:     string; // ISO Date YYYY-MM-DD
-  expiryDate:    string; // ISO Date YYYY-MM-DD
-  doctorLicense: string;
-  isInvalidated: boolean;
-  createdAt:     string; // ISO DateTime
+  member_id:     string;
+  issue_date:    string; // ISO Date YYYY-MM-DD
+  expiry_date:   string; // ISO Date YYYY-MM-DD
+  doctor_license:string;
+  is_validated:  boolean;
+  created_at:    string; // ISO DateTime
 }
 ```
 
@@ -98,9 +98,9 @@ Donde cada `MedicalCertificateResponse` es:
 | Certificado inexistente (consulta por ID)        | Mensaje: "El certificado no existe"                                   | 404 Not Found             |
 | `limit` mayor al máximo permitido (100)          | Se acota a 100                                                        | 200 OK                    |
 | `page` ≤ 0                                       | Mensaje: "El parámetro page debe ser mayor a cero"                    | 400 Bad Request           |
-| `expiryDateFrom` con formato inválido            | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"            | 400 Bad Request           |
-| `expiryDateFrom` posterior a `expiryDateTo`      | Mensaje: "La fecha de inicio del rango debe ser anterior a la de fin" | 400 Bad Request           |
-| `memberId` con formato UUID inválido             | Mensaje: "Formato de ID inválido"                                     | 400 Bad Request           |
+| `expiry_date_from` con formato inválido          | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"            | 400 Bad Request           |
+| `expiry_date_from` posterior a `expiry_date_to`  | Mensaje: "La fecha de inicio del rango debe ser anterior a la de fin" | 400 Bad Request           |
+| `member_id` con formato UUID inválido            | Mensaje: "Formato de ID inválido"                                     | 400 Bad Request           |
 | Sin resultados                                   | Devuelve lista vacía con `total: 0`                                   | 200 OK                    |
 | Error de conexión a la base de datos             | Mensaje: "Error interno, reintente más tarde"                         | 500 Internal Server Error |
 
@@ -114,14 +114,9 @@ Donde cada `MedicalCertificateResponse` es:
 
 ## Observaciones Adicionales
 
-**Estado activo vs. invalidado**: a diferencia de `Payment` (que tiene el estado calculado `Vencido`), el estado de un `MedicalCertificate` se persiste directamente en el campo `is_invalidated`. No hay lógica de resolución en tiempo de consulta; lo que está en la base de datos es lo que se devuelve.
-
 **Paginación**: el endpoint pagina los resultados con defaults `page=1` y `limit=20`. El cliente puede ajustar `limit` hasta 100 para casos donde necesite traer más registros (ej: exportar el historial completo de certificados de un socio).
 
-**Filtro por vencimiento próximo**: el filtro `expiryDateTo` permite implementar en el frontend una vista de "certificados por vencer en los próximos N días" simplemente enviando `expiryDateTo = hoy + N días`, sin lógica adicional en el backend.
+**Filtro por vencimiento próximo**: el filtro `expiry_date_to` permite implementar en el frontend una vista de "certificados por vencer en los próximos N días" simplemente enviando `expiry_date_to = hoy + N días`, sin lógica adicional en el backend.
 
-**Relación con otros TDDs**: este endpoint es de solo lectura. Las operaciones de escritura (alta, modificación, invalidación y borrado) se definen en TDD-0008, TDD-0009 y TDD-0010 respectivamente.
 
-**Ordenamiento de resultados**: el listado devuelve los certificados ordenados por `created_at DESC` (más recientes primero). Sin un criterio explícito, PostgreSQL puede variar el orden entre consultas idénticas según el estado interno de las tablas. Este ordenamiento es parte del comportamiento garantizado del endpoint.
 
-**`isInvalidated = false` no equivale a "vigente"**: un certificado puede tener `is_invalidated = false` y al mismo tiempo tener `expiry_date < hoy` (expirado pero nunca invalidado explícitamente). El filtro `isInvalidated` refleja el estado lógico persistido, no la vigencia temporal. Si el frontend necesita mostrar solo certificados activos y vigentes, debe combinar `isInvalidated = false` con `expiryDateFrom = hoy` en la consulta.
