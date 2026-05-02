@@ -11,17 +11,17 @@ titulo: Listado y Consulta de Casilleros (Lockers)
 ## Contexto de Negocio (PRD)
 
 ### Objetivo
-Proveer una interfaz de lectura rápida para visualizar el inventario completo de casilleros, permitiendo conocer su estado y ubicación
+Proveer una interfaz de lectura rápida para visualizar el inventario completo de casilleros, permitiendo conocer su estado y ubicación.
 
 ### User Persona
 - Nombre: Julian (Administrativo).
 - Necesidad: Encontrar un casillero libre rápidamente cuando un socio lo solicita en el mostrador, o buscar en qué estado se encuentra un número de casillero en particular.
 
 ### Criterios de Aceptación
-- El campo estado que devuelve la consulta y por el cual se filtra debe corresponder a los valores definidos: Available, Occupied, o Maintenance
+- El campo estado que devuelve la consulta y por el cual se filtra debe corresponder a los valores definidos: Available, Occupied, o Maintenance.
 - El sistema debe devolver un listado de todos los casilleros registrados en la base de datos.
-- El sistema debe permitir filtrar por: estado y socioId.
-- La respuesta debe incluir a qué socio está asignado el casillero (si corresponde)[cite: 1].
+- El sistema debe permitir filtrar por: `status` y `member_id`.
+- La respuesta debe incluir a qué socio está asignado el casillero (si corresponde).
 
 ## Diseño Técnico (RFC)
 
@@ -35,7 +35,7 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 - Query Params:
 {
     status?: 'Available' | 'Occupied' | 'Maintenance';
-    memberId?: string;         // UUID
+    member_id?: string;         // UUID
     page?: number;             // default 1
     limit?: number;            // default 20
 }
@@ -50,7 +50,7 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 
 - Adaptador de Salida: `PostgresLockerRepository` (Consultas de lectura usando los métodos findMany y findUnique de Prisma, incluyendo la relación con Member).
 
-- Adaptador de Entrada: `LockerController` (Rutas HTTP GET en Fastify que extraen parámetros y devuelven la data con un status)
+- Adaptador de Entrada: `LockerController` (Rutas HTTP GET en Fastify que extraen parámetros y devuelven la data con un status).
 
 ## Casos de Borde y Errores
 

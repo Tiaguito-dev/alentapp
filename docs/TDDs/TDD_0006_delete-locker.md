@@ -35,8 +35,8 @@ Permitir la eliminación de un casillero del sistema en caso de que sea removido
 ### Componentes de Arquitectura Hexagonal
 
   - puerto: `LockerRepository` (Método `delete(id)`).
-  - Caso de uso: `DeleteLockerUseCase` (Comprueba existencia previa vía findById, valida que no tenga un socio asignado, y delega la eliminación)
-  - adapador de entrada: `LockerController` (Ruta HTTP en Fastify que extrae el id de los parámetros y devuelve un status 204)
+  - Caso de uso: `DeleteLockerUseCase` (Comprueba existencia previa vía findById, valida que no tenga un socio asignado, y delega la eliminación).
+  - adapador de entrada: `LockerController` (Ruta HTTP en Fastify que extrae el id de los parámetros y devuelve un status 204).
   - adaptador de salida: `PostgresLockerRepository` (Eliminación usando el método `delete` de Prisma).  
 
 ## Casos de Borde y Errores
@@ -58,4 +58,4 @@ Permitir la eliminación de un casillero del sistema en caso de que sea removido
 
 ## Observaciones Adicionales
 
-- en este caso se realiza un borrado fisico que elimina el locker pero capaz no siempre sea la mejor opcion por un tema de si se quiere tener un registro historico, para esos casos se necesita un borrado logico, pero por un tema de simplicidad se aplica el borrado fisico sino se tendria que agregar una nueva opcion en status que sea "deleted"
+- En este caso se realiza un borrado fisico que elimina el locker, pero tal vez no siempre sea la mejor opcion, ya que si se quiere tener un registro historico, para esos casos se necesita un borrado logico, pero por un tema de simplicidad se aplica el borrado fisico sino se tendria que agregar una nueva opcion en status que sea "deleted".

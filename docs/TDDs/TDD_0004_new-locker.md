@@ -12,7 +12,7 @@ titulo: Alta de Casillero (Locker)
 
 ### Objetivo
 
-Permitir al personal administrativo registrar nuevos casilleros en el sistema cuando la institución lo requiera
+Permitir al personal administrativo registrar nuevos casilleros en el sistema cuando la institución lo requiera.
 
 ### User Persona
 
@@ -24,6 +24,7 @@ Permitir al personal administrativo registrar nuevos casilleros en el sistema cu
 - El sistema debe permitir ingresar el número, ubicación y estado inicial del casillero.
 - El sistema debe garantizar que el número (`number`) de casillero sea único en toda la institución.
 - Al crearse, no debe estar asignado a ningún socio por defecto (member_id null).
+- El estado inicial al momento de crear el Casillero es `Available`.
 
 ## Diseño Técnico (RFC)
 
@@ -33,7 +34,7 @@ Se definirá la entidad `Locker` con las siguientes propiedades:
 - `id`: UUID (Primary Key).
 - `number`: Entero, único (Unique Key) e indexado.
 - `location`: Cadena de texto.
-- `status`: Cadena de texto (`Available`, `Occupied`, `Maintenance`).
+- `status`: enumeracion (`Available`, `Occupied`, `Maintenance`).
 - `member_id`: UUID (Foreign Key a Member), nullable.
 
 ### Contrato de API (@alentapp/shared)
@@ -51,7 +52,7 @@ Se definirá la entidad `Locker` con las siguientes propiedades:
 ### Componentes de Arquitectura Hexagonal
 
 - Puerto: `LockerRepository` (Interface en el Dominio).
-- Caso de Uso: `CreateLocker` (Lógica que verifica si el numero del locker ya existe antes de llamar al repositorio).
+- Caso de Uso: `CreateLockerUseCase` (Lógica que verifica si el numero del locker ya existe antes de llamar al repositorio).
 - Adaptador de Salida: `PostgresLockerRepository` (Inserción en la base de datos usando el método `create` de Prisma).
 - Adaptador de Entrada: `LockerController` (Ruta HTTP).
 
@@ -69,11 +70,13 @@ Se definirá la entidad `Locker` con las siguientes propiedades:
 
 1. Actualizar esquema agregando el modelo Locker y generar la migración.
 2. Definir tipos de Request/Response en @alentapp/shared.
-3. Implementar la entidad Locker y el puerto en la capa de Dominio 
-4. Desarrollar el caso de uso CreateLockerUseCase
+3. Implementar el puerto en la capa de Dominio .
+4. Desarrollar el caso de uso CreateLockerUseCase.
 5. Consumir el endpoint desde el servicio de Frontend y crear el modal de alta de casillero.
 
 ## Observaciones Adicionales
 
 
-1. Normalización de Ubicaciones: Actualmente `location` es un texto libre, esto puede generar problemas por datos repetidos anotados de forma diferente, se tendra que controlar en el frontend
+1. Normalización de Ubicaciones: Actualmente `location` es un texto libre, esto puede generar problemas por datos repetidos anotados de forma diferente, se tendra que controlar en el frontend.
+
+2. en el modelo de datos, el `number` es indexado porque es un valor por el cual se va a usar como indice para recuperar los Casilleros. 

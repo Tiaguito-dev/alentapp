@@ -41,11 +41,11 @@ Permitir a los administrativos corregir o modificar la información de un locker
 ```
 ### Componentes de Arquitectura Hexagonal
 
-- Puerto: `LockerRepository` (Método `update(id, data)`)
-- Servicio de dominio: `LockerValidator` (Encargado validar el numero de locker y si esta en estado maintenace no deja asignarlo)
-- Caso de Uso: `UpdateLockerUseCase` (orquesta la validación de unicidad) y puerto de salida LockerRepository
-- Adaptador de Salida: `PostgresLockerRepository` (Actualización usando el método `update` de Prisma)
-- Adaptador de Entrada:  `LockerController` (Ruta HTTP que extrae el `id`)
+- Puerto: `LockerRepository` (Método `update(id, data)`).
+- Servicio de dominio: `LockerValidator` (Encargado validar el numero de locker y si esta en estado maintenace no deja asignarlo).
+- Caso de Uso: `UpdateLockerUseCase` (orquesta la validación de unicidad) y puerto de salida LockerRepository.
+- Adaptador de Salida: `PostgresLockerRepository` (Actualización usando el método `update` de Prisma).
+- Adaptador de Entrada:  `LockerController` (Ruta HTTP que extrae el `id`).
 
 ## Casos de Borde y Errores
 
@@ -59,7 +59,7 @@ Permitir a los administrativos corregir o modificar la información de un locker
 
 1. Actualizar las interfaces en el paquete `@alentapp/shared` (`UpdateLockerRequest`).
 2. Ampliar el `LockerRepository` con el método `update`.
-3. Implementar la lógica en `UpdateLockerUseCase` utilizando el `LockerValidator`
+3. Implementar la lógica en `UpdateLockerUseCase` utilizando el `LockerValidator`.
 4. Crear la ruta `PATCH` en el controlador y enlazarla a la app de Fastify.
 5. Consumir el endpoint desde el servicio de Frontend y reutilizar el modal de creación para permitir la edición.
 
@@ -69,4 +69,4 @@ Permitir a los administrativos corregir o modificar la información de un locker
 
 - Transición a Mantenimiento: Si un casillero actualmente ocupado por un socio se rompe y el administrativo intenta cambiar su status a `Maintenance`, el sistema debería alertar o forzar a que primero se reasigne a ese socio a un casillero nuevo, para no dejar a un usuario activo vinculado a un locker inhabilitado.
 
-- en el request body no agrego el atributo number porq no es un valor que se deberia poder cambiar ya que es un atributo necesario para conocer el locker
+- en el request body no agrego el atributo number porque no es un valor que se deberia poder cambiar ya que es un atributo necesario para conocer el locker.
