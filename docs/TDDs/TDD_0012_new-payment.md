@@ -76,9 +76,10 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `PaymentRepository`(métodos `create(payment)` y `existsActiveForPeriod(member_id, month, year)`). También se reutiliza `MemberRepository` (método `findById`) para validar la existencia del socio.
-2. **Caso de Uso**: `CreatePaymentUseCase` (verifica existencia del socio, verifica que no haya un pago activo para el mismo período, construye el objeto `Payment` con `status = Pending` y `payment_date = null`, y delega la persistencia al repositorio).
-3. **Adaptador de Salida**: `PostgresPaymentRepository` (creación usando el método `create` de Prisma; la unicidad de pagos activos por (socio, mes, año) se garantiza con un índice único parcial en la base de datos).
-4. **Adaptador de Entrada**: `PaymentController` (Ruta `POST /api/v1/pagos` que valida el payload y devuelve el pago creado con status 201).
+2. **Servicio de Dominio**: `PaymentValidator` (centraliza las validaciones de campos: `validateAmount(amount)` verifica que sea mayor a cero; `validatePeriod(month, year)` verifica que el mes esté entre 1 y 12 y el año en rango razonable; `validateDueDate(dueDate)` verifica que la fecha tenga formato ISO válido `YYYY-MM-DD`).
+3. **Caso de Uso**: `CreatePaymentUseCase` (delega las validaciones de campos en `PaymentValidator`; verifica existencia del socio vía `MemberRepository`; verifica que no haya un pago activo para el mismo período vía `existsActiveForPeriod`; construye el objeto `Payment` con `status = Pending` y `payment_date = null`; delega la persistencia al repositorio).
+4. **Adaptador de Salida**: `PostgresPaymentRepository` (creación usando el método `create` de Prisma; la unicidad de pagos activos por (socio, mes, año) se garantiza con un índice único parcial en la base de datos).
+5. **Adaptador de Entrada**: `PaymentController` (Ruta `POST /api/v1/pagos` que valida el payload y devuelve el pago creado con status 201).
 
 ## Casos de Borde y Errores
  
@@ -99,9 +100,10 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 1. Definir el tipo `CreatePaymentRequest` y el tipo `PaymentResponse` en el paquete `@alentapp/shared`.
 2. Agregar el modelo `Payment` al schema de Prisma con su índice único parcial y ejecutar la migración.
 3. Crear el puerto `PaymentRepository` en el dominio.
-4. Implementar el `PostgresPaymentRepository` y el caso de uso `CreatePaymentUseCase` (este último contiene la lógica de validación del socio, unicidad del período y forzado del estado a `Pending`).
-5. Exponer la ruta `POST /api/v1/pagos` en el `PaymentController` y registrarla en la app de Fastify.
-6. Crear el formulario de alta en el frontend y conectarlo al endpoint.
+4. Implementar el `PaymentValidator` con los métodos `validateAmount`, `validatePeriod` y `validateDueDate`.
+5. Implementar el `PostgresPaymentRepository` y el caso de uso `CreatePaymentUseCase` , delegando las validaciones de campos en `PaymentValidator`.
+6. Exponer la ruta `POST /api/v1/pagos` en el `PaymentController` y registrarla en la app de Fastify.
+7. Crear el formulario de alta en el frontend y conectarlo al endpoint.
 
 ## Observaciones Adicionales
 

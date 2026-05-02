@@ -66,10 +66,11 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `PaymentRepository` (métodos `findById(id)` y `update(payment)`).
-2. **Caso de Uso**: `UpdatePaymentUseCase` (recupera el pago vía `findById`; si `status != 'Pending'` lanza error; valida los nuevos valores de `amount` y/o `due_date`; aplica los cambios y delega la persistencia al repositorio).
-3. **Caso de Uso**: `MarkPaymentAsPaidUseCase` (recupera el pago vía `findById`; si `status != 'Pending'` lanza error; transiciona el `status` a `Paid` y completa `payment_date` con la fecha provista o `now()`; delega la persistencia al repositorio).
-4. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
-5. **Adaptador de Entrada**: `PaymentController` (Rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar`, que extraen el `id` y mapean excepciones a códigos HTTP).
+2. **Servicio de Dominio**: `PaymentValidator` (reutilizado desde TDD-0012; `validateAmount(amount)` verifica que el monto sea mayor a cero; `validateDueDate(dueDate)` verifica el formato ISO `YYYY-MM-DD`; `validatePaymentDate(paymentDate)` verifica el formato ISO DateTime cuando se provee una fecha de pago).
+3. **Caso de Uso**: `UpdatePaymentUseCase` (recupera el pago vía `findById`; si `status != 'Pending'` lanza error; delega las validaciones de `amount` y/o `due_date` en `PaymentValidator`; aplica los cambios y delega la persistencia al repositorio).
+4. **Caso de Uso**: `MarkPaymentAsPaidUseCase` (recupera el pago vía `findById`; si `status != 'Pending'` lanza error; delega la validación de `payment_date` en `PaymentValidator` cuando se provee; transiciona el `status` a `Paid` y completa `payment_date` con la fecha provista o `now()`; delega la persistencia al repositorio).
+5. **Adaptador de Salida**: `PostgresPaymentRepository` (actualización usando el método `update` de Prisma).
+6. **Adaptador de Entrada**: `PaymentController` (rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar`, que extraen el `id` y mapean excepciones a códigos HTTP).
 
 ## Casos de Borde y Errores
  
@@ -101,8 +102,8 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 
 1. Definir los tipos `UpdatePaymentRequest` y `MarkPaymentAsPaidRequest` en el paquete `@alentapp/shared`.
 2. Ampliar el puerto `PaymentRepository` con el método `update` y su implementación en `PostgresPaymentRepository`.
-3. Agregar los métodos `updateFields` y `markAsPaid` a la entidad `Payment`, asegurando que rechacen la operación si el pago no está en estado `Pending`.
-4. Implementar los casos de uso `UpdatePaymentUseCase` y `MarkPaymentAsPaidUseCase`.
+3. Agregar el método `validatePaymentDate(paymentDate)` al `PaymentValidator` definido en TDD-0012.
+4. Implementar los casos de uso `UpdatePaymentUseCase` y `MarkPaymentAsPaidUseCase`, delegando las validaciones de campos en `PaymentValidator` y manejando el chequeo del estado `Pending` directamente en cada caso de uso.
 5. Exponer las rutas `PATCH /api/v1/pagos/:id` y `PATCH /api/v1/pagos/:id/pagar` en el `PaymentController` y registrarlas en la app de Fastify.
 6. En el frontend, agregar la acción "Editar" (modal con monto y fecha) y la acción "Marcar como pagado" (botón con confirmación) en la tabla de pagos.
 
