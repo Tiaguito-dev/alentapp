@@ -52,7 +52,7 @@ Se definirá la entidad `Locker` con las siguientes propiedades:
 ### Componentes de Arquitectura Hexagonal
 
 - Puerto: `LockerRepository` (Interface en el Dominio).
-- Caso de Uso: `CreateLockerUseCase` (Lógica que verifica si el numero del locker ya existe antes de llamar al repositorio).
+- Caso de Uso: `CreateLockerUseCase` (Lógica que verifica si el numero del Casillero ya existe antes de llamar al repositorio).
 - Adaptador de Salida: `PostgresLockerRepository` (Inserción en la base de datos usando el método `create` de Prisma).
 - Adaptador de Entrada: `LockerController` (Ruta HTTP).
 
@@ -60,7 +60,7 @@ Se definirá la entidad `Locker` con las siguientes propiedades:
 
 | Escenario                  | Resultado Esperado                            | Código HTTP               |
 | -------------------------- | --------------------------------------------- | ------------------------- |
-| Número duplicado           | Mensaje: "Ya existe locker con ese numero"    | 409 Conflict              |
+| Número duplicado           | Mensaje: "Ya existe  Casillero con ese numero"| 409 Conflict              |
 | Tipo de dato inválido      | Mensaje: "error de validacion"                | 400 Bad Request           |
 | Error de conexión a DB     | Mensaje: "Error interno, reintente más tarde" | 500 Internal Server Error |
 

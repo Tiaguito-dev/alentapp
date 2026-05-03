@@ -12,12 +12,12 @@ titulo: Modificación y Asignación de Casillero (Locker)
 
 ### Objetivo
 
-Permitir a los administrativos corregir o modificar la información de un locker existente en el sistema, como su estado de cuenta, categoría o datos personales que hayan cambiado o se hayan ingresado incorrectamente.
+Permitir a los administrativos corregir o modificar la información de un Casillero existente en el sistema, como su estado de cuenta, categoría o datos personales que hayan cambiado o se hayan ingresado incorrectamente.
 
 ### User Persona
 
 - Nombre: Julian (Administrativo).
-- Necesidad: Asignar un locker a un socio que acaba de pedir uno, o marcar un locker como "Maintenance" por algun motivo.
+- Necesidad: Asignar un Casillero a un socio que acaba de pedir uno, o marcar un Casillero como "Maintenance" por algun motivo.
 
 ### Criterios de Aceptación
 
@@ -42,7 +42,7 @@ Permitir a los administrativos corregir o modificar la información de un locker
 ### Componentes de Arquitectura Hexagonal
 
 - Puerto: `LockerRepository` (Método `update(id, data)`).
-- Servicio de dominio: `LockerValidator` (Encargado validar el numero de locker y si esta en estado maintenace no deja asignarlo).
+- Servicio de dominio: `LockerValidator` (Encargado validar el numero del Casillero y si esta en estado maintenace no deja asignarlo).
 - Caso de Uso: `UpdateLockerUseCase` (orquesta la validación de unicidad) y puerto de salida LockerRepository.
 - Adaptador de Salida: `PostgresLockerRepository` (Actualización usando el método `update` de Prisma).
 - Adaptador de Entrada:  `LockerController` (Ruta HTTP que extrae el `id`).
@@ -51,7 +51,7 @@ Permitir a los administrativos corregir o modificar la información de un locker
 
 | Escenario                  | Resultado Esperado                            | Código HTTP               |
 | -------------------------- | --------------------------------------------- | ------------------------- |
-| Asignar locker en Maintenance| Mensaje: "error: casillero en mantenimiento"| 422 Unprocessable Entity  |
+| Asignar Casillero en Maintenance| Mensaje: "error: casillero en mantenimiento"| 422 Unprocessable Entity  |
 | Asignar Socio inexistente  | Mensaje: "error: Socio no existe"             | 404 not found             |
 | Error de conexión a DB     | Mensaje: "Error interno, reintente más tarde" | 500 Internal Server Error |
 
@@ -67,6 +67,6 @@ Permitir a los administrativos corregir o modificar la información de un locker
 
 - Protección contra Sobreescritura : Si un casillero ya está asignado al Socio A, y el administrativo intenta enviar un request asignándolo al Socio B, el sistema debería rechazar la operación solicitando que primero se desasigne al Socio A. Esto previene errores humanos en el mostrador.
 
-- Transición a Mantenimiento: Si un casillero actualmente ocupado por un socio se rompe y el administrativo intenta cambiar su status a `Maintenance`, el sistema debería alertar o forzar a que primero se reasigne a ese socio a un casillero nuevo, para no dejar a un usuario activo vinculado a un locker inhabilitado.
+- Transición a Mantenimiento: Si un casillero actualmente ocupado por un socio se rompe y el administrativo intenta cambiar su status a `Maintenance`, el sistema debería alertar o forzar a que primero se reasigne a ese socio a un casillero nuevo, para no dejar a un usuario activo vinculado a un Casillero inhabilitado.
 
-- en el request body no agrego el atributo number porque no es un valor que se deberia poder cambiar ya que es un atributo necesario para conocer el locker.
+- en el request body no agrego el atributo number porque no es un valor que se deberia poder cambiar ya que es un atributo necesario para conocer el Casillero.
