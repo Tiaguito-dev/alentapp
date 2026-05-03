@@ -38,7 +38,7 @@ No se introducen cambios al modelo definido en TDD-0008. La operación de borrad
 Al tratarse de una operación destructiva que solo requiere conocer el identificador, no se envía cuerpo en la petición HTTP.
 
 - Endpoint: `DELETE /api/v1/medical-certificates/:id`
-- Request Body: `None`
+- Request Body: ninguno.
 - Response: `204 No Content` en caso de éxito.
 
 ### Componentes de Arquitectura Hexagonal
@@ -66,7 +66,11 @@ Al tratarse de una operación destructiva que solo requiere conocer el identific
 
 ## Observaciones Adicionales
 
-1. **Distinción con la invalidación**: el borrado físico es para errores de carga; la invalidación (TDD-0009) es el camino correcto cuando el certificado tiene validez histórica y solo se quiere darlo de baja lógicamente. Ambas operaciones no deben confundirse ni intercambiarse.
+### Distinción con la invalidación
 
-2. **Impacto en el certificado activo**: si se elimina el único certificado activo del socio (`is_validated = true`), el sistema queda sin cobertura médica registrada para ese socio. La operación no se bloquea, pero el frontend debe mostrar una advertencia adicional en este caso para que el administrativo sea consciente de las consecuencias.
+El borrado físico es para errores de carga; la invalidación (TDD-0009) es el camino correcto cuando el certificado tiene validez histórica y solo se quiere darlo de baja lógicamente. Ambas operaciones no deben confundirse ni intercambiarse.
+
+### Impacto en el certificado activo
+
+Si se elimina el único certificado activo del socio (`is_validated = true`), el sistema queda sin cobertura médica registrada para ese socio. La operación no se bloquea, pero el frontend debe mostrar una advertencia adicional en este caso para que el administrativo sea consciente de las consecuencias.
 

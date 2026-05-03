@@ -123,9 +123,9 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 
 ### Por qué solo se permiten editar `issue_date`, `expiry_date` y `doctor_license`
 
-La modificación está acotada a estos tres campos porque son los únicos que representan datos descriptivos del certificado: información que fue ingresada por el administrativo y que puede contener errores tipográficos o de carga sin afectar la identidad  del documento. Corregir una fecha de vencimiento mal escrita o actualizar una matrícula médica incorrecta no cambia *qué es* el certificado ni *a quién pertenece*; solo corrige *cómo está documentado*.
+La modificación está acotada a estos tres campos porque son los únicos que representan datos descriptivos del certificado: información que fue ingresada por el administrativo y que puede contener errores tipográficos o de carga sin afectar la identidad del documento. Corregir una fecha de vencimiento mal escrita o actualizar una matrícula médica incorrecta no cambia *qué es* el certificado ni *a quién pertenece*; solo corrige *cómo está documentado*.
 
-
+A continuación se detalla el motivo de exclusión de cada campo:
 
 - **`member_id`**: identifica a quién pertenece el certificado. Reasignarlo a otro socio no es una corrección de datos, es transferir un registro médico de una persona a otra. Desde el punto de vista médico y legal, un certificado emitido para una persona no puede simplemente "moverse" a otra. Si se cometió un error de asignación, lo correcto es invalidar el certificado actual y emitir uno nuevo al socio correcto.
 
@@ -137,7 +137,7 @@ Una vez invalidado, no se puede volver atrás. Marcar un certificado como invál
 
 ### Invalidación de certificados ya vencidos
 
-La invalidación manual aplica incluso cuando el certificado tiene una `expiry_date` anterior a la fecha actual (certificado expirado). Aunque el certificado ya no tenga validez médica práctica, puede seguir figurando como `is_validated = true` en la base de datos si nunca fue invalidado explícitamente. Marcarlo como invalidado en estos casos es válido y recomendable para mantener la coherencia del historial: un certificado expirado no invalidado podría generar confusión al consultar el registro del socio.
+También se pueden invalidar certificados que ya vencieron. Aunque no tengan más validez práctica, pueden seguir figurando como activos si nadie los invalidó manualmente. Marcarlo en esos casos ayuda a mantener el historial limpio y evita confusión cuando alguien consulta los registros de un socio.
 
 ### Justificación de la separación
 
