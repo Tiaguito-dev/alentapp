@@ -70,12 +70,12 @@ respetando el ER del enunciado:
 ```ts
 {
   id:             string;
-   member_id:      string;
-   issue_date:     string; // ISO Date
-   expiry_date:    string; // ISO Date
-   doctor_license: string;
-   is_validated:   true;   // siempre true al crear
-   created_at:     string; // ISO DateTime
+  member_id:      string;
+  issue_date:     string; // ISO Date
+  expiry_date:    string; // ISO Date
+  doctor_license: string;
+  is_validated:   true;   // siempre true al crear
+  created_at:     string; // ISO DateTime
 }
 ```
 
