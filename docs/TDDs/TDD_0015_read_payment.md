@@ -46,9 +46,7 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 ```
 - Response: 200 OK con la lista de pagos. Cada pago se devuelve con su `status` ya resuelto (los pagos `Pending` con `due_date < hoy` se devuelven como `Overdue`).
 ```ts
-{
-    data: PaymentResponse[];  
-}
+PaymentResponse[]
 ```
 
 #### 2 Detalle por ID
