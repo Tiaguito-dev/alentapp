@@ -40,7 +40,7 @@ Se definirá el modelo `Payment` con las siguientes propiedades y restricciones:
 - `year`: entero. 
 - `status`: enumeración (`Pending`, `Paid`, `Canceled`). 
 - `due_date`: fecha (sin hora).
-- `payment_date`: fecha y hora, nullable. Nulo en el alta.
+- `payment_date`: fecha y hora, nullable. 
 - `member_id`: UUID, FK a `Member`.
  
 ### Contrato de API (@alentapp/shared)
@@ -112,4 +112,10 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 **No pueden existir dos pagos activos para el mismo (socio, mes, año)**, pero **sí debe permitirse re-emitir un pago si el anterior fue cancelado**. Por ejemplo: si se cargó la cuota de mayo de un socio por error, se cancela y se vuelve a cargar correctamente — los dos registros conviven en la base, uno cancelado y otro activo.
 
 Para hacer cumplir esa regla se utiliza un **índice único parcial** sobre la combinación (`member_id`, `month`, `year`), filtrado por `status != 'Canceled'`. La palabra "parcial" significa que la restricción de unicidad no aplica a todas las filas, sino solo a aquellas cuyo estado no es `Canceled`. 
+
+- Se considera que el socio paga una membresía anual, y se le cargan en el sistema las 12 cuotas del año. El socio paga un monto en base a los deportes que practica. Entonces, si hace 3 deportes, el monto de cada cuota aumenta con respecto a si practicara 1 o 2 deportes. Esto puede cambiar según las reglas de negocio. 
+
+- El rango considerado **razonable** para el año puede cambiar. 
+
+- Se puede considerar no permitir al usuario que cargue el estado desde el frontend, ya que por defecto `status` = `Pending`. 
 

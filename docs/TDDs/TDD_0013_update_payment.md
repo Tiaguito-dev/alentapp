@@ -11,12 +11,12 @@ titulo: Modificación de Pagos
  
 ### Objetivo
 
-Permitir al Tesorero modificar un pago existente en dos escenarios distintos pero relacionados: (a) corregir datos del pago (monto y/o fecha de vencimiento) cuando todavía no fue cobrado; (b) registrar el cobro de un pago pendiente (transición a `Paid`). 
+Permitir al Tesorero modificar un pago existente en dos escenarios distintos: (a) corregir datos del pago (monto y/o fecha de vencimiento) cuando todavía no fue cobrado; (b) registrar el cobro de un pago pendiente (transición a `Paid`). 
  
 ### User Persona
 
 - Nombre: Lautaro (Tesorero).
-- Necesidad: Corregir un monto mal cargado o postergar una fecha de vencimiento mientras el pago sigue pendiente, y registrar el cobro cuando el socio paga (ya sea en caja o por transferencia). Necesita que el sistema impida modificaciones sobre pagos ya cobrados o cancelados, para no alterar registros financieros consolidados.
+- Necesidad: Corregir un monto mal cargado o postergar una fecha de vencimiento mientras el pago sigue pendiente, y registrar el cobro cuando el socio paga. Necesita que el sistema impida modificaciones sobre pagos ya cobrados o cancelados, para no alterar registros financieros consolidados.
 
 ### Criterios de Aceptación
 
@@ -24,13 +24,11 @@ Permitir al Tesorero modificar un pago existente en dos escenarios distintos per
 - El sistema debe permitir editar `amount` y/o `due_date` solo cuando el pago esté en estado `Pending`.
 - Si el pago está en estado `Paid` o `Canceled`, la edición debe rechazarse para preservar la inmutabilidad financiera.
 - No se permite editar `member_id`, `month`, `year` ni `status` por esta vía: cambiarlos sería re-emitir el pago, no modificarlo.
-- Al menos un campo modificable debe estar presente en el body; un PATCH vacío debe rechazarse.
 
 **Marcado como pagado:**
 - Solo se puede marcar como pagado un pago en estado `Pending`. Marcar uno ya pagado o cancelado debe rechazarse.
 - La operación debe completar `payment_date` con la fecha y hora provistas; si no se provee, se usa `now()`.
 - La operación debe transicionar el estado a `Paid`.
-
 
 ## Diseño Técnico (RFC)
  
@@ -40,7 +38,7 @@ No se introducen cambios al modelo definido en TDD-0012. Se reutilizan los mismo
  
 ### Contrato de API (@alentapp/shared)
 
-Se exponen dos endpoints diferenciados para mantener explícita la semántica de cada operación:
+Se exponen dos endpoints diferenciados:
  
 #### 1 Edición de campos
 - Endpoint: `PATCH /api/v1/payments/:id`
@@ -83,7 +81,6 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 | Body vacío (ningún campo enviado)          | Mensaje: "Debe proveer al menos un campo a modificar"         | 400 Bad Request           |
 | Monto enviado ≤ 0                          | Mensaje: "El monto debe ser mayor a cero"                     | 400 Bad Request           |
 | Fecha de vencimiento con formato inválido  | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"    | 400 Bad Request           |
-| Cliente envía un campo no editable         | Se ignora  (no se persiste el campo prohibido)                | 200 OK                    |
 | Error de conexión a la base de datos       | Mensaje: "Error interno, reintente más tarde"                 | 500 Internal Server Error |
  
 ### Marcado como pagado (`PATCH /api/v1/payments/:id/pay`)
@@ -111,7 +108,7 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 
 ### Justificación de la separación en el contrato de API
 
-Usar un único `PATCH /api/v1/payments/:id` con un campo `status` opcional permitiría que un cliente cambie el estado mediante el mismo verbo que edita otros campos. Eso aumenta el riesgo de transiciones accidentales. Endpoints orientados a acción (`/pay`, y en TDD-0014 `/cancel`) hacen explícita la transición de estado.
+Usar un único `PATCH /api/v1/payments/:id` con un campo `status` opcional permitiría que un usuario cambie el estado mediante el mismo verbo que edita otros campos. Eso aumenta el riesgo de transiciones accidentales. Endpoints orientados a acción (`/pay`, y en TDD-0014 `/cancel`) hacen explícita la transición de estado.
 
 ### Por qué solo se permiten editar `amount` y `due_date`
 
@@ -129,4 +126,6 @@ La modificación está acotada a estos dos campos porque son los únicos que pue
   Permitir editar `status` desde un endpoint genérico abriría la puerta a saltearse estas reglas y a transiciones accidentales. 
 
 - **`payment_date`**: solo tiene sentido cuando el pago está en estado `Paid`, y en ese caso se completa automáticamente al ejecutar la acción de marcar como pagado. Editarla por separado podría dejar el sistema en un estado inconsistente (por ejemplo, un pago `Pending` con `payment_date` completa, o un pago `Paid` con `payment_date` adelantada respecto a la realidad). Si se necesita corregir una fecha de pago mal cargada, la operación correcta es cancelar el pago e ingresarlo nuevamente con la fecha correcta.
+
+- Se considera que la fecha de pago se carga todos los meses cuando el socio paga su cuota. No se establece por adelantado cuándo se debe pagar la cuota. Para ver si hay cuotas vencidas o socios en estado moroso, el sistema permite listar las cuotas vencidas.
 
