@@ -42,11 +42,14 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
     month?: number;              // entero 1-12 (validado en runtime)
     year?: number;             // entero (validado en runtime)
     status?: 'Pending' | 'Paid' | 'Canceled' | 'Overdue';
-    page?: number;             // default 1
-    limit?: number;            // default 20, máx 100
 }
 ```
 - Response: 200 OK con la lista de pagos. Cada pago se devuelve con su `status` ya resuelto (los pagos `Pending` con `due_date < hoy` se devuelven como `Overdue`).
+```ts
+{
+    data: PaymentResponse[];  
+}
+```
 
 #### 2 Detalle por ID
 - Endpoint: `GET /api/v1/payments/:id`
@@ -54,10 +57,10 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 
 ### Componentes de Arquitectura Hexagonal
 
-1. **Puerto**: `PaymentRepository` (métodos `findById(id)`, `findMany(filters, page, limit)` y `countMatching(filters)`, donde `filters` solo acepta condiciones sobre el `status` persistido y la `due_date`).
-2. **Caso de Uso**: `ListPaymentsUseCase` (traduce el filtro virtual `status = 'Overdue'` a `status = 'Pending' AND due_date < hoy` y el filtro `status = 'Pending'` a `status = 'Pending' AND due_date >= hoy`; ejecuta la consulta paginada y resuelve el `status` de cada pago antes de devolverlo).
+1. **Puerto**: `PaymentRepository` (métodos `findById(id)` y `findMany(filters)`).
+2. **Caso de Uso**: `ListPaymentsUseCase` (traduce el filtro virtual `status = 'Overdue'` a `status = 'Pending' AND due_date < hoy` y el filtro `status = 'Pending'` a `status = 'Pending' AND due_date >= hoy`; ejecuta la consulta y resuelve el `status` de cada pago antes de devolverlo).
 3. **Caso de Uso**: `GetPaymentByIdUseCase` (recupera un pago por ID y resuelve su `status` antes de devolverlo).
-4. **Adaptador de Salida**: `PostgresPaymentRepository` (consulta usando los métodos `findMany` y `count` de Prisma).
+4. **Adaptador de Salida**: `PostgresPaymentRepository` (consulta usando el método `findMany` de Prisma).
 5. **Adaptador de Entrada**: `PaymentController` (Rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id` que validan los query params y devuelven status 200).
 
 ## Casos de Borde y Errores
@@ -65,22 +68,20 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 | Escenario                                | Resultado Esperado                                              | Código HTTP     |
 | ---------------------------------------- | --------------------------------------------------------------- | --------------- |
 | Pago inexistente (consulta por ID)       | Mensaje: "El pago no existe"                                    | 404 Not Found   |
-| `limit` mayor al máximo permitido (100)  | Se ignora y se acota a 100                                      | 200 OK          |
-| `page` ≤ 0                               | Mensaje: "El parámetro page debe ser mayor a cero"              | 400 Bad Request |
-| `month` fuera de rango (no entre 1 y 12)   | Mensaje: "El mes debe estar entre 1 y 12"                       | 400 Bad Request |
+| `month` fuera de rango (no entre 1 y 12) | Mensaje: "El mes debe estar entre 1 y 12"                       | 400 Bad Request |
 | `status` con valor no reconocido         | Mensaje: "Estado inválido"                                      | 400 Bad Request |
 | Filtro `status = 'Overdue'`              | Devuelve solo pagos `Pending` con `due_date < hoy`              | 200 OK          |
 | Filtro `status = 'Pending'`              | Devuelve solo pagos `Pending` con `due_date >= hoy`             | 200 OK          |
-| Sin resultados                           | Devuelve la lista vacía con `total: 0`                          | 200 OK          |
+| Sin resultados                           | Devuelve un array vacío `[]`                                    | 200 OK          |
 | Error de conexión a la base de datos     | Mensaje: "Error interno, reintente más tarde"                   | 500 Internal Server Error |
 
 ## Plan de Implementación
 
-1. Definir los tipos del query params y del response paginado en el paquete `@alentapp/shared`.
-2. Ampliar el puerto `PaymentRepository` con los métodos `findById`, `findMany` y `countMatching`, junto con su implementación en `PostgresPaymentRepository`.
+1. Definir los tipos del query params y del response en el paquete `@alentapp/shared`.
+2. Ampliar el puerto `PaymentRepository` con los métodos `findById` y `findMany`, junto con su implementación en `PostgresPaymentRepository`.
 3. Implementar los casos de uso `ListPaymentsUseCase` y `GetPaymentByIdUseCase`, incluyendo la traducción del filtro `Overdue` a condiciones sobre la base de datos y la resolución del `status` antes de devolver cada pago.
 4. Exponer las rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id` en el `PaymentController` y registrarlas en la app de Fastify.
-5. En el frontend, agregar la vista de listado con filtros (socio, mes/año, estado) y paginación.
+5. En el frontend, agregar la vista de listado con filtros (socio, mes/año, estado).
 
 ## Observaciones Adicionales
 
@@ -93,10 +94,6 @@ El estado `Overdue` no es un valor que la base de datos almacene. Se calcula al 
 Cuando los endpoints de consulta devuelven un pago, el campo `status` ya viene **calculado** por el backend. 
  
 Por ejemplo, un pago con `status = Pending` y `due_date = 2026-04-01` (ya pasada) se persiste como `Pending` en la base de datos, pero al consultarse aparece en el response como `status = Overdue`. La traducción la hace el caso de uso antes de devolver el pago.
-
-### Paginación
-
-El endpoint pagina los resultados con defaults `page=1` y `limit=20`. Esto evita que la API devuelva miles de registros en clubes con muchos años de historia, manteniendo tiempos de respuesta consistentes. El cliente puede ajustar `limit` hasta 100 para casos donde necesite traer más resultados (ej: exportar pagos de un socio puntual).
 
 ### Diferencia entre los query params públicos y el objeto `filters` interno
 
