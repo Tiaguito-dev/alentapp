@@ -3,10 +3,10 @@ id: 0007
 estado: Propuesto
 autor: Sereno Santiago
 fecha: 2026-05-01
-titulo: Listado y Consulta de Casilleros (Lockers)
+titulo: Listado y Consulta de Casilleros 
 ---
 
-# TDD-0007: Listado y Consulta de Casilleros (Lockers)
+# TDD-0007: Listado y Consulta de Casilleros 
 
 ## Contexto de Negocio (PRD)
 
@@ -36,8 +36,7 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 {
     status?: 'Available' | 'Occupied' | 'Maintenance';
     member_id?: string;         // UUID
-    page?: number;             // default 1
-    limit?: number;            // default 20
+   
 }
 
 
