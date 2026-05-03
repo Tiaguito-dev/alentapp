@@ -17,7 +17,7 @@ Permitir la eliminación de un casillero del sistema en caso de que sea removido
 ### User Persona
 
 -  Nombre: Julian (Administrativo).
--   Necesidad: Mantener el inventario digital sincronizado con la realidad del club, eliminando registros de lockers que ya no existen para no generar confusión.
+-   Necesidad: Mantener el inventario digital sincronizado con la realidad del club, eliminando Casilleros que ya no existen para no generar confusión.
 
 ### Criterios de Aceptación
 
@@ -43,9 +43,9 @@ Permitir la eliminación de un casillero del sistema en caso de que sea removido
 
 | Escenario                   | Resultado Esperado                                          | Código HTTP     |
 | --------------------------- | ------------------------------------------------------------| --------------- |
-| Locker no existe            | Error: "El casillero especificado no fue encontrado"        | 404 Not Found   |
-| Dar de baja locker ocupado  | Error: "No se puede eliminar un casillero ocupado por un socio"| 409 Conflict |
-| Error de conexión a DB      | Mensaje: "Error interno, reintente más tarde"               |500 Internal Server Error|
+| Casillero no existe         | Error: "El casillero especificado no fue encontrado"        | 404 Not Found   |
+| Dar de baja Casillero ocupado| Error: "No se puede eliminar un casillero ocupado por un socio"| 409 Conflict |
+| Error de conexión a DB      | Mensaje: "Error interno, reintente más tarde"            |500 Internal Server Error|
 
 
 
@@ -58,4 +58,4 @@ Permitir la eliminación de un casillero del sistema en caso de que sea removido
 
 ## Observaciones Adicionales
 
-- En este caso se realiza un borrado fisico que elimina el locker, pero tal vez no siempre sea la mejor opcion, ya que si se quiere tener un registro historico, para esos casos se necesita un borrado logico, pero por un tema de simplicidad se aplica el borrado fisico sino se tendria que agregar una nueva opcion en status que sea "deleted".
+- En este caso se realiza un borrado fisico que elimina el Casillero, pero tal vez no siempre sea la mejor opcion, ya que si se quiere tener un registro historico, para esos casos se necesita un borrado logico, pero por un tema de simplicidad se aplica el borrado fisico sino se tendria que agregar una nueva opcion en status que sea "deleted".
