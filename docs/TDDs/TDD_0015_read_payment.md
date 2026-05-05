@@ -51,7 +51,7 @@ PaymentResponse[]
 2. **Caso de Uso**: `ListPaymentsUseCase` (recupera todos los pagos y resuelve el `status` de cada uno antes de devolverlo, transformando los `Pending` vencidos a `Overdue`).
 3. **Caso de Uso**: `GetPaymentByIdUseCase` (recupera un pago por ID y resuelve su `status` antes de devolverlo).
 4. **Adaptador de Salida**: `PostgresPaymentRepository` (consulta usando el método `findMany` de Prisma; todas las consultas incluyen siempre la condición `deleted_at IS NULL`).
-5. **Adaptador de Entrada**: `PaymentController` (Rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id` que validan los query params y devuelven status 200).
+5. **Adaptador de Entrada**: `PaymentController` (Rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id`).
 
 ## Casos de Borde y Errores
 
