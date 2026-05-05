@@ -1,6 +1,6 @@
 ---
 id: 0012
-estado: Propuesto
+estado: Aprobado
 autor: Felipe Pianelli
 fecha: 2026-05-01
 titulo: Alta de Pagos
@@ -11,21 +11,22 @@ titulo: Alta de Pagos
  
 ### Objetivo
 
-Permitir al Tesorero registrar de forma digital la obligación de pago de un socio (ejemplo, cuota mensual del club), generando un registro auditable que servirá como base para el seguimiento de cobranzas.  
+Permitir al Administrativo registrar de forma digital la obligación de pago de un socio (ejemplo, cuota mensual del club), generando un registro auditable que servirá como base para el seguimiento de cobranzas.  
  
 ### User Persona
 
-- Nombre: Lautaro (Tesorero).
+- Nombre: Lautaro (Administrativo).
 - Necesidad: Generar las cuotas del mes para los socios sin riesgo de cobrar dos veces el mismo período ni saltearse a un socio. Por ejemplo, si Lautaro carga las cuotas de mayo y un compañero ya las había cargado a la mitad, el sistema debe avisarle en lugar de duplicar pagos. 
 
 ### Criterios de Aceptación
 
 - El sistema debe crear el pago siempre en estado `Pending` por defecto. Cualquier intento del cliente de fijar otro estado en el alta debe ser ignorado y reemplazado por `Pending`.
-- El sistema debe rechazar el alta si ya existe un pago no cancelado para la misma combinación (socio, mes, año). Esto permite re-emitir un pago cancelado pero impide duplicados activos.
+- El sistema debe rechazar el alta si ya existe un pago activo (no cancelado y no dado de baja) para la misma combinación (socio, mes, año). Esto permite re-emitir un pago previamente cancelado o dado de baja, pero impide duplicados activos.
 - El sistema debe validar que el monto sea estrictamente mayor a cero.
-- El sistema debe validar que el mes esté entre 1 y 12, y que el año esté en un rango razonable (entre el año actual menos 1 y el año actual más 1).
+- El sistema debe validar que el mes esté entre 1 y 12, y que el año esté en un rango razonable (ejemplo, entre el año actual menos 1 y el año actual más 1).
 - El sistema debe validar que el socio referenciado exista.
 - El campo `payment_date` debe quedar nulo en el alta; solo se completa al marcar el pago como pagado.
+- El campo `deleted_at` debe quedar nulo en el alta; solo se completa cuando se da de baja el pago (ver TDD-0014).
 
 
 ## Diseño Técnico (RFC)
@@ -41,6 +42,7 @@ Se definirá el modelo `Payment` con las siguientes propiedades y restricciones:
 - `status`: enumeración (`Pending`, `Paid`, `Canceled`). 
 - `due_date`: fecha (sin hora).
 - `payment_date`: fecha y hora, nullable. 
+- `deleted_at`: fecha y hora, nullable. 
 - `member_id`: UUID, FK a `Member`.
  
 ### Contrato de API (@alentapp/shared)
@@ -77,8 +79,8 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 
 1. **Puerto**: `PaymentRepository`(métodos `create(payment)` y `existsActiveForPeriod(member_id, month, year)`). También se reutiliza `MemberRepository` (método `findById`) para validar la existencia del socio.
 2. **Servicio de Dominio**: `PaymentValidator` (centraliza las validaciones de campos: `validateAmount(amount)` verifica que sea mayor a cero; `validatePeriod(month, year)` verifica que el mes esté entre 1 y 12 y el año en rango razonable; `validateDueDate(due_date)` verifica que la fecha tenga formato ISO válido `YYYY-MM-DD`).
-3. **Caso de Uso**: `CreatePaymentUseCase` (delega las validaciones de campos en `PaymentValidator`; verifica existencia del socio vía `MemberRepository`; verifica que no haya un pago activo para el mismo período vía `existsActiveForPeriod`; construye el objeto `Payment` con `status = Pending` y `payment_date = null`; delega la persistencia al repositorio).
-4. **Adaptador de Salida**: `PostgresPaymentRepository` (creación usando el método `create` de Prisma; la unicidad de pagos activos por (socio, mes, año) se garantiza con un índice único parcial en la base de datos).
+3. **Caso de Uso**: `CreatePaymentUseCase` (delega las validaciones de campos en `PaymentValidator`; verifica existencia del socio vía `MemberRepository`; verifica que no haya un pago activo para el mismo período vía `existsActiveForPeriod`; construye el objeto `Payment` con `status = Pending`, `payment_date = null` y `deleted_at = null`; delega la persistencia al repositorio).
+4. **Adaptador de Salida**: `PostgresPaymentRepository` (creación usando el método `create` de Prisma; implementa `existsActiveForPeriod` con una consulta filtrada por `status != 'Canceled' AND deleted_at IS NULL`).
 5. **Adaptador de Entrada**: `PaymentController` (Ruta `POST /api/v1/payments` que valida el payload y devuelve el pago creado con status 201).
 
 ## Casos de Borde y Errores
@@ -98,7 +100,7 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 ## Plan de Implementación
 
 1. Definir el tipo `CreatePaymentRequest` y el tipo `PaymentResponse` en el paquete `@alentapp/shared`.
-2. Agregar el modelo `Payment` al schema de Prisma con su índice único parcial y ejecutar la migración.
+2. Agregar el modelo `Payment` al schema de Prisma (incluyendo el campo `deleted_at`) y ejecutar la migración.
 3. Crear el puerto `PaymentRepository` en el dominio.
 4. Implementar el `PaymentValidator` con los métodos `validateAmount`, `validatePeriod` y `validateDueDate`.
 5. Implementar el `PostgresPaymentRepository` y el caso de uso `CreatePaymentUseCase` , delegando las validaciones de campos en `PaymentValidator`.
@@ -107,11 +109,13 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización ent
 
 ## Observaciones Adicionales
 
-### Por qué se usa un índice único parcial
+### Cómo se evita la duplicación de pagos
 
-**No pueden existir dos pagos activos para el mismo (socio, mes, año)**, pero **sí debe permitirse re-emitir un pago si el anterior fue cancelado**. Por ejemplo: si se cargó la cuota de mayo de un socio por error, se cancela y se vuelve a cargar correctamente — los dos registros conviven en la base, uno cancelado y otro activo.
+**No pueden existir dos pagos activos para el mismo (socio, mes, año)**, pero **sí debe permitirse re-emitir un pago si el anterior fue cancelado o dado de baja**. Por ejemplo: si se cargó la cuota de mayo de un socio por error, se cancela (o se da de baja) y se vuelve a cargar correctamente. 
 
-Para hacer cumplir esa regla se utiliza un **índice único parcial** sobre la combinación (`member_id`, `month`, `year`), filtrado por `status != 'Canceled'`. La palabra "parcial" significa que la restricción de unicidad no aplica a todas las filas, sino solo a aquellas cuyo estado no es `Canceled`. 
+La validación se hace a nivel aplicación, en el `CreatePaymentUseCase`, usando el método `existsActiveForPeriod(member_id, month, year)` del repositorio. Internamente ese método consulta los pagos con `status != 'Canceled' AND deleted_at IS NULL` para esa combinación; si encuentra alguno, el use case rechaza el alta con un 409 Conflict.
+
+### Otras observaciones
 
 - Se considera que el socio paga una membresía anual, y se le cargan en el sistema las 12 cuotas del año. El socio paga un monto en base a los deportes que practica. Entonces, si hace 3 deportes, el monto de cada cuota aumenta con respecto a si practicara 1 o 2 deportes. Esto puede cambiar según las reglas de negocio. 
 
@@ -119,3 +123,6 @@ Para hacer cumplir esa regla se utiliza un **índice único parcial** sobre la c
 
 - Se puede considerar no permitir al usuario que cargue el estado desde el frontend, ya que por defecto `status` = `Pending`. 
 
+- Cuando el campo `deleted_at` es no nulo, el pago se considera dado de baja y queda excluido de todas las consultas (ver TDD-0014).
+
+- El campo `deleted_at` es un detalle interno del modelo de datos y no se expone en el contrato de la API. Los pagos dados de baja simplemente no aparecen en las consultas (ver TDD-0015).
