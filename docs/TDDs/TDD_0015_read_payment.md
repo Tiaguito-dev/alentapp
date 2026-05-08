@@ -1,6 +1,6 @@
 ---
 id: 0015
-estado: Propuesto
+estado: Aprobado
 autor: Felipe Pianelli
 fecha: 2026-05-01
 titulo: Consulta de Pagos
@@ -11,19 +11,19 @@ titulo: Consulta de Pagos
  
 ### Objetivo
 
-Permitir al Tesorero consultar pagos del sistema con filtros relevantes para tareas de cobranza y auditoría: por socio, por período (mes/año), por estado (incluyendo el estado calculado `Overdue`). 
+Permitir al Administrativo consultar un listado general de todos los pagos registrados en el sistema, así como acceder al detalle de un pago puntual, para facilitar tareas de seguimiento y auditoría.
  
 ### User Persona
 
-- Nombre: Lautaro (Tesorero).
-- Necesidad: Identificar rápidamente los pagos vencidos para llamar a los socios morosos, ver el historial de pagos de un socio puntual, y armar un listado de pagos pendientes del mes para coordinar cobranzas.
+- Nombre: Lautaro (Administrativo).
+- Necesidad: Visualizar rápidamente el historial completo de pagos del club para verificar qué socios están al día y quiénes tienen cuotas vencidas.
 
 ### Criterios de Aceptación
 
-- El sistema debe permitir filtrar por: `member_id`, `month`, `year`, y `status`.
+- El sistema debe devolver una lista con todos los pagos activos.
 - El campo estado que devuelve la consulta puede valer `Pending`, `Paid`, `Canceled` o `Overdue`. El estado `Overdue` no se persiste: se calcula a partir de la fecha de vencimiento (ver Observaciones Adicionales).
-- Filtrar por `status = 'Pending'` debe excluir los pagos con vencimiento pasado (que ya cuentan como `Overdue`), traduciéndose a `status = 'Pending' AND due_date >= hoy`.
-- El sistema debe permitir también recuperar un pago puntual.
+- El sistema debe permitir recuperar un pago puntual.
+- Todas las consultas deben excluir los pagos dados de baja (`deleted_at IS NOT NULL`). Un pago dado de baja se trata como inexistente desde la API: la consulta por ID devuelve `404 Not Found` y los listados nunca lo incluyen.
 
 ## Diseño Técnico (RFC)
 
@@ -33,53 +33,43 @@ No se introducen cambios al modelo definido en TDD-0012. La consulta opera sobre
 
 ### Contrato de API (@alentapp/shared)
 
-#### 1 Listado 
+#### 1 Listado General
 - Endpoint: `GET /api/v1/payments`
-- Query Params:
-```ts
-{
-    member_id?: string;          // UUID
-    month?: number;              // entero 1-12 (validado en runtime)
-    year?: number;             // entero (validado en runtime)
-    status?: 'Pending' | 'Paid' | 'Canceled' | 'Overdue';
-}
-```
-- Response: 200 OK con la lista de pagos. Cada pago se devuelve con su `status` ya resuelto (los pagos `Pending` con `due_date < hoy` se devuelven como `Overdue`).
+- Request: Sin parámetros.
+- Response: 200 OK con la lista completa de pagos. Cada pago se devuelve con su `status` ya resuelto (los pagos `Pending` con `due_date < hoy` se devuelven como `Overdue`).
 ```ts
 PaymentResponse[]
 ```
 
 #### 2 Detalle por ID
 - Endpoint: `GET /api/v1/payments/:id`
-- Response: 200 OK con el pago, con su `status` ya resuelto (los pagos `Pending` con `due_date < hoy` se devuelven como `Overdue`).
+- Response: 200 OK con el pago, con su `status` ya resuelto.
 
 ### Componentes de Arquitectura Hexagonal
 
-1. **Puerto**: `PaymentRepository` (métodos `findById(id)` y `findMany(filters)`).
-2. **Caso de Uso**: `ListPaymentsUseCase` (traduce el filtro virtual `status = 'Overdue'` a `status = 'Pending' AND due_date < hoy` y el filtro `status = 'Pending'` a `status = 'Pending' AND due_date >= hoy`; ejecuta la consulta y resuelve el `status` de cada pago antes de devolverlo).
+1. **Puerto**: `PaymentRepository` (métodos `findById(id)` y `findAll()`; ambos aplican implícitamente el filtro `deleted_at IS NULL` para excluir pagos dados de baja).
+2. **Caso de Uso**: `ListPaymentsUseCase` (recupera todos los pagos y resuelve el `status` de cada uno antes de devolverlo, transformando los `Pending` vencidos a `Overdue`).
 3. **Caso de Uso**: `GetPaymentByIdUseCase` (recupera un pago por ID y resuelve su `status` antes de devolverlo).
-4. **Adaptador de Salida**: `PostgresPaymentRepository` (consulta usando el método `findMany` de Prisma).
-5. **Adaptador de Entrada**: `PaymentController` (Rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id` que validan los query params y devuelven status 200).
+4. **Adaptador de Salida**: `PostgresPaymentRepository` (consulta usando el método `findMany` de Prisma; todas las consultas incluyen siempre la condición `deleted_at IS NULL`).
+5. **Adaptador de Entrada**: `PaymentController` (Rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id`).
 
 ## Casos de Borde y Errores
 
 | Escenario                                | Resultado Esperado                                              | Código HTTP     |
 | ---------------------------------------- | --------------------------------------------------------------- | --------------- |
 | Pago inexistente (consulta por ID)       | Mensaje: "El pago no existe"                                    | 404 Not Found   |
-| `month` fuera de rango (no entre 1 y 12) | Mensaje: "El mes debe estar entre 1 y 12"                       | 400 Bad Request |
-| `status` con valor no reconocido         | Mensaje: "Estado inválido"                                      | 400 Bad Request |
-| Filtro `status = 'Overdue'`              | Devuelve solo pagos `Pending` con `due_date < hoy`              | 200 OK          |
-| Filtro `status = 'Pending'`              | Devuelve solo pagos `Pending` con `due_date >= hoy`             | 200 OK          |
+| Pago dado de baja (consulta por ID)      | Mensaje: "El pago no existe"                                    | 404 Not Found   |
+| Pagos dados de baja (en cualquier listado) | No se incluyen en el resultado                                  | 200 OK                    |
 | Sin resultados                           | Devuelve un array vacío `[]`                                    | 200 OK          |
 | Error de conexión a la base de datos     | Mensaje: "Error interno, reintente más tarde"                   | 500 Internal Server Error |
 
 ## Plan de Implementación
 
-1. Definir los tipos del query params y del response en el paquete `@alentapp/shared`.
-2. Ampliar el puerto `PaymentRepository` con los métodos `findById` y `findMany`, junto con su implementación en `PostgresPaymentRepository`.
-3. Implementar los casos de uso `ListPaymentsUseCase` y `GetPaymentByIdUseCase`, incluyendo la traducción del filtro `Overdue` a condiciones sobre la base de datos y la resolución del `status` antes de devolver cada pago.
+1. Definir los tipos del response en el paquete `@alentapp/shared`.
+2. Ampliar el puerto `PaymentRepository` con los métodos `findById` y `findAll`, junto con su implementación en `PostgresPaymentRepository`. Asegurar que ambos métodos apliquen el filtro `deleted_at IS NULL` por defecto.
+3. Implementar los casos de uso `ListPaymentsUseCase` y `GetPaymentByIdUseCase`, incluyendo la resolución del `status` antes de devolver cada pago.
 4. Exponer las rutas `GET /api/v1/payments` y `GET /api/v1/payments/:id` en el `PaymentController` y registrarlas en la app de Fastify.
-5. En el frontend, agregar la vista de listado con filtros (socio, mes/año, estado).
+5. En el frontend, agregar la tabla para visualizar los pagos.
 
 ## Observaciones Adicionales
 
@@ -93,10 +83,6 @@ Cuando los endpoints de consulta devuelven un pago, el campo `status` ya viene *
  
 Por ejemplo, un pago con `status = Pending` y `due_date = 2026-04-01` (ya pasada) se persiste como `Pending` en la base de datos, pero al consultarse aparece en el response como `status = Overdue`. La traducción la hace el caso de uso antes de devolver el pago.
 
-### Diferencia entre los query params públicos y el objeto `filters` interno
-
-- **Query params** (lo que el cliente manda en la URL): pueden incluir `status=Overdue`.
-- **Objeto `filters`** (lo que el caso de uso le pasa al repositorio): nunca incluye `Overdue`. El caso de uso lo traduce a `(status='Pending', due_date<hoy)` antes de pasarlo.
 
 
 
