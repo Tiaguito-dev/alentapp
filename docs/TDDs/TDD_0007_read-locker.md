@@ -15,13 +15,11 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 
 ### User Persona
 - Nombre: Julian (Administrativo).
-- Necesidad: Encontrar un casillero libre rápidamente cuando un socio lo solicita en el mostrador, o buscar en qué estado se encuentra un número de casillero en particular.
+- Necesidad: Listar todos los casilleros del lugar y mostrar en que estado se encuentran.
 
 ### Criterios de Aceptación
-- El campo estado que devuelve la consulta y por el cual se filtra debe corresponder a los valores definidos: Available, Occupied, o Maintenance.
+- El campo estado que devuelve la consulta debe corresponder a los valores definidos: Available, Occupied, o Maintenance.
 - El sistema debe devolver un listado de todos los casilleros registrados en la base de datos.
-- El sistema debe permitir filtrar por: `status` y `member_id`.
-- La respuesta debe incluir a qué socio está asignado el casillero (si corresponde).
 
 ## Diseño Técnico (RFC)
 
@@ -30,14 +28,6 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 -   Endpoints: 
     -   `GET /api/v1/lockers` (Listado general)
     -   `GET /api/v1/lockers/:id` (Detalle por ID)
-
-
-- Query Params:
-{
-    status?: 'Available' | 'Occupied' | 'Maintenance';
-    member_id?: string;         // UUID
-   
-}
 
 
 
