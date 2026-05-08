@@ -1,6 +1,6 @@
 ---
 id: 0007
-estado: Propuesto
+estado: Aprobado
 autor: Sereno Santiago
 fecha: 2026-05-01
 titulo: Listado y Consulta de Casilleros 
@@ -15,13 +15,11 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 
 ### User Persona
 - Nombre: Julian (Administrativo).
-- Necesidad: Encontrar un casillero libre rápidamente cuando un socio lo solicita en el mostrador, o buscar en qué estado se encuentra un número de casillero en particular.
+- Necesidad: Listar todos los casilleros del lugar y mostrar en que estado se encuentran.
 
 ### Criterios de Aceptación
-- El campo estado que devuelve la consulta y por el cual se filtra debe corresponder a los valores definidos: Available, Occupied, o Maintenance.
+- El campo estado que devuelve la consulta debe corresponder a los valores definidos: Available, Occupied, o Maintenance.
 - El sistema debe devolver un listado de todos los casilleros registrados en la base de datos.
-- El sistema debe permitir filtrar por: `status` y `member_id`.
-- La respuesta debe incluir a qué socio está asignado el casillero (si corresponde).
 
 ## Diseño Técnico (RFC)
 
@@ -29,23 +27,15 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 ### Contrato de API (@alentapp/shared)
 -   Endpoints: 
     -   `GET /api/v1/lockers` (Listado general)
-    -   `GET /api/v1/lockers/:id` (Detalle por ID)
-
-
-- Query Params:
-{
-    status?: 'Available' | 'Occupied' | 'Maintenance';
-    member_id?: string;         // UUID
-   
-}
+    -   `GET /api/v1/lockers/:number` (Detalle por Numero)
 
 
 
 ### Componentes de Arquitectura Hexagonal 
 
-- Puerto: `LockerRepository` (Métodos findAll(filters) y findById(id)).
+- Puerto: `LockerRepository` (Métodos findAll() y findByNumber(number)).
 
-- Caso de Uso: `ListLockersUseCase` (Recupera la lista aplicando filtros opcionales) y GetLockerByIdUseCase (Busca un casillero puntual validando su existencia).
+- Caso de Uso: `ListLockersUseCase` (Recupera la lista ) y `GetLockerByNumberUseCase` (Busca un casillero puntual validando su existencia).
 
 - Adaptador de Salida: `PostgresLockerRepository` (Consultas de lectura usando los métodos findMany y findUnique de Prisma, incluyendo la relación con Member).
 
@@ -62,10 +52,10 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 
 ## Plan de Implementación
 
-1. Ampliar el  LockerRepository con los métodos findById y findMany  junto con su implementación en PostgresLockerRepository (asegurando el cruce de datos con la tabla de socios).
+1. Ampliar el  LockerRepository con los métodos findBynumber y findMany  junto con su implementación en PostgresLockerRepository (asegurando el cruce de datos con la tabla de socios).
 
-2. Implementar los casos de uso ListLockersUseCase y GetLockerByIdUseCase.
+2. Implementar los casos de uso ListLockersUseCase y GetLockerByNumberUseCase.
 
-3. Exponer las rutas GET /api/v1/lockers y GET /api/v1/lockers/:id en el LockerController y registrarlas en la app de Fastify.
+3. Exponer las rutas GET /api/v1/lockers y GET /api/v1/lockers/:number en el LockerController y registrarlas en la app de Fastify.
 
-4. En el frontend, agregar la vista de listado/grilla de casilleros con filtros (estado, socio) y paginación.
+4. En el frontend, agregar la vista de listado/grilla de casilleros.

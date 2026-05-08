@@ -1,6 +1,6 @@
 ---
 id: 0005
-estado: Propuesto
+estado: Aprobado
 autor: Sereno Santiago
 fecha: 2026-05-01
 titulo: Modificación y Asignación de Casillero (Locker)
@@ -29,7 +29,7 @@ Permitir a los administrativos corregir o modificar la información de un Casill
 
 ### Contrato de API (@alentapp/shared)
 
-- Endpoint: `PATCH /api/v1/lockers/:id`
+- Endpoint: `PATCH /api/v1/lockers/:number`
 - Request Body (UpdateLockerRequest):
 ```ts
 {
@@ -41,11 +41,11 @@ Permitir a los administrativos corregir o modificar la información de un Casill
 ```
 ### Componentes de Arquitectura Hexagonal
 
-- Puerto: `LockerRepository` (Método `update(id, data)`).
+- Puerto: `LockerRepository` (Método `update(number, data)`).
 - Servicio de dominio: `LockerValidator` (Encargado validar el numero del Casillero y si esta en estado maintenace no deja asignarlo).
 - Caso de Uso: `UpdateLockerUseCase` (orquesta la validación de unicidad) y puerto de salida LockerRepository.
 - Adaptador de Salida: `PostgresLockerRepository` (Actualización usando el método `update` de Prisma).
-- Adaptador de Entrada:  `LockerController` (Ruta HTTP que extrae el `id`).
+- Adaptador de Entrada:  `LockerController` (Ruta HTTP ).
 
 ## Casos de Borde y Errores
 
