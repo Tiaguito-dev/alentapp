@@ -35,7 +35,7 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 
 - Puerto: `LockerRepository` (Métodos findAll(filters) y findById(id)).
 
-- Caso de Uso: `ListLockersUseCase` (Recupera la lista aplicando filtros opcionales) y `GetLockerByNumberUseCase` (Busca un casillero puntual validando su existencia).
+- Caso de Uso: `ListLockersUseCase` (Recupera la lista ) y `GetLockerByNumberUseCase` (Busca un casillero puntual validando su existencia).
 
 - Adaptador de Salida: `PostgresLockerRepository` (Consultas de lectura usando los métodos findMany y findUnique de Prisma, incluyendo la relación con Member).
 
