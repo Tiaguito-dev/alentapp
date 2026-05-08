@@ -27,13 +27,13 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 ### Contrato de API (@alentapp/shared)
 -   Endpoints: 
     -   `GET /api/v1/lockers` (Listado general)
-    -   `GET /api/v1/lockers/:number` (Detalle por ID)
+    -   `GET /api/v1/lockers/:number` (Detalle por Numero)
 
 
 
 ### Componentes de Arquitectura Hexagonal 
 
-- Puerto: `LockerRepository` (Métodos findAll(filters) y findById(id)).
+- Puerto: `LockerRepository` (Métodos findAll() y findByNumber(number)).
 
 - Caso de Uso: `ListLockersUseCase` (Recupera la lista ) y `GetLockerByNumberUseCase` (Busca un casillero puntual validando su existencia).
 
