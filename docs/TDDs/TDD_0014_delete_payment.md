@@ -3,9 +3,9 @@ id: 0014
 estado: Aprobado
 autor: Felipe Pianelli
 fecha: 2026-05-01
-titulo: Baja de Pagos
+titulo: Eliminación de Pagos Existentes
 ---
-# TDD-0014: Baja de Pagos
+# TDD-0014: Eliminación de Pagos Existentes
 
 ## Contexto de Negocio (PRD)
  
