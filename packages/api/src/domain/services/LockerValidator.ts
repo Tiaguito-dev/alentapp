@@ -28,4 +28,13 @@ export class LockerValidator {
       throw new Error('No se puede eliminar un casillero ocupado por un socio');
     }
   }
+ // Regla del TDD-0004: Validaciones al crear
+  static validateCreate(status: LockerStatus): void {
+    if (status !== 'Available') {
+      // El TDD dice que el estado inicial debe ser Available
+      throw new Error('error de validacion: El estado inicial debe ser Available');
+    }
+  }
+
+
 }
