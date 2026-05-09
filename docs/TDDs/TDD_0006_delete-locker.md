@@ -1,6 +1,6 @@
 ---
 id: 0006
-estado: Propuesto
+estado: Aprobado
 autor: Sereno Santiago
 fecha: 2026-05-01
 titulo: Eliminacion de Casillero Existente 
@@ -29,13 +29,13 @@ Permitir la eliminación de un casillero del sistema en caso de que sea removido
 
 ### Contrato de API (@alentapp/shared)
 
--  Endpoint: `DELETE /api/v1/lockers/:id`
+-  Endpoint: `DELETE /api/v1/lockers/:number`
 -  Request Body: (Vacío)
 
 ### Componentes de Arquitectura Hexagonal
 
-  - puerto: `LockerRepository` (Método `delete(id)`).
-  - Caso de uso: `DeleteLockerUseCase` (Comprueba existencia previa vía findById, valida que no tenga un socio asignado, y delega la eliminación).
+  - puerto: `LockerRepository` (Método `delete(number)`).
+  - Caso de uso: `DeleteLockerUseCase` (Comprueba existencia previa vía findByNumber, valida que no tenga un socio asignado, y delega la eliminación).
   - adapador de entrada: `LockerController` (Ruta HTTP en Fastify que extrae el id de los parámetros y devuelve un status 204).
   - adaptador de salida: `PostgresLockerRepository` (Eliminación usando el método `delete` de Prisma).  
 

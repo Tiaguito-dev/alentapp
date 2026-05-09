@@ -1,6 +1,6 @@
 ---
 id: 0004
-estado: Propuesto
+estado: Aprobado
 autor: Sereno Santiago
 fecha: 2026-05-01
 titulo: Registro de Casillero Nuevo 
