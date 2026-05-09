@@ -3,10 +3,10 @@ id: 0007
 estado: Propuesto
 autor: Sereno Santiago
 fecha: 2026-05-01
-titulo: Listado y Consulta de Casilleros 
+titulo: Consulta de Casilleros Existentes 
 ---
 
-# TDD-0007: Listado y Consulta de Casilleros 
+# TDD-0007: Consulta de Casilleros Existentes 
 
 ## Contexto de Negocio (PRD)
 

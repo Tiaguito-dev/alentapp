@@ -3,10 +3,10 @@ id: 0005
 estado: Propuesto
 autor: Sereno Santiago
 fecha: 2026-05-01
-titulo: Modificación y Asignación de Casillero (Locker)
+titulo: Actualizacion de Casillero Existente 
 ---
 
-# TDD-0005: Modificación y Asignación de Casillero (Locker)
+# TDD-0005: Actualizacion de Casillero Existente 
 
 ## Contexto de Negocio (PRD)
 
