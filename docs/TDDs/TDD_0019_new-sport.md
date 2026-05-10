@@ -64,7 +64,7 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `SportRepository` (Interface en el Dominio).
-2. **op**: `SportValidator` (Encargado de validar las reglas de negocio relacionadas con el deporte).
+2. **Servicio de Dominio**: `SportValidator` (Encargado de validar las reglas de negocio relacionadas con el deporte).
 3. **Caso de Uso**: `CreateSportUseCase` (Delega la validación en `SportValidator`, verifica que el nombre no esté registrado y llama al repositorio).
 4. **Adaptador de Salida**: `PrismaSportRepository` (Implementación del puerto SportRepository usando Prisma sobre PostgreSQL).
 5. **Adaptador de Entrada**: `SportController` (Ruta HTTP).
