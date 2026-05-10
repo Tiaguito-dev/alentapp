@@ -141,7 +141,7 @@ respetando el ER del enunciado:
 ### Atomicidad de la invalidación y creación
 
 La invalidación del certificado anterior y la creación del nuevo deben ejecutarse
-denro de la misma transacción de base de datos. Esto evita que un fallo parcial
+dentro de la misma transacción de base de datos. Esto evita que un fallo parcial
 deje al socio sin ningún certificado activo o con dos activos simultáneamente.
 Si ocurre un error después de invalidar pero antes de crear, la transacción completa
 se revierten.
