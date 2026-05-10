@@ -93,22 +93,6 @@ feat(sport): agregar soporte para deportes con equipos
 test(sport): cubrir casos borde en la creación de deportes
 ```
 
-### Tareas transversales
-
-```bash
-# Documentación general
-docs: actualizar sección de instalación en README
-
-# Dependencias
-chore: actualizar versión de NestJS a 10.x
-
-# Configuración de CI
-chore: agregar step de lint al pipeline
-
-# Tests de integración que cruzan módulos
-test(member): agregar test E2E del flujo de alta de socio
-```
-
 ---
 
 ## Cómo funciona la validación automática
