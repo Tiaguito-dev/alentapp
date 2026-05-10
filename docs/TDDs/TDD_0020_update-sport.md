@@ -1,7 +1,7 @@
 ---
 version: 2.1
 id: 0020
-estado: Aprovado
+estado: Aprobado
 autor: Tiago Solis
 fecha: 2026-05-01
 titulo: Actualización de Deportes Existentes
