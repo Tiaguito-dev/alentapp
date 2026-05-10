@@ -35,5 +35,11 @@ export default {
       'test',
       'chore',
     ]],
+
+    // El cuerpo del commit no tiene límite de longitud ni de caracteres por línea.
+    // Por defecto config-conventional los fija en 100, pero preferimos priorizar
+    // claridad y contexto sobre brevedad. Cuanto más descriptivo el commit, mejor.
+    'body-max-length': [0],
+    'body-max-line-length': [0],
   },
 };
