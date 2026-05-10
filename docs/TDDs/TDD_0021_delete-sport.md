@@ -1,7 +1,7 @@
 ---
 version: 2.1
 id: 0021
-estado: Aprovado
+estado: Aprobado
 autor: Tiago Solis
 fecha: 2026-05-01
 titulo: Eliminación de Deportes Existentes
