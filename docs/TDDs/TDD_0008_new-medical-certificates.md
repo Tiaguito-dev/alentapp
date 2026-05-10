@@ -1,6 +1,6 @@
 ---
 id: 0008
-estado: Propuesto
+estado: Aprobado
 autor: Federico Alvarez Pieroni
 fecha: 2026-05-01
 titulo: Alta de Certificados Médicos
@@ -26,13 +26,14 @@ los registros anteriores al crear uno nuevo.
 
 ### Criterios de Aceptación
 
-- El sistema debe crear el certificado con `is_validated = true` por defecto.
+- El sistema debe crear el certificado siempre con `is_validated = true` por defecto. Cualquier intento del cliente de fijar `is_validated = false` en el alta debe ser ignorado y reemplazado por `true`.
 - El sistema debe garantizar que solo exista un certificado activo (`is_validated = true`) por socio.
-- Si ya existe un certificado activo para el socio, el sistema debe marcarlo como
-  invalidado (`is_validated = false`) antes de crear el nuevo.
+- Si ya existe un certificado activo para el socio, el sistema debe marcarlo como invalidado (`is_validated = false`) antes de crear el nuevo. Esta operación debe ejecutarse atómicamente con la creación del nuevo.
 - El sistema debe validar que `expiry_date` sea estrictamente posterior a `issue_date`.
 - El sistema debe rechazar certificados con `issue_date` futura; debe cumplirse `issue_date <= hoy`.
 - El sistema debe validar que el socio referenciado exista.
+- El campo `created_at` debe registrar automáticamente el momento de inserción en la base de datos.
+- El campo `deleted_at` debe quedar nulo en el alta; solo se completa cuando se da de baja el certificado (ver TDD-0010).
 
 ---
 
@@ -50,6 +51,7 @@ respetando el ER del enunciado:
 - `is_validated`: booleano. `true` = certificado activo; `false` = invalidado.
 - `member_id`: UUID, FK a `Member`.
 - `created_at`: timestamp, fecha y hora de creación del registro.
+- `deleted_at`: fecha y hora, nullable.
 
 ### Contrato de API (@alentapp/shared)
 
@@ -85,13 +87,21 @@ respetando el ER del enunciado:
    `findActiveByMember(memberId)` e `invalidateByMember(memberId)`).
    También se reutiliza `MemberRepository` (método `findById`) para validar
    la existencia del socio.
-2. **Caso de Uso**: `CreateMedicalCertificateUseCase` (verifica existencia del
-   socio, busca certificado activo previo, lo invalida si existe, y crea el
-   nuevo con `is_validated = true`).
-3. **Adaptador de Salida**: `PostgresMedicalCertificateRepository`
-   (implementación con Prisma)
-4. **Adaptador de Entrada**: `MedicalCertificateController`
-   (ruta `POST /api/v1/medical-certificates`, valida el payload y retorna 201).
+2. **Servicio de Dominio**: `MedicalCertificateValidator` (centraliza las validaciones
+   de campos: `validateIssueDate(issue_date)` verifica que `issue_date <= hoy`;
+   `validateExpiryDate(issue_date, expiry_date)` verifica que `expiry_date > issue_date`;
+   `validateDateFormat(date)` verifica que la fecha tenga formato ISO válido `YYYY-MM-DD`).
+3. **Caso de Uso**: `CreateMedicalCertificateUseCase` (delega las validaciones
+   de campos en `MedicalCertificateValidator`; verifica existencia del socio vía
+   `MemberRepository`; busca certificado activo previo y lo invalida si existe;
+   construye el objeto `Certificate` con `is_validated = true` y `created_at` automático;
+   delega la persistencia atómica al repositorio).
+4. **Adaptador de Salida**: `PostgresMedicalCertificateRepository`
+   (creación usando el método `create` de Prisma; implementa `invalidateByMember`
+   para marcar como inválidos certificados previos dentro de la misma transacción).
+5. **Adaptador de Entrada**: `MedicalCertificateController`
+   (ruta `POST /api/v1/medical-certificates`, valida el payload, captura excepciones
+   de dominio y retorna status 201).
 
 ## Casos de Borde y Errores
 
@@ -100,40 +110,76 @@ respetando el ER del enunciado:
 | Falta un campo requerido               | Mensaje: "El campo {campo} es obligatorio"                                 | 400 Bad Request           |
 | `member_id` con formato inválido       | Mensaje: "Formato de ID inválido"                                          | 400 Bad Request           |
 | Socio inexistente                      | Mensaje: "El socio especificado no existe"                                 | 404 Not Found             |
+| `issue_date` es una fecha futura       | Mensaje: "La fecha de emisión no puede ser futura"                         | 400 Bad Request           |
 | `expiry_date` ≤ `issue_date`           | Mensaje: "La fecha de vencimiento debe ser posterior a la de emisión"      | 400 Bad Request           |
 | Formato de fecha inválido              | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"                 | 400 Bad Request           |
-| Ya existe un certificado activo        | Se invalida el anterior y se crea el nuevo correctamente                   | 201 Created               |
+| Cliente envía `is_validated = false`   | Se ignora; se persiste con `is_validated = true`                           | 201 Created               |
+| Cliente envía `deleted_at`             | Se ignora; se persiste con `deleted_at = null`                              | 201 Created               |
+| Ya existe un certificado activo        | Se invalida el anterior y se crea el nuevo correctamente (transacción)     | 201 Created               |
 | Error de conexión a la base de datos   | Mensaje: "Error interno, reintente más tarde"                              | 500 Internal Server Error |
 
 ## Plan de Implementación
 
-1. Definir el tipo `CreateMedicalCertificateRequest` y `MedicalCertificateResponse`
+1. Definir los tipos `CreateMedicalCertificateRequest` y `MedicalCertificateResponse`
    en el paquete `@alentapp/shared`.
-2. Agregar el modelo `MedicalCertificate` al schema de Prisma y ejecutar la migración.
-3. Crear el puerto `MedicalCertificateRepository`.
-4. Implementar `PostgresMedicalCertificateRepository` con los métodos `create`,
-   `findActiveByMember` e `invalidateByMember`.
-5. Implementar `CreateMedicalCertificateUseCase`.
-6. Exponer la ruta `POST /api/v1/medical-certificates` en `MedicalCertificateController`
+2. Agregar el modelo `MedicalCertificate` al schema de Prisma (incluyendo `created_at` con
+   default `now()` y `deleted_at` nullable) y ejecutar la migración.
+3. Crear el puerto `MedicalCertificateRepository` en la capa de Dominio con los métodos
+   especificados.
+4. Implementar el `MedicalCertificateValidator` con los métodos de validación de fechas
+   y formato.
+5. Implementar `PostgresMedicalCertificateRepository` con los métodos `create`,
+   `findActiveByMember` e `invalidateByMember`, asegurando transaccionalidad.
+6. Implementar `CreateMedicalCertificateUseCase`, delegando validaciones en
+   `MedicalCertificateValidator`, forzando `is_validated = true` y `deleted_at = null`.
+7. Exponer la ruta `POST /api/v1/medical-certificates` en `MedicalCertificateController`
    y registrarla en la app de Fastify.
-7. Agregar el formulario de alta en el frontend y conectarlo al endpoint.
+8. Crear el formulario de alta en el frontend y conectarlo al endpoint.
 
 ## Observaciones Adicionales
 
 ### Atomicidad de la invalidación y creación
 
 La invalidación del certificado anterior y la creación del nuevo deben ejecutarse
-al mismo tiempo. Esto evita que un fallo parcial
+denro de la misma transacción de base de datos. Esto evita que un fallo parcial
 deje al socio sin ningún certificado activo o con dos activos simultáneamente.
+Si ocurre un error después de invalidar pero antes de crear, la transacción completa
+se revierten.
+
+### Cómo se evita la sobrescritura accidental
+
+**Solo puede existir un certificado activo (`is_validated = true`) por socio.** Cuando
+se carga uno nuevo, el anterior se invalida automáticamente. Esto garantiza que al
+renovar un certificado (por ejemplo, el apto médico anual), el antiguo queda registrado
+en el historial pero marcado como inválido, manteniendo una traza completa de cambios.
 
 ### Por qué se incluye `created_at`
 
-Si bien el certificado ya tiene una `issue_date`, eso no es lo mismo que saber cuándo fue cargado al sistema. Un administrativo puede ingresar hoy un certificado que el médico firmó hace tres días, y en ese caso `issue_date` va a decir "lunes" pero el registro apareció en la base el "jueves". Con `created_at` sabemos exactamente ese momento de carga, lo que resulta útil si en algún momento alguien pregunta cuándo se registró algo o si se quiere ordenar los certificados por orden de ingreso al sistema (como se hace en TDD-0011).
+Aunque el certificado ya tiene `issue_date`, no es lo mismo que saber cuándo fue cargado
+al sistema. Un administrativo puede ingresar hoy un certificado que el médico firmó hace tres
+días. En ese caso `issue_date` será "lunes" pero el registro se inserta en la base el
+"jueves". Con `created_at` sabemos exactamente cuándo se registró en el sistema, lo que
+resulta útil para auditoría y para ordenar certificados por orden de ingreso (como se
+hace en TDD-0011).
+
+### Campo `deleted_at` en altas
+
+El campo `deleted_at` es un detalle interno del modelo de datos y no debe exponerse
+ni completarse durante el alta. Todo certificado nuevo se crea con `deleted_at = null`.
+Cuando el certificado se da de baja lógica (TDD-0010), ese campo se completa y el
+registro deja de aparecer en consultas.
 
 ### Sobre `expiry_date`
 
-En este TDD, `expiry_date` se carga desde el formulario y no se calcula automáticamente como `issue_date + 1 año`. La idea es mantenerlo alineado con lo que figure en el certificado presentado. Si más adelante el negocio define una vigencia fija anual para todos, este punto puede cambiar.
+En este TDD, `expiry_date` se carga desde el formulario y no se calcula automáticamente
+(ej: `issue_date + 1 año`). La idea es mantenerlo alineado con lo que figure en el
+certificado médico presentado. Si en el futuro el negocio define una vigencia fija
+para todos los certificados, este comportamiento puede cambiar.
 
-### Restricción sobre `issue_date`
+### Validación obligatoria de `issue_date`
 
-El sistema debe rechazar certificados cuya `issue_date` sea una fecha futura. Un certificado médico representa un hecho ya ocurrido (la emisión del apto), por lo que permitir fechas futuras generaría un certificado marcado como activo (`is_validated = true`) que técnicamente aún no fue emitido. Esto podría invalidar erróneamente un certificado vigente real del socio. La validación debe asegurar que `issue_date <= hoy`.
+El sistema rechaza certificados cuya `issue_date` sea futura. Un certificado médico
+representa un hecho ya ocurrido (la emisión del apto), por lo que permitir fechas futuras
+crearía un registro marcado como activo (`is_validated = true`) que técnicamente aún no
+fue emitido. Esto podría invalidar erróneamente un certificado vigente real del socio.
+Por eso la validación debe asegurar que `issue_date <= hoy`.
