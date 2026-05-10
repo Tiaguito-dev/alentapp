@@ -1,7 +1,7 @@
 ---
-version: 1.0
+version: 2.1
 id: 0022
-estado: Propuesto
+estado: Aprobado
 autor: Tiago Solis
 fecha: 2026-05-01
 titulo: Consulta de Deportes Existentes
@@ -22,8 +22,8 @@ Permitir al administrador/administrativo consultar los deportes del sistema, tan
 
 ### Criterios de Aceptación
 
-1. El sistema debe validar que el deporte con el id recibido exista y no tenga `logical_delete` seteado.
-2. El sistema debe permitir recuperar el listado de deportes que no tengan no tengan `logical_delete` seteado.
+1. El sistema debe validar que el deporte con el id recibido exista y no tenga `deleted_at` seteado.
+2. El sistema debe permitir recuperar el listado de deportes que no tengan no tengan `deleted_at` seteado.
 3. El sistema debe permitir recuperar el detalle de un deporte puntual por su `id`.
 
 ## Diseño Técnico (RFC)
@@ -34,17 +34,15 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. No s
 
 ## Listado de Deportes:
 - Endpoint Listado: `GET /api/v1/sports`
-- Request Body (UpdateMemberRequest):
 ## Detalle de Deporte:
 - Endpoint Detalle: `GET /api/v1/sports/:id`
-- Request Body (UpdateMemberRequest):
 
 ### Componentes de Arquitectura Hexagonal
 
-1. **Puerto**: `SportRepository` (Método `findById(id)` y `findAll()`, extendiendo la interfaz definida en TDD-0019. Ambos métodos filtran por `logical_delete=null` internamente).
+1. **Puerto**: `SportRepository` (Método `findById(id)` y `findAll()`, extendiendo la interfaz definida en TDD-0019. Ambos métodos filtran por `deleted_at=null` internamente).
 2. **Caso de Uso**: `ListSportsUseCase` (Llama al repositorio y devuelve el listado de deportes activos).
 3. **Caso de Uso**: `GetSportByIdUseCase` (Recupera un deporte por ID y verifica que no esté dado de baja antes de devolverlo).
-4. **Adaptador de Salida**: `PrismaSportRepository` (Consulta usando los métodos `findMany` y `findUnique` de Prisma, filtrando por `logical_delete=null`).
+4. **Adaptador de Salida**: `PrismaSportRepository` (Consulta usando los métodos `findMany` y `findUnique` de Prisma, filtrando por `deleted_at=null`).
 5. **Adaptador de Entrada**: `SportController` (Rutas `GET /api/v1/sports` y `GET /api/v1/sports/:id` que devuelven status 200).
 
 ## Casos de Borde y Errores
@@ -65,7 +63,7 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. No s
 
 ### Observaciones adicionales: motivos de decisión
 
-- Los deportes con `logical_delete` seteado se excluyen en todas las consultas sin necesidad de ningún parámetro explícito del cliente. Esta lógica se encapsula en el repositorio para que ningún caso de uso pueda exponer accidentalmente deportes dados de baja.
-- El detalle por `id` devuelve el mismo mensaje de error que el caso de deporte inexistente (`"No existe deporte con ese id"`) cuando el deporte tiene `logical_delete` seteado. Esto es intencional: desde la perspectiva del cliente, un deporte dado de baja equivale a un deporte que no existe.
+- Los deportes con `deleted_at` seteado se excluyen en todas las consultas sin necesidad de ningún parámetro explícito del cliente. Esta lógica se encapsula en el repositorio para que ningún caso de uso pueda exponer accidentalmente deportes dados de baja.
+- El detalle por `id` devuelve el mismo mensaje de error que el caso de deporte inexistente (`"No existe deporte con ese id"`) cuando el deporte tiene `deleted_at` seteado. Esto es intencional: desde la perspectiva del cliente, un deporte dado de baja equivale a un deporte que no existe.
 - No se incorpora paginación en esta etapa dado que el volumen esperado de deportes en el sistema es acotado al no ser una entidad transaccional. En caso de que el negocio escale, puede incorporarse siguiendo el mismo esquema definido en TDD-0015.
 - No se utiliza ``SportValidator` ya que no hay reglas de negocio sobre los datos recibidos: las únicas entradas son el `id` por URL (en el detalle) y ninguna en el listado.

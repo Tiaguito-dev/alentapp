@@ -23,6 +23,8 @@ La forma más rápida y recomendada de levantar el entorno de desarrollo es util
    git clone <url-del-repositorio>
    cd alentapp
    ```
+> Si es la primera vez que clonás el repo, o después de hacer pull de esta rama,
+> corré `npm install` para instalar las dependencias y activar los hooks de Git.
 2. **Levantar los servicios**:
    ```bash
    docker compose up --build
