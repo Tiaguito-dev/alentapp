@@ -36,6 +36,10 @@ No se permite pushear directamente a la rama `main`. Todas las contribuciones de
 ---
  
 ## Estándar de Commits
+
+> Si es la primera vez que clonás el repo, o después de hacer pull de esta rama,
+> corré `npm install` para instalar las dependencias y activar los hooks de Git.
+
 **(Para más detalles, consultar la guia correpondiente al archivo COMMITS.MD)**
  
 Este proyecto sigue el estándar [Conventional Commits](https://www.conventionalcommits.org/). La validación es automática: al ejecutar git commit, Husky activa Commitlint y bloquea los mensajes que no cumplan el formato.

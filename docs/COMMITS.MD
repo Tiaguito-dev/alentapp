@@ -2,6 +2,9 @@
 
 Esta guía explica cómo escribir commits correctamente en el proyecto. No cubre la instalación (eso ya está hecho), sino el uso diario del estándar.
 
+> Si es la primera vez que clonás el repo, o después de hacer pull de esta rama,
+> corré `npm install` para instalar las dependencias y activar los hooks de Git.
+
 ---
 
 ## El formato
