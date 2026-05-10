@@ -1,5 +1,5 @@
 ---
-version: 1.2
+version: 2.0
 id: 0019
 estado: Propuesto
 autor: Tiago Solis
@@ -64,10 +64,9 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `SportRepository` (Interface en el Dominio).
-2. **Servicio de Dominio**: `SportValidator` (Encargado de validar las reglas de negocio relacionadas con el deporte).
-3. **Caso de Uso**: `CreateSportUseCase` (Delega la validación en `SportValidator`, verifica que el nombre no esté registrado y llama al repositorio).
-4. **Adaptador de Salida**: `PrismaSportRepository` (Implementación del puerto SportRepository usando Prisma sobre PostgreSQL).
-5. **Adaptador de Entrada**: `SportController` (Ruta HTTP).
+2. **Caso de Uso**: `CreateSportUseCase` (Lógica que verifica las reglas de negocio, valida que el nombre no esté registrado y llama al repositorio).
+3. **Adaptador de Salida**: `PrismaSportRepository` (Implementación del puerto SportRepository usando Prisma sobre PostgreSQL).
+4. **Adaptador de Entrada**: `SportController` (Ruta HTTP).
 
 ## Casos de Borde y Errores
 
@@ -82,13 +81,13 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 
 1. Definir esquema de persistencia y correr migración.
 2. Crear tipos en shared y puerto en el Dominio.
-3. Implementar el repositorio y el caso de uso utilizando el `SportValidator` centralizado.
+3. Implementar el repositorio y el caso de uso.
 4. Crear la ruta `POST` en el controlador y enlazarla a la app de Fastify.
 5. Crear formulario en React y conectar con el endpoint del backend.
 
 ### Observaciones adicionales: motivos de decisión
 - Se asume que el proceso de registro de un nuevo deporte se realiza de forma manual por un administrativo y que el sistema actual no tiene una funcionalidad digital para esto.
-- Se opta porque solo el administrador (rol con permisos privilegiados, distinto al rol del administrativo) pueda registrar nuevos deportes, ya que se asume que no cualquiera debería tener la capacidad de dar de alta nuevos deportes a los que puedan inscribirse los miembros, por lo que es considerada como una tarea crítica para el impacto en el negocio, que requiere control y supervisión.
 - Respecto al CA N3, en caso de que el usuario deje el campo de precio adicional vacío, se interpretará como que el precio adicional es cero, ya que no se puede asumir un valor negativo ni dejarlo sin especificar.
-- La verificación de unicidad de nombre no se delega al `SportValidator` sino que la realiza el `CreateSportUseCase` directamente, ya que el `SportValidator` es un servicio de dominio puro y no debe conocer al repositorio, ya que hacerlo introduciría una dependencia hacia la capa de infraestructura, violando el principio de que un objeto solo debe interactuar con sus colaboradores directos. La verificación contra el estado persistido es responsabilidad del caso de uso, que sí tiene acceso legítimo al repositorio.
+- La verificación de unicidad de nombre no se delega a un validador de dominio del tipo `SportValidator`, sino que la realiza el `CreateSportUseCase` directamente, ya que dicha validación requiere consultar el estado persistido del sistema mediante el repositorio.
+- Un `SportValidator`, en caso de ser aplicado, se concibe como un servicio de dominio, encargado únicamente de validar invariantes y reglas de negocio que puedan evaluarse sin acceso a infraestructura ni persistencia.
 - La verificación de unicidad de nombre se realiza únicamente contra deportes activos, esto es, aquellos con `logical_delete = null`. Un deporte dado de baja lógicamente no bloquea el registro de un nuevo deporte con el mismo nombre, ya que desde la perspectiva del negocio ese nombre queda liberado al darse de baja.

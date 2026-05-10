@@ -1,5 +1,5 @@
 ---
-version: 1.0
+version: 2.0
 id: 0021
 estado: Propuesto
 autor: Tiago Solis
@@ -13,28 +13,26 @@ titulo: Eliminación de Deportes Existentes
 
 ### Objetivo
 
-Permitir que un administrador elimine un deporte del sistema de forma lógica, dejando el registro histórico intacto y cancelando automáticamente las inscripciones activas asociadas, sin necesidad de eliminar datos de la base de datos.
+Permitir que un administrador elimine un deporte del sistema de forma lógica, dejando el registro histórico intacto.
 
 ### User Persona
 
 - Nombre: Juanceto (Administrador).
-- Necesidad: Dar de baja un deporte que ya no se ofrece, evitando que los miembros puedan seguir inscribiéndose a él. No puede permitirse dar de baja un deporte que ya haya sido eliminado previamente, ni que las instancias de la entidad `enrollment` quede en un estado inconsistente si el deporte tiene inscripciones activas.
+- Necesidad: Dar de baja un deporte que ya no se ofrece, evitando que los miembros puedan seguir inscribiéndose a él, pero sin eliminar completamente el registro del deporte para preservar el historial de inscripciones y datos asociados.
 
 ### Criterios de Aceptación
 
 1. El sistema debe validar que el deporte con el id recibido exista y no tenga logical_delete seteado.
 2. Al dar de baja el deporte, el sistema debe setear la fecha actual en el campo logical_delete.
-3. Las inscripciones activas asociadas al deporte deben cancelarse automáticamente como consecuencia de la baja.
-4. Al finalizar, el sistema debe mostrar un mensaje de éxito.
+3. Al finalizar, el sistema debe mostrar un mensaje de éxito.
 
 ## Diseño Técnico (RFC)
 
 ### Contrato de API (@alentapp/shared)
 
-Se utilizará el paquete compartido para definir el cuerpo de la petición. La eliminación es una operación que no requiere datos en el cuerpo, y se implementará como una operación de actualización lógica, aunque el endpoint implemente DELETE. Esta eliminación se puede ver reflejada porque en las consultas de deportes (TDD-0022) solo se recuperan aquellos que no tengan logical_delete seteado.
+Se utilizará el paquete compartido para definir el cuerpo de la petición. La eliminación es una operación que no requiere datos en el cuerpo, y se implementará mediante endpoint `DELETE`, pero la operación seteará el campo `logical_delete` (soft delete). Esta eliminación se puede ver reflejada porque en las consultas de deportes (TDD-0022) solo se recuperan aquellos que no tengan logical_delete seteado.
 
 - Endpoint: `DELETE /api/v1/sports/:id`
-- Request Body (DeleteSportRequest):
 
 ### Componentes de Arquitectura Hexagonal
 
@@ -57,11 +55,13 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. La e
 2. Ampliar el `SportRepository` con el método `delete`.
 3. Implementar la lógica en `DeleteSportUseCase`.
 4. Crear la ruta `DELETE` en el controlador y enlazarla a la app de Fastify.
-5. Crear el trigger en la base de datos que cancele las inscripciones activas al setearse `logical_delete`.
-6. Consumir el endpoint desde el Frontend agregando la acción de baja en el panel de administración.
+5. Consumir el endpoint desde el Frontend agregando la acción de baja en el panel de administración.
 
-### Observaciones adicionales: motivos de decisión
-- Solo el administrador (rol con permisos privilegiados) puede dar de baja deportes, por los mismos motivos expuestos en TDD-0019: se trata de una tarea crítica para el negocio que requiere control y supervisión.
+## Observaciones adicionales
+
+### Motivos de decisión
 - Se opta por baja lógica (seteo de `logical_delete`) en lugar de eliminación física, preservando el historial de inscripciones y datos asociados al deporte. Además, las operaciones secuenciales de grandes volúmenes de datos es preferente que las gestione el motor de base de datos debido a su optimización para este tipo de tareas.
+- Se sugiere no utilizar un `SportValidator` (validador de dominio) en este caso de uso ya que no hay reglas de negocio sobre los datos recibidos: el único campo que llega es el `id` por URL, y su verificación (existencia y estado de baja) es responsabilidad del caso de uso directamente, por las mismas razones expuestas en TDD-0019 y TDD-0020.
+
+### Puntos que no abordamos en esta etapa
 - La cancelación de inscripciones activas se delega a un trigger de base de datos disparado al setearse `logical_delete`. Esto mantiene al `DeleteSportUseCase` libre de dependencias hacia otros repositorios y evita acoplar la lógica de cancelación al caso de uso.
-- No se utiliza `SportValidator` en este caso de uso ya que no hay reglas de negocio sobre los datos recibidos: el único campo que llega es el `id` por URL, y su verificación (existencia y estado de baja) es responsabilidad del caso de uso directamente, por las mismas razones expuestas en TDD-0019 y TDD-0020.

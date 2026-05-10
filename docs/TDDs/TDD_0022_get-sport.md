@@ -1,5 +1,5 @@
 ---
-version: 1.0
+version: 2.0
 id: 0022
 estado: Propuesto
 autor: Tiago Solis
@@ -34,10 +34,8 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. No s
 
 ## Listado de Deportes:
 - Endpoint Listado: `GET /api/v1/sports`
-- Request Body (UpdateMemberRequest):
 ## Detalle de Deporte:
 - Endpoint Detalle: `GET /api/v1/sports/:id`
-- Request Body (UpdateMemberRequest):
 
 ### Componentes de Arquitectura Hexagonal
 
