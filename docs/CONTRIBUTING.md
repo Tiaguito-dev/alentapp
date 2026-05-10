@@ -29,7 +29,8 @@ No se permite pushear directamente a la rama `main`. Todas las contribuciones de
 4.  **Verificar**: Antes de subir tus cambios, **todos los tests deben pasar**. Consulta la [Guía de Testing](./TESTING.md) para más detalles.
     *   `npm run test` (Unitarios)
     *   `npm run e2e:fullstack:run` (E2E Full-stack)
-5.  **Commit**: Realiza commits descriptivos.
+5.  **Commit**: Realiza commits siguiendo el estándar Conventional Commits definido en la sección [Estándar de Commits](#estándar-de-commits) de este documento. Los commits que no cumplan con las reglas obligatorias especificadas en el archivo `commitlint.config.mjs` serán bloqueados, y las que no cumplan con las reglas recomendadas, serán advertidos por Commitlint.
+**(Ver próxima sección para más detalles o consultar la guia correpondiente al archivo COMMITS.MD)**
 6.  **Pull Request (PR)**: Sube tu rama y abre un PR hacia `main`. Describe claramente qué cambios introdujiste.
 
 ---
