@@ -61,7 +61,36 @@ Si surge un conflicto interpersonal o técnico que bloquea el avance:
 
 Como principio general, separamos siempre el problema de la persona: criticamos código y diseños, no a quien los propuso.
 
-## 6. Acuerdo
+## 6. Estándares Técnicos
+ 
+### Commits
+ 
+A partir de la retroalimentación recibida en el checkpoint is-2026-checkpoint-01, donde la cátedra recomendó revisar la trazabilidad de commits y la asignación de tareas con entregables verificables, el equipo adoptó el estándar Conventional Commits, validado automáticamente mediante **Husky** y **Commitlint**. Esto permite que cada commit sea legible, atribuible a un módulo concreto y verificable sin necesidad de revisión manual.
+
+Debido a esto, nos parece necesario agregar una nueva sección para seguir estableciendo puntos de encuentro y continuar con la mejora continua de nuestro marco de trabajo en mutuo acuerdo.
+ 
+**Formato obligatorio:**
+```
+tipo(scope): descripción breve
+```
+ 
+**Tipos permitidos:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
+ 
+**Scopes del proyecto sugeridos:** `member`, `locker`, `medical-certificate`, `payment`, `discipline`, `sport`
+ 
+El scope es obligatorio, pero no así su nombre. Si el cambio afecta a un área transversal que no corresponde a ningún módulo, el equipo debe acordar qué scope usar o si corresponde agregar uno nuevo.
+ 
+El flag `--no-verify` (que saltea la validación) debe reservarse para situaciones de emergencia y quedar documentado en el PR correspondiente. No debe usarse como práctica habitual.
+ 
+Para el detalle completo del estándar, ejemplos y reglas aplicadas, ver la sección [Estándar de Commits](./CONTRIBUTING.md#estándar-de-commits) en el CONTRIBUTING.md.
+ 
+### Ramas
+ 
+Se trabaja con la estrategia **Feature Branch**. Cada rama representa una funcionalidad, corrección o tarea específica. No se permite pushear directamente a `main`.
+ 
+Independientemente de el equipo expresa su decisión de no implementar herramientas que validen automáticamente las normas de este flujo de trabajo (de momento no se cree necesario), el detalle del formato de nombres de rama y el workflow completo puede consultarse en [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## 7. Acuerdo
 
 Al sumarse a este charter, los integrantes se comprometen a respetar el workflow, los estándares y los acuerdos de comunicación. Este documento puede modificarse mediante consenso del equipo en cualquier momento de la cursada; los cambios deben quedar registrados como un PR contra este archivo.
 
