@@ -1,7 +1,7 @@
 ---
-version: 2.0
+version: 2.1
 id: 0019
-estado: Propuesto
+estado: Aprobado
 autor: Tiago Solis
 fecha: 2026-05-01
 titulo: Registro de Nuevos Deportes
@@ -22,7 +22,7 @@ Eliminar el registro manual de los deportes en formato papel, permitiendo que un
 
 ### Criterios de Aceptación
 
-1. El sistema debe validar que el nombre del deporte no sea vacío y no esté registrado en un deporte existente con `logical_delete` nulo.
+1. El sistema debe validar que el nombre del deporte no sea vacío y no esté registrado en un deporte existente con `deleted_at` nulo.
 2. El sistema debe permitir que la descripción sea opcional.
 3. El sistema debe validar que la capacidad máxima de inscripciones sea mayor a cero.
 4. El sistema debe validar que el precio adicional sea opcional, y en caso de ser informado, sea mayor o igual a cero.
@@ -42,7 +42,7 @@ Se definirá la entidad `Deporte` con las siguientes propiedades y restricciones
 - `additional_price`: Número decimal positivo (default 0).
 - `requires_medical_certificate`: Booleano.
 - `createdAt`: Fecha de creación autogenerada.
-- `logical_delete`: Fecha de borrado lógico o nulo (default null).
+- `deleted_at`: Fecha de borrado lógico o nulo (default null).
 
 ### Contrato de API (@alentapp/shared)
 
@@ -90,4 +90,4 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 - Respecto al CA N3, en caso de que el usuario deje el campo de precio adicional vacío, se interpretará como que el precio adicional es cero, ya que no se puede asumir un valor negativo ni dejarlo sin especificar.
 - La verificación de unicidad de nombre no se delega a un validador de dominio del tipo `SportValidator`, sino que la realiza el `CreateSportUseCase` directamente, ya que dicha validación requiere consultar el estado persistido del sistema mediante el repositorio.
 - Un `SportValidator`, en caso de ser aplicado, se concibe como un servicio de dominio, encargado únicamente de validar invariantes y reglas de negocio que puedan evaluarse sin acceso a infraestructura ni persistencia.
-- La verificación de unicidad de nombre se realiza únicamente contra deportes activos, esto es, aquellos con `logical_delete = null`. Un deporte dado de baja lógicamente no bloquea el registro de un nuevo deporte con el mismo nombre, ya que desde la perspectiva del negocio ese nombre queda liberado al darse de baja.
+- La verificación de unicidad de nombre se realiza únicamente contra deportes activos, esto es, aquellos con `deleted_at = null`. Un deporte dado de baja lógicamente no bloquea el registro de un nuevo deporte con el mismo nombre, ya que desde la perspectiva del negocio ese nombre queda liberado al darse de baja.

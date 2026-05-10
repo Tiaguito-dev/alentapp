@@ -1,7 +1,7 @@
 ---
-version: 2.0
+version: 2.1
 id: 0021
-estado: Propuesto
+estado: Aprovado
 autor: Tiago Solis
 fecha: 2026-05-01
 titulo: Eliminación de Deportes Existentes
@@ -22,23 +22,23 @@ Permitir que un administrador elimine un deporte del sistema de forma lógica, d
 
 ### Criterios de Aceptación
 
-1. El sistema debe validar que el deporte con el id recibido exista y no tenga logical_delete seteado.
-2. Al dar de baja el deporte, el sistema debe setear la fecha actual en el campo logical_delete.
+1. El sistema debe validar que el deporte con el id recibido exista y que no esté dado de baja (tenga `deleted_at` nulo).
+2. Al dar de baja el deporte, el sistema debe setear la fecha actual en el campo `deleted_at`.
 3. Al finalizar, el sistema debe mostrar un mensaje de éxito.
 
 ## Diseño Técnico (RFC)
 
 ### Contrato de API (@alentapp/shared)
 
-Se utilizará el paquete compartido para definir el cuerpo de la petición. La eliminación es una operación que no requiere datos en el cuerpo, y se implementará mediante endpoint `DELETE`, pero la operación seteará el campo `logical_delete` (soft delete). Esta eliminación se puede ver reflejada porque en las consultas de deportes (TDD-0022) solo se recuperan aquellos que no tengan logical_delete seteado.
+Se utilizará el paquete compartido para definir el cuerpo de la petición. La eliminación es una operación que no requiere datos en el cuerpo, y se implementará mediante endpoint `DELETE`, pero la operación seteará el campo `deleted_at` (soft delete). Esta eliminación se puede ver reflejada porque en las consultas de deportes (TDD-0022) solo se recuperan aquellos que no tengan `deleted_at` seteado.
 
 - Endpoint: `DELETE /api/v1/sports/:id`
 
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `SportRepository` (Método `delete(id)`, extendiendo la interfaz definida en TDD-0019).
-2. **Caso de Uso**: `DeleteSportUseCase` (Verifica que el deporte exista y no esté dado de baja, y llama al repositorio para setear el campo `logical_delete`).
-3. **Adaptador de Salida**: `PrismaSportRepository` (Seteo del campo `logical_delete` con la fecha actual usando Prisma).
+2. **Caso de Uso**: `DeleteSportUseCase` (Verifica que el deporte exista y no esté dado de baja, y llama al repositorio para setear el campo `deleted_at`).
+3. **Adaptador de Salida**: `PrismaSportRepository` (Seteo del campo `deleted_at` con la fecha actual usando Prisma).
 4. **Adaptador de Entrada**: `SportController` (Ruta HTTP que extrae el `id` de la URL y mapea excepciones a códigos HTTP).
 
 ## Casos de Borde y Errores
@@ -60,8 +60,8 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. La e
 ## Observaciones adicionales
 
 ### Motivos de decisión
-- Se opta por baja lógica (seteo de `logical_delete`) en lugar de eliminación física, preservando el historial de inscripciones y datos asociados al deporte. Además, las operaciones secuenciales de grandes volúmenes de datos es preferente que las gestione el motor de base de datos debido a su optimización para este tipo de tareas.
+- Se opta por baja lógica (seteo de `deleted_at`) en lugar de eliminación física, preservando el historial de inscripciones y datos asociados al deporte. Además, las operaciones secuenciales de grandes volúmenes de datos es preferente que las gestione el motor de base de datos debido a su optimización para este tipo de tareas.
 - Se sugiere no utilizar un `SportValidator` (validador de dominio) en este caso de uso ya que no hay reglas de negocio sobre los datos recibidos: el único campo que llega es el `id` por URL, y su verificación (existencia y estado de baja) es responsabilidad del caso de uso directamente, por las mismas razones expuestas en TDD-0019 y TDD-0020.
 
 ### Puntos que no abordamos en esta etapa
-- La cancelación de inscripciones activas se delega a un trigger de base de datos disparado al setearse `logical_delete`. Esto mantiene al `DeleteSportUseCase` libre de dependencias hacia otros repositorios y evita acoplar la lógica de cancelación al caso de uso.
+- La cancelación de inscripciones activas se delega a un trigger de base de datos disparado al setearse `deleted_at`. Esto mantiene al `DeleteSportUseCase` libre de dependencias hacia otros repositorios y evita acoplar la lógica de cancelación al caso de uso.
