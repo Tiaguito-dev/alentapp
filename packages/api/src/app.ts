@@ -60,9 +60,8 @@ export function buildApp() {
         rep.status(200).send({ msg: 'asd' })
     });
 
-    return server;
 
-    // ==========================================
+   // ==========================================
     // Dependencias y Rutas de Locker
     // ==========================================
     
@@ -91,6 +90,11 @@ export function buildApp() {
     server.delete('/api/v1/lockers/:number', lockerController.delete.bind(lockerController));
     server.get('/api/v1/lockers', lockerController.list.bind(lockerController));
     server.get('/api/v1/lockers/:number', lockerController.getByNumber.bind(lockerController));
+
+
+    return server;
+
+   
     
 }
 
