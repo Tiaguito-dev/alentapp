@@ -6,6 +6,9 @@ import {
 
 export interface LockerRepository {
 
+  
+  findByMemberId(memberId: string): Promise<LockerDTO | null>;
+  
   create(data: CreateLockerRequest): Promise<LockerDTO>;
   
   update(number: number, data: UpdateLockerRequest): Promise<LockerDTO>;

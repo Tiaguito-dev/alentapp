@@ -12,7 +12,16 @@ export class UpdateLockerUseCase {
     if (!currentLocker) {
       throw new Error('El casillero especificado no fue encontrado');
     }
-
+    
+    if (data.member_id) {
+      // ...buscamos si ya existe algún casillero con ese socio
+      const existingLockerForMember = await this.lockerRepository.findByMemberId(data.member_id);
+      
+      // Si existe un casillero para este socio Y NO es el casillero que estamos editando ahora mismo...
+      if (existingLockerForMember && existingLockerForMember.number !== number) {
+        // Lanzamos un error (HTTP 400 Bad Request o un Custom Error de Dominio)
+        throw new Error("Este socio ya tiene un casillero asignado. Relación 1 a 1 violada.");
+      } }
     // 2. Validamos las reglas de negocio (Mantenimiento, reasignación, etc)
     LockerValidator.validateUpdate(currentLocker, data.status, data.member_id);
 

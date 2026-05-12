@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/client/client.js'; 
 import { LockerRepository } from '../domain/LockerRepository.js'; 
-import { LockerDTO, CreateLockerRequest, UpdateLockerRequest } from '@alentapp/shared';
+import { LockerDTO, CreateLockerRequest, UpdateLockerRequest, LockerStatus } from '@alentapp/shared';
 
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
@@ -81,4 +81,22 @@ export class PostgresLockerRepository implements LockerRepository {
             member_id: locker.member_id,
         };
     }
+    // En tu PostgresLockerRepository.ts
+  async findByMemberId(memberId: string): Promise<LockerDTO | null> {
+    // Usamos findFirst porque esperamos que, como máximo, haya uno
+    const lockerRecord = await prisma.locker.findFirst({
+      where: { member_id: memberId },
+    });
+
+    if (!lockerRecord) return null;
+    
+    // Mapeamos el registro de Prisma al formato exacto de tu LockerDTO
+    return {
+      id: lockerRecord.id,
+      number: lockerRecord.number,
+      location: lockerRecord.location,
+      status: lockerRecord.status as LockerStatus, // Si usás un enum o type específico para el status
+      member_id: lockerRecord.member_id
+    };
+  }
 }
