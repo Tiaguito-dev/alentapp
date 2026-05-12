@@ -26,7 +26,8 @@ export class PaymentValidator {
   }
 
   validatePaymentDate(payment_date: string): void {
-    if (isNaN(Date.parse(payment_date))) {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+    if (!dateRegex.test(payment_date) || isNaN(Date.parse(payment_date))) {
       throw new Error('Formato de fecha y hora inválido');
     }
   }
