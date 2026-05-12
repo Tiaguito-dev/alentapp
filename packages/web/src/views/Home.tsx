@@ -1,5 +1,5 @@
 import { Box, SimpleGrid, Heading, Text, VStack } from "@chakra-ui/react";
-import { LuUsers } from "react-icons/lu";
+import { LuUsers, LuArchive } from "react-icons/lu"; // Agregamos LuArchive para los casilleros
 import { SectionCard } from "../components/SectionCard";
 
 export function HomeView() {
@@ -29,6 +29,14 @@ export function HomeView() {
           description="Administra el padrón de socios, sus categorías, estados de cuenta y datos personales."
           to="/members"
           icon={LuUsers}
+        />
+
+        {/* Agregamos la tarjeta de Casilleros */}
+        <SectionCard 
+          title="Casilleros"
+          description="Gestiona el inventario de casilleros, sus ubicaciones y asignaciones a los socios."
+          to="/lockers"
+          icon={LuArchive}
         />
 
         {/* Future sections can be added here following the same pattern */}

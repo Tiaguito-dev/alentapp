@@ -26,11 +26,24 @@ function Layout() {
                                 fontWeight="semibold" 
                                 fontSize="sm" 
                                 textTransform="uppercase" 
-                                letterSpacing="wider"
+                                letterSpacing="wider" 
                                 color="fg.muted"
                                 _hover={{ color: "blue.500", textDecoration: "none" }}
                             >
                                 Miembros
+                            </Text>
+                        </RouterLink>
+                        {/* Agregamos el link a Casilleros */}
+                        <RouterLink to="/lockers">
+                            <Text 
+                                fontWeight="semibold" 
+                                fontSize="sm" 
+                                textTransform="uppercase" 
+                                letterSpacing="wider" 
+                                color="fg.muted"
+                                _hover={{ color: "blue.500", textDecoration: "none" }}
+                            >
+                                Casilleros
                             </Text>
                         </RouterLink>
                     </HStack>
