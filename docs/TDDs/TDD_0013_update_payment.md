@@ -3,9 +3,9 @@ id: 0013
 estado: Aprobado
 autor: Felipe Pianelli
 fecha: 2026-05-01
-titulo: Modificación de Pagos
+titulo: Actualización de Pagos Existentes
 ---
-# TDD-0013: Modificación de Pagos
+# TDD-0013: Actualización de Pagos Existentes
 
 ## Contexto de Negocio (PRD)
  

@@ -31,3 +31,36 @@ export interface UpdateMemberRequest {
   category?: MemberCategory;
   status?: MemberStatus;
 }
+
+// ==========================================
+// Payment
+// ==========================================
+export type PaymentStatus = 'Pending' | 'Paid' | 'Canceled' | 'Overdue';
+
+export interface PaymentResponse {
+  id: string;
+  member_id: string;
+  amount: number;
+  month: number;
+  year: number;
+  status: PaymentStatus;
+  due_date: string;       // YYYY-MM-DD
+  payment_date: string | null;
+}
+
+export interface CreatePaymentRequest {
+  member_id: string;
+  amount: number;
+  month: number;
+  year: number;
+  due_date: string;       // YYYY-MM-DD
+}
+
+export interface UpdatePaymentRequest {
+  amount?: number;
+  due_date?: string;      // YYYY-MM-DD
+}
+
+export interface MarkPaymentAsPaidRequest {
+  payment_date?: string;  // ISO DateTime, opcional
+}

@@ -3,9 +3,9 @@ id: 0015
 estado: Aprobado
 autor: Felipe Pianelli
 fecha: 2026-05-01
-titulo: Consulta de Pagos
+titulo: Consulta de Pagos Existentes
 ---
-# TDD-0015: Consulta de Pagos
+# TDD-0015: Consulta de Pagos Existentes
 
 ## Contexto de Negocio (PRD)
  
