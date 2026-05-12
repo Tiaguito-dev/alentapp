@@ -31,7 +31,7 @@ export class LockerController {
     }
   }
 
-  // PATCH /api/v1/lockers/:number (TDD-0005)
+ // PATCH /api/v1/lockers/:number (TDD-0005)
   async update(request: FastifyRequest<{ Params: { number: string }, Body: UpdateLockerRequest }>, reply: FastifyReply) {
     try {
       const number = parseInt(request.params.number, 10);
@@ -41,6 +41,12 @@ export class LockerController {
       if (error.message === 'error: casillero en mantenimiento') {
         return reply.status(422).send({ error: error.message });
       }
+      
+      // Acá está la corrección:
+      if (error.message.includes("ya tiene un casillero asignado")) {
+        return reply.status(400).send({ error: error.message });
+      }
+      
       if (error.message === 'El casillero especificado no fue encontrado') {
         return reply.status(404).send({ error: error.message });
       }
@@ -50,7 +56,6 @@ export class LockerController {
       return reply.status(500).send({ error: 'Error interno, reintente más tarde' });
     }
   }
-
   // DELETE /api/v1/lockers/:number (TDD-0006)
   async delete(request: FastifyRequest<{ Params: { number: string } }>, reply: FastifyReply) {
     try {
