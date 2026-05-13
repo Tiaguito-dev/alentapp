@@ -3,9 +3,9 @@ id: 0012
 estado: Aprobado
 autor: Felipe Pianelli
 fecha: 2026-05-01
-titulo: Alta de Pagos
+titulo: Registro de Nuevos Pagos
 ---
-# TDD-0012: Alta de Pagos
+# TDD-0012: Registro de Nuevos Pagos
 
 ## Contexto de Negocio (PRD)
  

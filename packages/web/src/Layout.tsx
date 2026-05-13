@@ -1,6 +1,5 @@
 import { Provider } from './components/ui/provider';
 import { Box, Container, Flex, Text, HStack } from '@chakra-ui/react';
-
 import { Outlet, Link as RouterLink } from "react-router";
 
 function Layout() {
@@ -21,6 +20,7 @@ function Layout() {
                         </Text>
                     </RouterLink>
                     <HStack gap="10">
+                        {/* Miembros */}
                         <RouterLink to="/members">
                             <Text 
                                 fontWeight="semibold" 
@@ -33,7 +33,8 @@ function Layout() {
                                 Miembros
                             </Text>
                         </RouterLink>
-                        {/* Agregamos el link a Casilleros */}
+
+                        {/* Casilleros (Viene de tu rama actual) */}
                         <RouterLink to="/lockers">
                             <Text 
                                 fontWeight="semibold" 
@@ -46,6 +47,20 @@ function Layout() {
                                 Casilleros
                             </Text>
                         </RouterLink>
+
+                        {/* Pagos (Viene de la rama main) */}
+                        <RouterLink to="/payments">
+                            <Text 
+                                fontWeight="semibold" 
+                                fontSize="sm" 
+                                textTransform="uppercase" 
+                                letterSpacing="wider"
+                                color="fg.muted"
+                                _hover={{ color: "blue.500", textDecoration: "none" }}
+                            >
+                                Pagos
+                            </Text>
+                        </RouterLink>
                     </HStack>
                 </Flex>
             </Box>
@@ -55,4 +70,5 @@ function Layout() {
         </Provider>
     );
 }
+
 export default Layout;

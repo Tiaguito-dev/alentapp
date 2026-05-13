@@ -1,7 +1,7 @@
 ---
-version: 1.1
+version: 2.1
 id: 0020
-estado: Propuesto
+estado: Aprobado
 autor: Tiago Solis
 fecha: 2026-05-01
 titulo: Actualización de Deportes Existentes
@@ -13,17 +13,17 @@ titulo: Actualización de Deportes Existentes
 
 ### Objetivo
 
-Permitir que un administrador modifique la información de un deporte ya registrado en el sistema, corrigiendo datos incorrectos o actualizando condiciones del deporte (como su capacidad máxima o precio adicional) sin necesidad de eliminar y volver a crear el registro.
+Permitir que un administrador modifique ciertos datos configurables de un deporte ya registrado en el sistema, como su descripción, capacidad máxima, precio adicional o requerimiento de certificado médico, sin necesidad de eliminar y volver a crear el registro.
 
 ### User Persona
 
 - Nombre: Juanceto (Administrador).
-- Necesidad: Editar los datos de un deporte existente desde el panel de administración. Por ejemplo, actualizar la capacidad máxima de un deporte ante una nueva temporada, corregir un nombre mal tipeado, o habilitar/deshabilitar el requerimiento de certificado médico. No puede permitirse que un deporte quede con un nombre duplicado respecto a otro ya registrado, con capacidad máxima sin detallar o con un precio adicional negativo.
+- Necesidad: Editar los datos de un deporte existente desde el panel de administración. Por ejemplo, actualizar la capacidad máxima de un deporte ante una nueva temporada o habilitar/deshabilitar el requerimiento de certificado médico. No puede permitirse que el nombre del deporte pueda ser modificado.
 
 ### Criterios de Aceptación
 
-1. El sistema debe permitir actualizar uno, varios o todos los campos del deporte (menos el id y logical_delete).
-2. El sistema debe validar que, si se modifica el nombre, este no esté registrado en un deporte activo distinto al que se está editando.
+1. El sistema solo debe permitir la actualización de los campos ´description´, ´max_capacity´, ´additional_price´ y ´requires_medical_certificate´.
+2. Si se intenta modificar el campo `name`, el sistema debe rechazar la solicitud con un mensaje de error indicando que el nombre del deporte no puede ser modificado.
 3. El sistema debe validar que, si se modifica la capacidad máxima, sea mayor a cero.
 4. El sistema debe validar que, si se modifica el precio adicional, sea mayor o igual a cero.
 5. Si la edición es correcta, debe mostrar un mensaje de éxito e imprimir los datos del deporte con sus campos actualizados.
@@ -50,17 +50,16 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. Todo
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `SportRepository` (Método `update(id, data)`, extendiendo la interfaz definida en TDD-0019).
-2. **Servicio de Dominio**: `SportValidator` (Encargado de validar las reglas de negocio relacionadas con el deporte).
-3. **Caso de Uso**: `UpdateSportUseCase` (Delega la validación en `SportValidator`, verifica, excluyendo al propio deporte, que el nombre no esté registrado y llama al repositorio).
-4. **Adaptador de Salida**: `PrismaSportRepository` (Actualización usando el método `update` de Prisma).
-5. **Adaptador de Entrada**: `SportController` (Ruta HTTP que extrae el `id` de la URL y mapea excepciones a códigos HTTP).
+2. **Caso de Uso**: `UpdateSportUseCase` (Lógica que verifica las reglas de negocio, valida los campos y llama al repositorio).
+3. **Adaptador de Salida**: `PrismaSportRepository` (Actualización usando el método `update` de Prisma).
+4. **Adaptador de Entrada**: `SportController` (Ruta HTTP que extrae el `id` de la URL y mapea excepciones a códigos HTTP).
 
 ## Casos de Borde y Errores
 
 | Escenario                  | Resultado Esperado                                   | Código HTTP actual        |
 | -------------------------- | -----------------------------------------------------| ------------------------- |
 | Deporte no existente       | Mensaje: "No existe deporte con ese id"              | 404 Not Found             |
-| Nombre ya registrado en un deporte activo       | Mensaje: "Ya existe un deporte con ese nombre"       | 409 Conflict              |
+| Intento de modificación del campo `name`       | Mensaje: "El nombre del deporte no puede ser modificado"       | 409 Conflict              |
 | Capacidad máxima ≤ 0       | Mensaje: "La capacidad máxima debe ser mayor a cero" | 400 Bad Request           |
 | Precio adicional < 0       | Mensaje: "El precio adicional no puede ser negativo" | 400 Bad Request           |
 | Error de conexión a DB     | Mensaje: "Error interno, reintente más tarde"        | 500 Internal Server Error |
@@ -69,13 +68,12 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. Todo
 
 1. Actualizar las interfaces en el paquete `@alentapp/shared` (`UpdateSportRequest`).
 2. Ampliar el `SportRepository` con el método `update`.
-3. Implementar la lógica en `UpdateSportUseCase` utilizando el `SportValidator` centralizado.
+3. Implementar la lógica en `UpdateSportUseCase`.
 4. Crear la ruta `PATCH` en el controlador y enlazarla a la app de Fastify.
 5. Consumir el endpoint desde el servicio de Frontend y reutilizar el modal de creación para permitir la edición.
 
 ### Observaciones adicionales: motivos de decisión
 
-- Solo el administrador (rol con permisos privilegiados) puede modificar deportes, por los mismos motivos expuestos en TDD-0019: se trata de una tarea crítica para el negocio que requiere control y supervisión.
-- La verificación de unicidad de nombre excluye al propio deporte que se está editando (para evitar un falso positivo al guardar sin cambiar el nombre) y se realiza únicamente contra deportes activos (`logical_delete = null`), en línea con la decisión tomada en TDD-0019. Un deporte dado de baja lógicamente no bloquea el registro de un nuevo deporte con el mismo nombre, ni la edición de otro deporte para adoptar ese nombre, ya que desde la perspectiva del negocio ese nombre queda liberado al darse de baja.
 - Si el campo additional_price se envía como null o vacío, se interpreta como cero, en línea con la decisión tomada en TDD-0019.
-- Se opta por PATCH en el endpoint aunque el comportamiento sea una actualización parcial (campos opcionales), manteniendo consistencia con la convención ya establecida en TDD-0002. 
+- Se opta por PATCH en el endpoint aunque el comportamiento sea una actualización parcial (campos opcionales), manteniendo consistencia con la convención ya establecida en TDD-0002.
+- Se admite el campo name en el cuerpo de la petición para facilitar la validación, pero se rechaza cualquier intento de modificarlo, asegurando que el nombre del deporte permanezca inmutable. Esto a fin de hacer explícita la regla de negocio que dice que *"El atributo name es inmutable después de la creación (solo se permite editar descripción y cupo)."*

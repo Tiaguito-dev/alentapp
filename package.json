@@ -12,7 +12,8 @@
     "e2e:fullstack:headed:run": "npm run e2e:fullstack:up && npm run e2e:fullstack:headed & npm run e2e:fullstack:down",
     "e2e:fullstack:up": "docker compose -f docker-compose.e2e.yml --project-name alentapp-e2e up -d --build",
     "e2e:fullstack:down": "docker compose -f docker-compose.e2e.yml --project-name alentapp-e2e down -v",
-    "e2e:fullstack:run": "npm run e2e:fullstack:up && npm run e2e:fullstack & npm run e2e:fullstack:down"
+    "e2e:fullstack:run": "npm run e2e:fullstack:up && npm run e2e:fullstack & npm run e2e:fullstack:down",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -22,9 +23,12 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^21.0.0",
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
+    "husky": "^9.1.7",
     "pg": "^8.20.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"

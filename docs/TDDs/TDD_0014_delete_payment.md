@@ -3,9 +3,9 @@ id: 0014
 estado: Aprobado
 autor: Felipe Pianelli
 fecha: 2026-05-01
-titulo: Baja de Pagos
+titulo: Eliminación de Pagos Existentes
 ---
-# TDD-0014: Baja de Pagos
+# TDD-0014: Eliminación de Pagos Existentes
 
 ## Contexto de Negocio (PRD)
  
@@ -22,7 +22,7 @@ Permitir al Administrativo dar de baja un pago de manera lógica, ocultándolo d
 
 - El sistema debe pedir una confirmación explícita en el frontend antes de proceder con la baja.
 - La baja se implementa marcando el campo `deleted_at` con la fecha y hora actual del servidor; **no se realiza borrado físico** del registro bajo ninguna circunstancia.
-- Una vez dado de baja, el pago deja de aparecer en todas las consultas (listado, detalle por ID, filtros).
+- Una vez dado de baja, el pago deja de aparecer en todas las consultas (listado, detalle por ID).
 - El sistema debe rechazar la baja de un pago en estado `Paid` (un pago cobrado solo puede revertirse mediante un proceso de reembolso, fuera de alcance).
 - Una vez aplicada, la baja libera la combinación `(member_id, month, year)` para una nueva alta. 
 
