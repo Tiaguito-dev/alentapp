@@ -30,11 +30,19 @@ export class UpdateLockerUseCase {
     // REGLA 2: Mantenimiento sin socio
     // ==========================================
     // Calculamos cómo va a quedar el casillero si aplicamos los cambios
-    const finalMemberId = data.member_id !== undefined ? data.member_id : currentLocker.member_id;
+   const finalMemberId = data.member_id !== undefined ? data.member_id : currentLocker.member_id;
     const finalStatus = data.status !== undefined ? data.status : currentLocker.status;
 
     if (finalStatus === 'Maintenance' && finalMemberId !== null && finalMemberId !== "") {
-      throw new Error("No se puede poner en mantenimiento un casillero asignado. Desasigne al socio primero.");
+      
+      if (currentLocker.status === 'Maintenance') {
+        // Escenario A (422): El casillero YA estaba roto y le querés asignar a alguien
+        throw new Error("error: casillero en mantenimiento");
+      } else {
+        // Escenario B (409): El casillero estaba ocupado y lo querés romper sin sacar al socio
+        throw new Error("No se puede poner en mantenimiento un casillero asignado. Desasigne al socio primero.");
+      }
+      
     }
 
     // 2. Validamos las demás reglas de negocio (Mantenimiento, reasignación, etc)
