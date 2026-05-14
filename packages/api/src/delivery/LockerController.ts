@@ -97,28 +97,7 @@ async create(request: FastifyRequest<{ Body: CreateLockerRequest }>, reply: Fast
   // GET /api/v1/lockers (TDD-0007)
   async list(request: FastifyRequest, reply: FastifyReply) {
     try {
-      // 1. Agarramos los parámetros que vengan después del "?" en la URL
-      const query = request.query as any;
-
-      // ==========================================
-      // REGLA: Status con valor no reconocido (400)
-      // ==========================================
-      if (query.status && !['Available', 'Occupied', 'Maintenance'].includes(query.status)) {
-        return reply.status(400).send({ error: "Estado de casillero inválido" });
-      }
-
-      // ==========================================
-      // REGLA: Formato de member_id inválido (400)
-      // ==========================================
-      if (query.member_id) {
-        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-        if (!uuidRegex.test(query.member_id)) {
-          return reply.status(400).send({ error: "Formato de ID de socio inválido" });
-        }
-      }
-
-      // 2. Si todo está en orden, llamamos al Caso de Uso. 
-      // (Le pasamos el 'query' por si tu UseCase ya está preparado para filtrar)
+    
       const lockers = await this.listUseCase.execute();
       
       return reply.status(200).send(lockers);
