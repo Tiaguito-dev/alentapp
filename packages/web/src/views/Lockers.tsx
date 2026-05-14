@@ -250,7 +250,15 @@ export function LockersView() {
                     <SelectRoot 
                       collection={memberCollection} 
                       value={[formData.member_id]}
-                      onValueChange={(e) => setFormData({ ...formData, member_id: e.value[0] })}
+                      onValueChange={(e) => {
+                        const selectedMember = e.value[0];
+                        setFormData({ 
+                          ...formData, 
+                          member_id: selectedMember,
+                          // ACÁ OCURRE LA MAGIA: Cambio de estado automático visual
+                          status: selectedMember ? "Occupied" : "Available" 
+                        });
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValueText placeholder="Seleccione un socio" />

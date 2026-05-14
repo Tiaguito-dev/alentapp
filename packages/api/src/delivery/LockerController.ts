@@ -48,7 +48,7 @@ async create(request: FastifyRequest<{ Body: CreateLockerRequest }>, reply: Fast
       const number = parseInt(request.params.number, 10);
       const locker = await this.updateUseCase.execute(number, request.body);
       return reply.status(200).send(locker);
-    }catch (error: any) {
+    } catch (error: any) {
       
       if (error.message === 'error: casillero en mantenimiento') {
         return reply.status(422).send({ error: error.message });
@@ -57,22 +57,25 @@ async create(request: FastifyRequest<{ Body: CreateLockerRequest }>, reply: Fast
       if (error.message === 'El casillero especificado no fue encontrado') {
         return reply.status(404).send({ error: error.message });
       }
+      
       // Atajamos si el Socio no existe (ya sea por error del UseCase o por error de base de datos de Prisma)
       if (error.code === 'P2003' || error.message.includes('Foreign key constraint') || error.message === 'error: Socio no existe') {
         return reply.status(404).send({ error: "error: Socio no existe" });
       }
 
-
       if (error.message.includes("ya tiene un casillero asignado")) {
         return reply.status(400).send({ error: error.message });
       }
       
-      
-      if (error.message.includes('ya está asignado') || error.message.includes('No se puede poner en mantenimiento')) {
+      // ACÁ ESTÁ EL ARREGLO: Agregamos "desasigne al socio primero"
+      if (
+        error.message.includes('ya está asignado') || 
+        error.message.includes('desasigne al socio primero') || 
+        error.message.includes('No se puede poner en mantenimiento')
+      ) {
         return reply.status(409).send({ error: error.message });
       }
 
-  
       console.error("Error no manejado:", error); // Te dejo un console.log acá para que puedas ver en tu terminal si falla algo raro
       return reply.status(500).send({ error: 'Error interno, reintente más tarde' });
     }

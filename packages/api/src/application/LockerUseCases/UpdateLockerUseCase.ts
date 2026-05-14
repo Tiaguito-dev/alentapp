@@ -14,7 +14,7 @@ export class UpdateLockerUseCase {
     }
     
     // ==========================================
-    // REGLA 1: Relación 1 a 1
+    // REGLA 1: Relación 1 a 1 (Requiere Base de Datos)
     // ==========================================
     if (data.member_id) {
       // buscamos si ya existe algún casillero con ese socio
@@ -27,29 +27,23 @@ export class UpdateLockerUseCase {
     }
 
     // ==========================================
-    // REGLA 2: Mantenimiento sin socio
+    // REGLA 2: Cambio de estado automático
     // ==========================================
-    // Calculamos cómo va a quedar el casillero si aplicamos los cambios
-   const finalMemberId = data.member_id !== undefined ? data.member_id : currentLocker.member_id;
-    const finalStatus = data.status !== undefined ? data.status : currentLocker.status;
-
-    if (finalStatus === 'Maintenance' && finalMemberId !== null && finalMemberId !== "") {
-      
-      if (currentLocker.status === 'Maintenance') {
-        // Escenario A (422): El casillero YA estaba roto y le querés asignar a alguien
-        throw new Error("error: casillero en mantenimiento");
-      } else {
-        // Escenario B (409): El casillero estaba ocupado y lo querés romper sin sacar al socio
-        throw new Error("No se puede poner en mantenimiento un casillero asignado. Desasigne al socio primero.");
-      }
-      
+    // Si asignamos un socio (viene ID) y no mandamos un estado a mano, pasa a Occupied
+    if (data.member_id && data.status === undefined) {
+      data.status = 'Occupied';
     }
 
-    // 2. Validamos las demás reglas de negocio (Mantenimiento, reasignación, etc)
+    // Si desasignamos al socio mandando null, y no mandamos estado a mano, vuelve a Available
+    if (data.member_id === null && data.status === undefined) {
+      data.status = 'Available';
+    }
+
+    // 3. Validamos las demás reglas de negocio pura (Mantenimiento, reasignación, etc)
+    // Delegamos toda la lógica al validador para no ensuciar el UseCase
     LockerValidator.validateUpdate(currentLocker, data.status, data.member_id);
 
-    // 3. Si todo está bien, actualizamos
-    // que capturaremos en el controlador para devolver el 404 del TDD.
+    // 4. Si todo está bien, actualizamos
     return this.lockerRepository.update(number, data);
   }
 }
