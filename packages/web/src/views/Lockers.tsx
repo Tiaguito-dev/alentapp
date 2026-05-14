@@ -157,7 +157,12 @@ export function LockersView() {
       setIsDialogOpen(false);
       fetchData();
     } catch (err: any) {
-      alert(err.message || "Error al guardar el casillero");
+      // --- MANEJO DE ERROR AMIGABLE PARA EL USUARIO ---
+      if (err.message === 'error: casillero en mantenimiento') {
+        alert("No se puede reparar y asignar un socio al mismo tiempo. Por favor, primero cambie el estado a 'Disponible' y guarde. Luego vuelva a editarlo para asignar al socio.");
+      } else {
+        alert(err.message || "Error al guardar el casillero");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -255,7 +260,6 @@ export function LockersView() {
                         setFormData({ 
                           ...formData, 
                           member_id: selectedMember,
-                          // ACÁ OCURRE LA MAGIA: Cambio de estado automático visual
                           status: selectedMember ? "Occupied" : "Available" 
                         });
                       }}
