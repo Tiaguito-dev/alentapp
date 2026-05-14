@@ -46,9 +46,8 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 | Escenario                   | Resultado Esperado                                          | Código HTTP     |
 | --------------------------- | ------------------------------------------------------------| --------------- |
 | Casillero inexistente       | Error: "El casillero especificado no fue encontrado"        | 404 Not Found   |
-| status con valor no reconocido | Error:  "Estado de casillero inválido"                   | 400 Bad Request |
 | Error de conexión a DB      | Error: "Error interno, reintente más tarde"                 | 500 Internal Server Error |
-|Formato de memberId inválido | Error: "Formato de ID de socio inválido"                    |400 Bad Request   |
+
 
 ## Plan de Implementación
 
