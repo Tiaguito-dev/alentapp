@@ -3,10 +3,10 @@ id: 0006
 estado: Aprobado
 autor: Sereno Santiago
 fecha: 2026-05-01
-titulo: Baja de Casillero (Locker)
+titulo: Eliminacion de Casillero Existente 
 ---
 
-# TDD-0006: Baja de Casillero (Locker)
+# TDD-0006: Eliminacion de Casillero Existente 
 
 ## Contexto de Negocio (PRD)
 

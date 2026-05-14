@@ -1,5 +1,6 @@
 import { Box, SimpleGrid, Heading, Text, VStack } from "@chakra-ui/react";
-import { LuUsers, LuCreditCard  } from "react-icons/lu";
+// Juntamos los tres íconos acá:
+import { LuUsers, LuArchive, LuCreditCard } from "react-icons/lu"; 
 import { SectionCard } from "../components/SectionCard";
 
 export function HomeView() {
@@ -30,11 +31,20 @@ export function HomeView() {
           to="/members"
           icon={LuUsers}
         />
+        
         <SectionCard 
           title="Pagos"
           description="Registrá y hacé seguimiento de las cuotas mensuales de los socios del club."
           to="/payments"
           icon={LuCreditCard}
+        />
+
+        {/* Agregamos la tarjeta de Casilleros */}
+        <SectionCard 
+          title="Casilleros"
+          description="Gestiona el inventario de casilleros, sus ubicaciones y asignaciones a los socios."
+          to="/lockers"
+          icon={LuArchive}
         />
 
         {/* Future sections can be added here following the same pattern */}

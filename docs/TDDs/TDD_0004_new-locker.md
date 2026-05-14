@@ -3,10 +3,10 @@ id: 0004
 estado: Aprobado
 autor: Sereno Santiago
 fecha: 2026-05-01
-titulo: Alta de Casillero (Locker)
+titulo: Registro de Casillero Nuevo 
 ---
 
-# TDD-0004: Alta de Casillero (Locker)
+# TDD-0004: Registro de Casillero Nuevo 
 
 ## Contexto de Negocio (PRD)
 

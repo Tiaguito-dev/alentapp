@@ -7,6 +7,14 @@ import { GetMembersUseCase } from './application/GetMembersUseCase.js';
 import { UpdateMemberUseCase } from './application/UpdateMemberUseCase.js';
 import { DeleteMemberUseCase } from './application/DeleteMemberUseCase.js';
 import { MemberController } from './delivery/MemberController.js';
+// --- Imports de Locker ---
+import { PostgresLockerRepository } from './infrastructure/PostgresLockerRepository.js'; // Ajustar si es otra carpeta
+import { CreateLockerUseCase } from './application/LockerUseCases/NewLockerUseCase.js';
+import { UpdateLockerUseCase } from './application/LockerUseCases/UpdateLockerUseCase.js';
+import { DeleteLockerUseCase } from './application/LockerUseCases/DeleteLockerUseCase.js';
+import { ListLockersUseCase } from './application/LockerUseCases/ListLockersUseCase.js';
+import { GetLockerByNumberUseCase } from './application/LockerUseCases/GetLockerByNumberUseCase.js';
+import { LockerController } from './delivery/LockerController.js'; // O donde lo hayas guardado
 import { PostgresPaymentRepository } from './infrastructure/PostgresPaymentRepository.js';
 import { PaymentValidator } from './domain/services/PaymentValidator.js';
 import { CreatePaymentUseCase } from './application/PaymentUseCases/CreatePaymentUseCase.js';
@@ -17,6 +25,7 @@ import { DeletePaymentUseCase } from './application/PaymentUseCases/DeletePaymen
 import { ListPaymentsUseCase } from './application/PaymentUseCases/ListPaymentsUseCase.js';
 import { GetPaymentByIdUseCase } from './application/PaymentUseCases/GetPaymentByIdUseCase.js';
 import { PaymentController } from './delivery/PaymentController.js';
+
 
 export function buildApp() {
     const server = Fastify({
@@ -33,7 +42,8 @@ export function buildApp() {
 
     server.register(cors, {
         origin: true,
-        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE', 'OPTIONS'],
+
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
     });
@@ -88,7 +98,42 @@ export function buildApp() {
         rep.status(200).send({ msg: 'asd' })
     });
 
+
+   // ==========================================
+    // Dependencias y Rutas de Locker
+    // ==========================================
+    
+    // 1. Instanciamos el repositorio (Infraestructura)
+    const lockerRepo = new PostgresLockerRepository();
+    
+    // 2. Instanciamos los Casos de Uso (Aplicación) pasándoles el repositorio
+    const createLockerUseCase = new CreateLockerUseCase(lockerRepo);
+    const updateLockerUseCase = new UpdateLockerUseCase(lockerRepo);
+    const deleteLockerUseCase = new DeleteLockerUseCase(lockerRepo);
+    const listLockersUseCase = new ListLockersUseCase(lockerRepo);
+    const getLockerByNumberUseCase = new GetLockerByNumberUseCase(lockerRepo);
+
+    // 3. Instanciamos el Controlador (Delivery/Entrada) pasándole los Casos de Uso
+    const lockerController = new LockerController(
+        createLockerUseCase,
+        updateLockerUseCase,
+        deleteLockerUseCase,
+        listLockersUseCase,
+        getLockerByNumberUseCase
+    );
+
+    // 4. Registramos las rutas de Fastify según los TDDs
+    server.post('/api/v1/lockers', lockerController.create.bind(lockerController));
+    server.patch('/api/v1/lockers/:number', lockerController.update.bind(lockerController));
+    server.delete('/api/v1/lockers/:number', lockerController.delete.bind(lockerController));
+    server.get('/api/v1/lockers', lockerController.list.bind(lockerController));
+    server.get('/api/v1/lockers/:number', lockerController.getByNumber.bind(lockerController));
+
+
     return server;
+
+   
+    
 }
 
 // Solo iniciar el servidor si el script se ejecuta directamente (no cuando es importado por vitest)

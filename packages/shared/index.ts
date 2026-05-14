@@ -33,6 +33,31 @@ export interface UpdateMemberRequest {
 }
 
 // ==========================================
+// Locker
+// ==========================================
+export type LockerStatus = 'Available' | 'Occupied' | 'Maintenance';
+
+export interface LockerDTO {
+  id: string;  // UUID
+  number: number;
+  location: string;
+  status: LockerStatus;
+  member_id: string | null;
+}
+
+export interface CreateLockerRequest {
+  number: number;
+  location: string;
+  status: LockerStatus;
+}
+
+export interface UpdateLockerRequest {
+  location?: string;
+  status?: LockerStatus;
+  member_id?: string | null;
+}
+
+// ==========================================
 // Payment
 // ==========================================
 export type PaymentStatus = 'Pending' | 'Paid' | 'Canceled' | 'Overdue';
@@ -64,3 +89,4 @@ export interface UpdatePaymentRequest {
 export interface MarkPaymentAsPaidRequest {
   payment_date?: string;  // ISO DateTime, opcional
 }
+

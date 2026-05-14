@@ -3,10 +3,10 @@ id: 0007
 estado: Aprobado
 autor: Sereno Santiago
 fecha: 2026-05-01
-titulo: Listado y Consulta de Casilleros 
+titulo: Consulta de Casilleros Existentes 
 ---
 
-# TDD-0007: Listado y Consulta de Casilleros 
+# TDD-0007: Consulta de Casilleros Existentes 
 
 ## Contexto de Negocio (PRD)
 
@@ -46,9 +46,8 @@ Proveer una interfaz de lectura rápida para visualizar el inventario completo d
 | Escenario                   | Resultado Esperado                                          | Código HTTP     |
 | --------------------------- | ------------------------------------------------------------| --------------- |
 | Casillero inexistente       | Error: "El casillero especificado no fue encontrado"        | 404 Not Found   |
-| status con valor no reconocido | Error:  "Estado de casillero inválido"                   | 400 Bad Request |
 | Error de conexión a DB      | Error: "Error interno, reintente más tarde"                 | 500 Internal Server Error |
-|Formato de memberId inválido | Error: "Formato de ID de socio inválido"                    |400 Bad Request   |
+
 
 ## Plan de Implementación
 
