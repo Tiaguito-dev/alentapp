@@ -1,5 +1,5 @@
 ---
-version: 2.1
+version: 2.3
 id: 0019
 estado: Aprobado
 autor: Tiago Solis
@@ -37,7 +37,7 @@ Se definirá la entidad `Deporte` con las siguientes propiedades y restricciones
 
 - `id`: Identificador único universal (UUID).
 - `name`: Cadena de texto.
-- `description`: Cadena de texto o nulo.
+- `description`: Cadena de texto.
 - `max_capacity`: Número entero positivo mayor a cero.
 - `additional_price`: Número decimal positivo (default 0).
 - `requires_medical_certificate`: Booleano.
@@ -54,9 +54,9 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 ```ts
 {
     name: string;
-    description: string | null;
+    description?: string;
     max_capacity: number;
-    additional_price: number;
+    additional_price?: number;
     requires_medical_certificate: boolean;
 }
 ```
@@ -64,9 +64,10 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `SportRepository` (Interface en el Dominio).
-2. **Caso de Uso**: `CreateSportUseCase` (Lógica que verifica las reglas de negocio, valida que el nombre no esté registrado y llama al repositorio).
-3. **Adaptador de Salida**: `PrismaSportRepository` (Implementación del puerto SportRepository usando Prisma sobre PostgreSQL).
-4. **Adaptador de Entrada**: `SportController` (Ruta HTTP).
+2. `SportValidator` (Servicio de dominio encargado de validar invariantes, reglas de negocio y que el nombre no se repita en la base de datos).    
+3. **Caso de Uso**: `CreateSportUseCase` (Lógica que verifica las reglas de negocio usando al validador y el repositorio).
+4. **Adaptador de Salida**: `PrismaSportRepository` (Implementación del puerto SportRepository usando Prisma sobre PostgreSQL).
+5. **Adaptador de Entrada**: `SportController` (Ruta HTTP).
 
 ## Casos de Borde y Errores
 
@@ -88,6 +89,9 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 ### Observaciones adicionales: motivos de decisión
 - Se asume que el proceso de registro de un nuevo deporte se realiza de forma manual por un administrativo y que el sistema actual no tiene una funcionalidad digital para esto.
 - Respecto al CA N3, en caso de que el usuario deje el campo de precio adicional vacío, se interpretará como que el precio adicional es cero, ya que no se puede asumir un valor negativo ni dejarlo sin especificar.
+- La verificación de unicidad de nombre se realiza únicamente contra deportes activos, esto es, aquellos con `deleted_at = null`. Un deporte dado de baja lógicamente no bloquea el registro de un nuevo deporte con el mismo nombre, ya que desde la perspectiva del negocio ese nombre queda liberado al darse de baja.
+
+## Modificaciones
+### v2.1 - 2026-05-14
 - La verificación de unicidad de nombre no se delega a un validador de dominio del tipo `SportValidator`, sino que la realiza el `CreateSportUseCase` directamente, ya que dicha validación requiere consultar el estado persistido del sistema mediante el repositorio.
 - Un `SportValidator`, en caso de ser aplicado, se concibe como un servicio de dominio, encargado únicamente de validar invariantes y reglas de negocio que puedan evaluarse sin acceso a infraestructura ni persistencia.
-- La verificación de unicidad de nombre se realiza únicamente contra deportes activos, esto es, aquellos con `deleted_at = null`. Un deporte dado de baja lógicamente no bloquea el registro de un nuevo deporte con el mismo nombre, ya que desde la perspectiva del negocio ese nombre queda liberado al darse de baja.

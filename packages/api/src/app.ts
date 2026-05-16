@@ -30,24 +30,28 @@ import { CreateMedicalCertificateUseCase } from './application/MedicalCertificat
 import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
 import { GetMedicalCertificateByIdUseCase } from './application/MedicalCertificateUseCases/GetMedicalCertificateByIdUseCase.js';
 import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
+import { PostgresSportRepository } from './infrastructure/PostgresSportRepository.js';
+import { CreateSportUseCase } from './application/SportUseCases/NewSportUseCase.js';
+import { SportValidator } from './domain/services/SportValidator.js';
+import { SportController } from './delivery/SportController.js';
 
 
 export function buildApp() {
     const server = Fastify({
         logger: {
             level: 'info',
-            transport: process.env.NODE_ENV === 'development' 
-            ? {
-                target: 'pino-pretty',
-                options: { translateTime: 'HH:MM:ss Z', ignore: 'pid,hostname' },
-                } 
-            : undefined,
+            transport: process.env.NODE_ENV === 'development'
+                ? {
+                    target: 'pino-pretty',
+                    options: { translateTime: 'HH:MM:ss Z', ignore: 'pid,hostname' },
+                }
+                : undefined,
         },
     });
 
     server.register(cors, {
         origin: true,
-        methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE', 'OPTIONS'],
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
@@ -59,6 +63,9 @@ export function buildApp() {
     const paymentValidator = new PaymentValidator();
     const medicalCertificateRepo = new PostgresMedicalCertificateRepository();
     
+
+
+
     const createMemberUseCase = new CreateMemberUseCase(memberRepo, memberValidator);
     const getMembersUseCase = new GetMembersUseCase(memberRepo);
     const updateMemberUseCase = new UpdateMemberUseCase(memberRepo, memberValidator);
@@ -75,20 +82,20 @@ export function buildApp() {
     const getMedicalCertificateByIdUseCase = new GetMedicalCertificateByIdUseCase(medicalCertificateRepo);
 
     const memberController = new MemberController(
-        createMemberUseCase, 
+        createMemberUseCase,
         getMembersUseCase,
         updateMemberUseCase,
         deleteMemberUseCase
     );
 
     const paymentController = new PaymentController(
-      createPaymentUseCase,
-      updatePaymentUseCase,
-      markPaymentAsPaidUseCase,
-      cancelPaymentUseCase,
-      deletePaymentUseCase,
-      listPaymentsUseCase,
-      getPaymentByIdUseCase,
+        createPaymentUseCase,
+        updatePaymentUseCase,
+        markPaymentAsPaidUseCase,
+        cancelPaymentUseCase,
+        deletePaymentUseCase,
+        listPaymentsUseCase,
+        getPaymentByIdUseCase,
     );
 
         const medicalCertificateController = new MedicalCertificateController(
@@ -117,13 +124,13 @@ export function buildApp() {
     });
 
 
-   // ==========================================
+    // ==========================================
     // Dependencias y Rutas de Locker
     // ==========================================
-    
+
     // 1. Instanciamos el repositorio (Infraestructura)
     const lockerRepo = new PostgresLockerRepository();
-    
+
     // 2. Instanciamos los Casos de Uso (Aplicación) pasándoles el repositorio
     const createLockerUseCase = new CreateLockerUseCase(lockerRepo);
     const updateLockerUseCase = new UpdateLockerUseCase(lockerRepo);
@@ -147,11 +154,22 @@ export function buildApp() {
     server.get('/api/v1/lockers', lockerController.list.bind(lockerController));
     server.get('/api/v1/lockers/:number', lockerController.getByNumber.bind(lockerController));
 
+    // ==========================================
+    // Dependencias y rutas de Sport
+    // ==========================================
+
+    const sportRepo = new PostgresSportRepository();
+
+    const sportValidator = new SportValidator(sportRepo);
+    const createSportUseCase = new CreateSportUseCase(sportRepo, sportValidator);
+
+    const sportController = new SportController(
+        createSportUseCase
+    );
+
+    server.post('/api/v1/sports', sportController.create.bind(sportController));
 
     return server;
-
-   
-    
 }
 
 // Solo iniciar el servidor si el script se ejecuta directamente (no cuando es importado por vitest)

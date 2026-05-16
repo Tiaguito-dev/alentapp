@@ -111,3 +111,25 @@ export interface CreateMedicalCertificateRequest {
 }
 }
 
+
+// Sport
+// ==========================================
+
+export interface SportDTO {
+  id: string;
+  name: string;
+  description: string | null;
+  max_capacity: number;
+  additional_price: number;
+  requires_medical_certificate: boolean;
+  created_at: string;
+}
+
+export interface CreateSportRequest {
+  name: string;
+  description?: string | null;
+  max_capacity: number;
+  additional_price?: number;
+  requires_medical_certificate: boolean;
+}
+
