@@ -55,7 +55,7 @@ export class SportController {
         }
     }
 
-    async getAll(
+    async listAll(
         request: FastifyRequest,
         reply: FastifyReply,
     ) {

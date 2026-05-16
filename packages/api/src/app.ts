@@ -164,9 +164,9 @@ export function buildApp() {
 
     server.post('/api/v1/sports', sportController.create.bind(sportController));
     server.patch('/api/v1/sports/:id', sportController.update.bind(sportController));
+    server.get('/api/v1/sports', sportController.listAll.bind(sportController));
+    server.get('/api/v1/sports/:id', sportController.getById.bind(sportController));
     // server.delete('/api/v1/sports/:id', sportController.delete.bind(sportController));
-    // server.get('/api/v1/sports', sportController.list.bind(sportController));
-    // server.get('/api/v1/sports/:id', sportController.getByNumber.bind(sportController));
 
     return server;
 }
