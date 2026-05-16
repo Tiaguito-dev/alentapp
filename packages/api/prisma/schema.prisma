@@ -33,7 +33,7 @@ model Member {
     category   MemberCategory
     status     MemberStatus   @default(Activo)
     created_at DateTime       @default(now())
-    lockers Locker[]
+    lockers    Locker[]
 
     payments Payment[]
 
@@ -41,21 +41,22 @@ model Member {
 }
 
 enum LockerStatus {
-  Available
-  Occupied
-  Maintenance
+    Available
+    Occupied
+    Maintenance
 }
 
 model Locker {
-  
-  id        String       @id @default(uuid()) 
-  number    Int          @unique 
-  location  String
-  status    LockerStatus @default(Available)
-  member_id String?      
-  member    Member?      @relation(fields: [member_id], references: [id])
+    id        String       @id @default(uuid())
+    number    Int          @unique
+    location  String
+    status    LockerStatus @default(Available)
+    member_id String?
+    member    Member?      @relation(fields: [member_id], references: [id])
+    sport     Sport?       @relation(fields: [sportId], references: [id])
+    sportId   String?
 
-  @@map("lockers")
+    @@map("lockers")
 }
 
 enum PaymentStatus {
@@ -75,9 +76,23 @@ model Payment {
     deleted_at   DateTime?
     member_id    String
     member       Member        @relation(fields: [member_id], references: [id])
+    sport        Sport?        @relation(fields: [sportId], references: [id])
+    sportId      String?
 
     @@map("payments")
 }
 
+model Sport {
+    id                           String    @id @default(uuid())
+    name                         String // No es unique porque tiene que poder dar de alta un nombre repetido siempre que deleted_at no sea nulo.
+    description                  String? // Equivale a string | nill
+    max_capacity                 Int
+    additional_price             Float     @default(0)
+    requires_medical_certificate Boolean
+    created_at                   DateTime  @default(now())
+    deleted_at                   DateTime?
+    lockers                      Locker[]
+    payments                     Payment[]
 
-
+    @@map("sport")
+}
