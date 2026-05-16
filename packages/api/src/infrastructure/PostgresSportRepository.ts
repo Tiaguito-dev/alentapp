@@ -50,7 +50,7 @@ export class PostgresSportRepository implements SportRepository {
         const sport = await prisma.sport.update({
             where: { id },
             data: {
-                ...data,
+                ...data
             },
         });
 
@@ -59,13 +59,9 @@ export class PostgresSportRepository implements SportRepository {
 
     // --- Métodos de búsqueda ---
     async findByName(name: string): Promise<SportDTO | null> {
-        const sport = await prisma.sport.findUnique({
-            where: { name },
+        const sport = await prisma.sport.findFirst({
+            where: { name, deleted_at: null },
         });
-
-        if (sport && sport.deleted_at !== null) {
-            return null;
-        }
 
         return sport ? this.mapToDTO(sport) : null;
     }
