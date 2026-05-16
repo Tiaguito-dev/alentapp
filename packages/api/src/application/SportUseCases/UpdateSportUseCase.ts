@@ -30,9 +30,8 @@ export class UpdateSportUseCase {
 
         // --- REGLA GENERAL Si el campo cambio y no es null entonces lo valido para que después se modifique---
 
-
         if (dataFiltrada.name !== undefined && dataFiltrada.name !== existingSport.name) {
-            this.sportValidator.validateNameOnUpdate(dataFiltrada.name);
+            throw new Error('Conflicto de solicitud: El nombre de un deporte registrado no puede ser modificado');
         }
 
         if (dataFiltrada.additional_price !== undefined && dataFiltrada.additional_price !== existingSport.additional_price) {

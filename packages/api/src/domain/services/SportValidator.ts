@@ -35,10 +35,4 @@ export class SportValidator {
         }
     }
     */
-
-    validateNameOnUpdate(name: string): void {
-        if (name === null) {
-            throw new Error('Conflicto de solicitud: El nombre de un deporte registrado no puede ser modificado');
-        }
-    }
 }
