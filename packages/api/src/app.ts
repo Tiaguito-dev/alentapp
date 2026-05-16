@@ -25,7 +25,11 @@ import { DeletePaymentUseCase } from './application/PaymentUseCases/DeletePaymen
 import { ListPaymentsUseCase } from './application/PaymentUseCases/ListPaymentsUseCase.js';
 import { GetPaymentByIdUseCase } from './application/PaymentUseCases/GetPaymentByIdUseCase.js';
 import { PaymentController } from './delivery/PaymentController.js';
-// --- Imports de Sport ---
+import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresMedicalCertificateRepository.js';
+import { CreateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
+import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
+import { GetMedicalCertificateByIdUseCase } from './application/MedicalCertificateUseCases/GetMedicalCertificateByIdUseCase.js';
+import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
 import { PostgresSportRepository } from './infrastructure/PostgresSportRepository.js';
 import { CreateSportUseCase } from './application/SportUseCases/NewSportUseCase.js';
 import { SportValidator } from './domain/services/SportValidator.js';
@@ -57,6 +61,10 @@ export function buildApp() {
     const memberValidator = new MemberValidator(memberRepo);
     const paymentRepo = new PostgresPaymentRepository();
     const paymentValidator = new PaymentValidator();
+    const medicalCertificateRepo = new PostgresMedicalCertificateRepository();
+    
+
+
 
     const createMemberUseCase = new CreateMemberUseCase(memberRepo, memberValidator);
     const getMembersUseCase = new GetMembersUseCase(memberRepo);
@@ -69,6 +77,9 @@ export function buildApp() {
     const deletePaymentUseCase = new DeletePaymentUseCase(paymentRepo);
     const listPaymentsUseCase = new ListPaymentsUseCase(paymentRepo);
     const getPaymentByIdUseCase = new GetPaymentByIdUseCase(paymentRepo);
+    const createMedicalCertificateUseCase = new CreateMedicalCertificateUseCase(medicalCertificateRepo);
+    const listMedicalCertificatesUseCase = new ListMedicalCertificatesUseCase(medicalCertificateRepo);
+    const getMedicalCertificateByIdUseCase = new GetMedicalCertificateByIdUseCase(medicalCertificateRepo);
 
     const memberController = new MemberController(
         createMemberUseCase,
@@ -87,6 +98,12 @@ export function buildApp() {
         getPaymentByIdUseCase,
     );
 
+        const medicalCertificateController = new MedicalCertificateController(
+            createMedicalCertificateUseCase,
+            listMedicalCertificatesUseCase,
+            getMedicalCertificateByIdUseCase,
+        );
+
     server.get('/api/v1/socios', memberController.getAll.bind(memberController));
     server.post('/api/v1/socios', memberController.create.bind(memberController));
     server.put('/api/v1/socios/:id', memberController.update.bind(memberController));
@@ -98,6 +115,9 @@ export function buildApp() {
     server.patch('/api/v1/payments/:id/pay', paymentController.markAsPaid.bind(paymentController));
     server.patch('/api/v1/payments/:id/cancel', paymentController.cancel.bind(paymentController));
     server.delete('/api/v1/payments/:id', paymentController.delete.bind(paymentController));
+    server.post('/api/v1/medical-certificates', medicalCertificateController.create.bind(medicalCertificateController));
+    server.get('/api/v1/medical-certificates', medicalCertificateController.getAll.bind(medicalCertificateController));
+    server.get('/api/v1/medical-certificates/:id', medicalCertificateController.getById.bind(medicalCertificateController));
 
     server.get('/', async (req, rep) => {
         rep.status(200).send({ msg: 'asd' })
