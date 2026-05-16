@@ -1,6 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { ListMedicalCertificatesUseCase } from '../application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
-import { GetMedicalCertificateByIdUseCase } from '../application/MedicalCertificateUseCases/GetMedicalCertificateByIdUseCase.js';
 import { CreateMedicalCertificateUseCase } from '../application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { CreateMedicalCertificateRequest } from '@alentapp/shared';
 
@@ -8,7 +7,6 @@ export class MedicalCertificateController {
   constructor(
     private readonly createMedicalCertificateUseCase: CreateMedicalCertificateUseCase,
     private readonly listMedicalCertificatesUseCase: ListMedicalCertificatesUseCase,
-    private readonly getMedicalCertificateByIdUseCase: GetMedicalCertificateByIdUseCase,
   ) {}
 
   async create(
@@ -38,22 +36,6 @@ export class MedicalCertificateController {
       const certificates = await this.listMedicalCertificatesUseCase.execute();
       return reply.status(200).send({ data: certificates });
     } catch {
-      return reply.status(500).send({ error: 'Error interno, reintente más tarde' });
-    }
-  }
-
-  async getById(
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply,
-  ) {
-    try {
-      const { id } = request.params;
-      const certificate = await this.getMedicalCertificateByIdUseCase.execute(id);
-      return reply.status(200).send({ data: certificate });
-    } catch (error: any) {
-      if (error.message === 'El certificado no existe') {
-        return reply.status(404).send({ error: error.message });
-      }
       return reply.status(500).send({ error: 'Error interno, reintente más tarde' });
     }
   }

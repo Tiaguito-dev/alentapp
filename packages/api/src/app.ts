@@ -28,7 +28,6 @@ import { PaymentController } from './delivery/PaymentController.js';
 import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresMedicalCertificateRepository.js';
 import { CreateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
-import { GetMedicalCertificateByIdUseCase } from './application/MedicalCertificateUseCases/GetMedicalCertificateByIdUseCase.js';
 import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
 import { PostgresSportRepository } from './infrastructure/PostgresSportRepository.js';
 import { CreateSportUseCase } from './application/SportUseCases/NewSportUseCase.js';
@@ -79,7 +78,6 @@ export function buildApp() {
     const getPaymentByIdUseCase = new GetPaymentByIdUseCase(paymentRepo);
     const createMedicalCertificateUseCase = new CreateMedicalCertificateUseCase(medicalCertificateRepo);
     const listMedicalCertificatesUseCase = new ListMedicalCertificatesUseCase(medicalCertificateRepo);
-    const getMedicalCertificateByIdUseCase = new GetMedicalCertificateByIdUseCase(medicalCertificateRepo);
 
     const memberController = new MemberController(
         createMemberUseCase,
@@ -101,7 +99,6 @@ export function buildApp() {
         const medicalCertificateController = new MedicalCertificateController(
             createMedicalCertificateUseCase,
             listMedicalCertificatesUseCase,
-            getMedicalCertificateByIdUseCase,
         );
 
     server.get('/api/v1/socios', memberController.getAll.bind(memberController));
@@ -117,7 +114,6 @@ export function buildApp() {
     server.delete('/api/v1/payments/:id', paymentController.delete.bind(paymentController));
     server.post('/api/v1/medical-certificates', medicalCertificateController.create.bind(medicalCertificateController));
     server.get('/api/v1/medical-certificates', medicalCertificateController.getAll.bind(medicalCertificateController));
-    server.get('/api/v1/medical-certificates/:id', medicalCertificateController.getById.bind(medicalCertificateController));
 
     server.get('/', async (req, rep) => {
         rep.status(200).send({ msg: 'asd' })
