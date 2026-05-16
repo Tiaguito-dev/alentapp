@@ -34,6 +34,7 @@ model Member {
     status     MemberStatus   @default(Activo)
     created_at DateTime       @default(now())
     lockers    Locker[]
+    disciplines Discipline[]
 
     payments Payment[]
 
@@ -95,4 +96,15 @@ model Sport {
     payments                     Payment[]
 
     @@map("sport")
+}
+
+model Discipline {
+  id                  String   @id @default(uuid())
+  name                String   // Agregado según criterio de aceptación del TDD
+  description         String?
+  start_date          DateTime
+  end_date            DateTime
+  is_total_suspension Boolean  @default(false)
+  member_id           String
+  member              Member   @relation(fields: [member_id], references: [id])
 }
