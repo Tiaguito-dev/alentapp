@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { CreateSportUseCase } from '../application/NewSportUseCase.js';
+import { CreateSportUseCase } from '../application/SportUseCases/NewSportUseCase.js';
 import { CreateSportRequest } from '@alentapp/shared';
 
 export class SportController {
@@ -12,7 +12,7 @@ export class SportController {
         reply: FastifyReply,
     ) {
         try {
-            request.log.info('Alguien pegó al endpoint de ping');
+            request.log.info('Alguien pegó al endpoint de create sport');
             const sport = await this.createSportUseCase.execute(request.body);
             return reply.status(201).send({ data: sport });
         } catch (error: any) {
