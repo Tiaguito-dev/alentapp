@@ -47,6 +47,14 @@ export function HomeView() {
           icon={LuArchive}
         />
 
+        {/* Agregamos la tarjeta de Certificados */}
+        <SectionCard 
+          title="Certificados"
+          description="Gestioná los certificados médicos de los socios y su validez."
+          to="/medical-certificates"
+          icon={LuArchive}
+        />
+
         {/* Future sections can be added here following the same pattern */}
         <Box 
           p="6" 
