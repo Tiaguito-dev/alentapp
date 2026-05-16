@@ -1,6 +1,6 @@
 ---
 id: 0013
-estado: Aprobado
+estado: Implementado
 autor: Felipe Pianelli
 fecha: 2026-05-01
 titulo: Actualización de Pagos Existentes

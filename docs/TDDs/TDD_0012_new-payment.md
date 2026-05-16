@@ -1,6 +1,6 @@
 ---
 id: 0012
-estado: Aprobado
+estado: Implementado
 autor: Felipe Pianelli
 fecha: 2026-05-01
 titulo: Registro de Nuevos Pagos

@@ -1,6 +1,6 @@
 ---
 id: 0014
-estado: Aprobado
+estado: Implementado
 autor: Felipe Pianelli
 fecha: 2026-05-01
 titulo: Eliminación de Pagos Existentes
