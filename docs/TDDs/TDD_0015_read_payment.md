@@ -1,6 +1,6 @@
 ---
 id: 0015
-estado: Aprobado
+estado: Implementado
 autor: Felipe Pianelli
 fecha: 2026-05-01
 titulo: Consulta de Pagos Existentes
