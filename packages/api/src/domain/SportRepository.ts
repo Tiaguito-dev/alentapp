@@ -6,4 +6,5 @@ export interface SportRepository {
     // --- Métodos de búsqueda ---
     findByName(name: string): Promise<SportDTO | null>;
     findById(id: string): Promise<SportDTO | null>;
+    getAll(): Promise<SportDTO[]>;
 }

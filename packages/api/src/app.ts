@@ -36,8 +36,8 @@ import { UpdateSportUseCase } from './application/SportUseCases/UpdateSportUseCa
 // --- delete
 // import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCase.js';
 // --- get-sport
-// import { ListSportUseCase } from './application/SportUseCases/ListSportUseCase.js';
-// import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
+import { ListSportsUseCase } from './application/SportUseCases/ListSportsUseCase.js';
+import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
 
 export function buildApp() {
     const server = Fastify({
@@ -151,15 +151,15 @@ export function buildApp() {
     const createSportUseCase = new CreateSportUseCase(sportRepo, sportValidator);
     const updateSportUseCase = new UpdateSportUseCase(sportRepo, sportValidator);
     // const deleteSportUseCase = new DeleteSportUseCase(sportRepo);
-    // const listSportsUseCase = new ListSportsUseCase(sportRepo);
-    // const getSportByIdUseCase = new GetSportByIdUseCase(sportRepo);
+    const listSportsUseCase = new ListSportsUseCase(sportRepo);
+    const getSportByIdUseCase = new GetSportByIdUseCase(sportRepo);
 
     const sportController = new SportController(
         createSportUseCase,
         updateSportUseCase,
         // deleteSportUseCase,
-        // listSportsUseCase,
-        // getSportByIdUseCase
+        listSportsUseCase,
+        getSportByIdUseCase
     );
 
     server.post('/api/v1/sports', sportController.create.bind(sportController));
