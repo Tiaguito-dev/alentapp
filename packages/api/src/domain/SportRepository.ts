@@ -1,6 +1,6 @@
-import { SportDto, CreateSportRequest } from '@alentapp/shared';
+import { SportDTO, CreateSportRequest } from '@alentapp/shared';
 
 export interface SportRepository {
-    create(data: CreateSportRequest): Promise<SportDto>;
-    findByName(name: string): Promise<SportDto | null>;
+    create(data: CreateSportRequest): Promise<SportDTO>;
+    findByName(name: string): Promise<SportDTO | null>;
 }

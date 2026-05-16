@@ -1,5 +1,5 @@
 ---
-version: 2.2
+version: 2.3
 id: 0019
 estado: Aprobado
 autor: Tiago Solis
@@ -37,7 +37,7 @@ Se definirá la entidad `Deporte` con las siguientes propiedades y restricciones
 
 - `id`: Identificador único universal (UUID).
 - `name`: Cadena de texto.
-- `description`: Cadena de texto o nulo.
+- `description`: Cadena de texto.
 - `max_capacity`: Número entero positivo mayor a cero.
 - `additional_price`: Número decimal positivo (default 0).
 - `requires_medical_certificate`: Booleano.
@@ -54,9 +54,9 @@ Definiremos los tipos en el paquete compartido para asegurar sincronización:
 ```ts
 {
     name: string;
-    description: string | null;
+    description?: string;
     max_capacity: number;
-    additional_price: number | 0;
+    additional_price?: number;
     requires_medical_certificate: boolean;
 }
 ```
