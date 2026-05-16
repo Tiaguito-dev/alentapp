@@ -84,7 +84,7 @@ model Payment {
 
 model Sport {
     id                           String    @id @default(uuid())
-    name                         String    @unique
+    name                         String // No es unique porque tiene que poder dar de alta un nombre repetido siempre que deleted_at no sea nulo.
     description                  String? // Equivale a string | nill
     max_capacity                 Int
     additional_price             Float     @default(0)
