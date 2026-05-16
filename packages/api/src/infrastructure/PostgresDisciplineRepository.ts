@@ -4,8 +4,12 @@ import { DisciplineRepository } from '../domain/DisciplineRepository.js';
 import { DisciplineDTO } from '@alentapp/shared';
 
 export class PostgresDisciplineRepository implements DisciplineRepository {
- 
-  constructor(private prisma: PrismaClient) {}
+  
+  
+  private prisma = new PrismaClient();
+
+  
+  constructor() {}
 
   async create(discipline: Omit<DisciplineDTO, 'id'> & { member_id: string }): Promise<DisciplineDTO> {
     const created = await this.prisma.discipline.create({
@@ -19,7 +23,6 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
       },
     });
 
-    
     return {
       id: created.id,
       name: created.name,
