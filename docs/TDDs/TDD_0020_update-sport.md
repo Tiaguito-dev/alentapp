@@ -1,5 +1,5 @@
 ---
-version: 2.1
+version: 2.2
 id: 0020
 estado: Aprobado
 autor: Tiago Solis
@@ -34,16 +34,18 @@ Permitir que un administrador modifique ciertos datos configurables de un deport
 
 Se utilizará el paquete compartido para definir el cuerpo de la petición. Todos los campos son opcionales ya que se trata de una actualización parcial.
 
+Aquellos campos enviados por el cliente como null serán ignorados en la actualización, a excepción de description que puede ser null.
+
 - Endpoint: `PATCH /api/v1/sports/:id`
 - Request Body (UpdateSportRequest):
 
 ```ts
 {
-    name?: string;
+    name?: string | null;
     description?: string | null;
-    max_capacity?: number;
-    additional_price?: number;
-    requires_medical_certificate?: boolean;
+    max_capacity?: number | null;
+    additional_price?: number | null;
+    requires_medical_certificate?: boolean | null;
 }
 ```
 
@@ -75,5 +77,8 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. Todo
 ### Observaciones adicionales: motivos de decisión
 
 - Si el campo additional_price se envía como null o vacío, se interpreta como cero, en línea con la decisión tomada en TDD-0019.
-- Se opta por PATCH en el endpoint aunque el comportamiento sea una actualización parcial (campos opcionales), manteniendo consistencia con la convención ya establecida en TDD-0002.
+- Se opta por `PATCH` en el endpoint aunque el comportamiento sea una actualización parcial (campos opcionales), manteniendo consistencia con la convención ya establecida en TDD-0002.
 - Se admite el campo name en el cuerpo de la petición para facilitar la validación, pero se rechaza cualquier intento de modificarlo, asegurando que el nombre del deporte permanezca inmutable. Esto a fin de hacer explícita la regla de negocio que dice que *"El atributo name es inmutable después de la creación (solo se permite editar descripción y cupo)."*
+
+### Puntos que no abordamos en esta etapa
+- La lógica de actualización del campo `max_capacity` de un deporte que tenga inscripciones activas será motivo de una futura implementación.

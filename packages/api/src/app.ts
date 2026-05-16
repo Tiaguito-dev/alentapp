@@ -25,12 +25,19 @@ import { DeletePaymentUseCase } from './application/PaymentUseCases/DeletePaymen
 import { ListPaymentsUseCase } from './application/PaymentUseCases/ListPaymentsUseCase.js';
 import { GetPaymentByIdUseCase } from './application/PaymentUseCases/GetPaymentByIdUseCase.js';
 import { PaymentController } from './delivery/PaymentController.js';
-// --- Imports de Sport ---
+// --- IMPORTS SPORT ---
 import { PostgresSportRepository } from './infrastructure/PostgresSportRepository.js';
+import { SportController } from './delivery/SportController.js';
+// --- create
 import { CreateSportUseCase } from './application/SportUseCases/NewSportUseCase.js';
 import { SportValidator } from './domain/services/SportValidator.js';
-import { SportController } from './delivery/SportController.js';
-
+// --- update
+import { UpdateSportUseCase } from './application/SportUseCases/UpdateSportUseCase.js';
+// --- delete
+// import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCase.js';
+// --- get-sport
+// import { ListSportUseCase } from './application/SportUseCases/ListSportUseCase.js';
+// import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
 
 export function buildApp() {
     const server = Fastify({
@@ -142,12 +149,24 @@ export function buildApp() {
 
     const sportValidator = new SportValidator(sportRepo);
     const createSportUseCase = new CreateSportUseCase(sportRepo, sportValidator);
+    const updateSportUseCase = new UpdateSportUseCase(sportRepo, sportValidator);
+    // const deleteSportUseCase = new DeleteSportUseCase(sportRepo);
+    // const listSportsUseCase = new ListSportsUseCase(sportRepo);
+    // const getSportByIdUseCase = new GetSportByIdUseCase(sportRepo);
 
     const sportController = new SportController(
-        createSportUseCase
+        createSportUseCase,
+        updateSportUseCase,
+        // deleteSportUseCase,
+        // listSportsUseCase,
+        // getSportByIdUseCase
     );
 
     server.post('/api/v1/sports', sportController.create.bind(sportController));
+    server.patch('/api/v1/sports/:id', sportController.update.bind(sportController));
+    // server.delete('/api/v1/sports/:id', sportController.delete.bind(sportController));
+    // server.get('/api/v1/sports', sportController.list.bind(sportController));
+    // server.get('/api/v1/sports/:id', sportController.getByNumber.bind(sportController));
 
     return server;
 }

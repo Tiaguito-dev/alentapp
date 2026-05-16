@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/client/client.js';
 import { SportRepository } from '../domain/SportRepository.js';
-import { SportDTO, CreateSportRequest } from '@alentapp/shared';
+import { SportDTO, CreateSportRequest, UpdateSportRequest } from '@alentapp/shared';
 
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
@@ -45,6 +45,19 @@ export class PostgresSportRepository implements SportRepository {
         return this.mapToDTO(sport);
     }
 
+    async update(id: string, data: UpdateSportRequest): Promise<SportDTO> {
+
+        const sport = await prisma.sport.update({
+            where: { id },
+            data: {
+                ...data,
+            },
+        });
+
+        return this.mapToDTO(sport);
+    }
+
+    // --- Métodos de búsqueda ---
     async findByName(name: string): Promise<SportDTO | null> {
         const sport = await prisma.sport.findUnique({
             where: { name },
@@ -53,6 +66,14 @@ export class PostgresSportRepository implements SportRepository {
         if (sport && sport.deleted_at !== null) {
             return null;
         }
+
+        return sport ? this.mapToDTO(sport) : null;
+    }
+
+    async findById(id: string): Promise<SportDTO | null> {
+        const sport = await prisma.sport.findUnique({
+            where: { id },
+        });
 
         return sport ? this.mapToDTO(sport) : null;
     }

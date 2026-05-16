@@ -24,4 +24,21 @@ export class SportValidator {
             throw new Error('Número inválido: La capacidad maxima debe ser un número entero');
         }
     }
+
+    /*
+    // ESTO SE HACE EN EL CASO DE USO
+    
+    async validateExistSportId(id: string): Promise<void> {
+        const existSport = await this.sportRepository.findById(id);
+        if (existSport === null) {
+            throw new Error('Deporte no encontrado: No existe deporte con ese id');
+        }
+    }
+    */
+
+    validateNameOnUpdate(name: string): void {
+        if (name === null) {
+            throw new Error('Conflicto de solicitud: El nombre de un deporte registrado no puede ser modificado');
+        }
+    }
 }
