@@ -1,7 +1,7 @@
 ---
 version: 2.3
 id: 0019
-estado: Aprobado
+estado: Implementado
 autor: Tiago Solis
 fecha: 2026-05-01
 titulo: Registro de Nuevos Deportes

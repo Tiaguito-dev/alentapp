@@ -91,6 +91,27 @@ export interface MarkPaymentAsPaidRequest {
 }
 
 // ==========================================
+// MedicalCertificate
+// ==========================================
+export interface MedicalCertificateResponse {
+  id: string;
+  member_id: string;
+  issue_date: string; // ISO Date YYYY-MM-DD
+  expiry_date: string; // ISO Date YYYY-MM-DD
+  doctor_license: string;
+  is_validated: boolean;
+  created_at: string; // ISO DateTime
+}
+
+export interface CreateMedicalCertificateRequest {
+  member_id: string;
+  issue_date: string; // ISO Date YYYY-MM-DD
+  expiry_date: string; // ISO Date YYYY-MM-DD
+  doctor_license: string;
+}
+
+
+
 // Sport
 // ==========================================
 
@@ -111,6 +132,7 @@ export interface CreateSportRequest {
   additional_price?: number;
   requires_medical_certificate: boolean;
 }
+
 
 // ==========================================
 // Discipline
@@ -137,4 +159,14 @@ export interface UpdateDisciplineRequest {
   end_date?: string;
   is_total_suspension?: boolean;
   member_id?: string | null;
+  }
+
+export interface UpdateSportRequest {
+  // Admito name pero tiro error para que sea explícita la regla de negocio de que no se puede cambiar el nombre
+  name?: string | null;
+  description?: string | null;
+  max_capacity?: number | null;
+  additional_price?: number | null;
+  requires_medical_certificate?: boolean | null;
+
 }
