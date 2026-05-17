@@ -1,7 +1,10 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/client/client.js';
 import { MedicalCertificateResponse, CreateMedicalCertificateRequest } from '@alentapp/shared';
-import { MedicalCertificateRepository } from '../domain/MedicalCertificateRepository.js';
+import {
+  MedicalCertificateRepository,
+  MedicalCertificateUpdateData,
+} from '../domain/MedicalCertificateRepository.js';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set');
@@ -58,6 +61,20 @@ export class PostgresMedicalCertificateRepository implements MedicalCertificateR
     });
 
     return certificates.map((certificate) => this.mapToDTO(certificate));
+  }
+
+  async update(id: string, data: MedicalCertificateUpdateData): Promise<MedicalCertificateResponse> {
+    const certificate = await prisma.medicalCertificate.update({
+      where: { id },
+      data: {
+        ...(data.issue_date !== undefined && { issue_date: new Date(data.issue_date) }),
+        ...(data.expiry_date !== undefined && { expiry_date: new Date(data.expiry_date) }),
+        ...(data.doctor_license !== undefined && { doctor_license: data.doctor_license }),
+        ...(data.is_validated !== undefined && { is_validated: data.is_validated }),
+      },
+    });
+
+    return this.mapToDTO(certificate);
   }
 
   private mapToDTO(certificate: DBMedicalCertificate): MedicalCertificateResponse {
