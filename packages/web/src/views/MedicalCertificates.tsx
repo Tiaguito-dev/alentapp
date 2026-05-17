@@ -68,6 +68,12 @@ export function MedicalCertificatesView() {
   }, []);
 
   const openCreateModal = () => {
+    if (members.length === 0) {
+      setError('No hay socios disponibles para asociar el certificado.');
+      return;
+    }
+
+    setError(null);
     setCreateForm({
       member_id: members[0]?.id || '',
       issue_date: '',
@@ -79,6 +85,12 @@ export function MedicalCertificatesView() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!createForm.member_id) {
+      setError('Debe seleccionar un socio.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await medicalCertificatesService.create(createForm);
@@ -173,7 +185,7 @@ export function MedicalCertificatesView() {
             <Button variant='outline' onClick={fetchData} disabled={isLoading}>
               <LuRefreshCw /> Actualizar
             </Button>
-            <Button colorPalette='blue' size='md' onClick={openCreateModal}>
+            <Button colorPalette='blue' size='md' onClick={openCreateModal} disabled={members.length === 0}>
               <LuPlus /> Nuevo Certificado
             </Button>
           </HStack>

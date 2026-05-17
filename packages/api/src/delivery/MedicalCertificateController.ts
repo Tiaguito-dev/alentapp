@@ -3,6 +3,13 @@ import { ListMedicalCertificatesUseCase } from '../application/MedicalCertificat
 import { CreateMedicalCertificateUseCase } from '../application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { CreateMedicalCertificateRequest } from '@alentapp/shared';
 
+const VALIDATION_ERROR_CODES = new Set([
+  'INVALID_DOCTOR_LICENSE',
+  'INVALID_ISSUE_DATE',
+  'INVALID_EXPIRY_DATE',
+  'INVALID_DATE_ORDER',
+]);
+
 export class MedicalCertificateController {
   constructor(
     private readonly createMedicalCertificateUseCase: CreateMedicalCertificateUseCase,
@@ -20,12 +27,8 @@ export class MedicalCertificateController {
       if (error?.code === 'P2003') {
         return reply.status(404).send({ error: 'El socio especificado no existe' });
       }
-      if (
-        error?.message?.includes('issue_date') ||
-        error?.message?.includes('expiry_date') ||
-        error?.message?.includes('doctor_license')
-      ) {
-        return reply.status(400).send({ error: 'Datos inválidos para crear el certificado médico' });
+      if (VALIDATION_ERROR_CODES.has(error?.code)) {
+        return reply.status(400).send({ error: error.message });
       }
       return reply.status(500).send({ error: 'Error interno, reintente más tarde' });
     }
