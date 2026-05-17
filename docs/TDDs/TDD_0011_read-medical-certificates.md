@@ -1,6 +1,6 @@
 ---
 id: 0011
-estado: Aprobado
+estado: Implementado
 autor: Federico Alvarez Pieroni
 fecha: 2026-05-01
 titulo: Consulta de Certificados Médicos

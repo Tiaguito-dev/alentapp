@@ -104,6 +104,7 @@ export function buildApp() {
     const getPaymentByIdUseCase = new GetPaymentByIdUseCase(paymentRepo);
     const createMedicalCertificateUseCase = new CreateMedicalCertificateUseCase(
         medicalCertificateRepo,
+        memberRepo,
         medicalCertificateValidator,
     );
     const listMedicalCertificatesUseCase = new ListMedicalCertificatesUseCase(medicalCertificateRepo);
