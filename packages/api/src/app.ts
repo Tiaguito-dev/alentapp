@@ -34,6 +34,7 @@ import { PaymentController } from './delivery/PaymentController.js';
 import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresMedicalCertificateRepository.js';
 import { CreateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
+import { GetMedicalCertificateByIdUseCase } from './application/MedicalCertificateUseCases/GetMedicalCertificateByIdUseCase.js';
 import { UpdateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/UpdateMedicalCertificateUseCase.js';
 import { InvalidateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/InvalidateMedicalCertificateUseCase.js';
 import { DeleteMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/DeleteMedicalCertificateUseCase.js';
@@ -105,6 +106,9 @@ export function buildApp() {
         medicalCertificateValidator,
     );
     const listMedicalCertificatesUseCase = new ListMedicalCertificatesUseCase(medicalCertificateRepo);
+    const getMedicalCertificateByIdUseCase = new GetMedicalCertificateByIdUseCase(
+        medicalCertificateRepo,
+    );
     const updateMedicalCertificateUseCase = new UpdateMedicalCertificateUseCase(
         medicalCertificateRepo,
         medicalCertificateValidator,
@@ -136,6 +140,7 @@ export function buildApp() {
     const medicalCertificateController = new MedicalCertificateController(
         createMedicalCertificateUseCase,
         listMedicalCertificatesUseCase,
+        getMedicalCertificateByIdUseCase,
         updateMedicalCertificateUseCase,
         invalidateMedicalCertificateUseCase,
         deleteMedicalCertificateUseCase,
@@ -154,6 +159,7 @@ export function buildApp() {
     server.delete('/api/v1/payments/:id', paymentController.delete.bind(paymentController));
     server.post('/api/v1/medical-certificates', medicalCertificateController.create.bind(medicalCertificateController));
     server.get('/api/v1/medical-certificates', medicalCertificateController.getAll.bind(medicalCertificateController));
+    server.get('/api/v1/medical-certificates/:id', medicalCertificateController.getById.bind(medicalCertificateController));
     server.patch('/api/v1/medical-certificates/:id', medicalCertificateController.update.bind(medicalCertificateController));
     server.patch('/api/v1/medical-certificates/:id/invalidar', medicalCertificateController.invalidate.bind(medicalCertificateController));
     server.delete('/api/v1/medical-certificates/:id', medicalCertificateController.delete.bind(medicalCertificateController));
