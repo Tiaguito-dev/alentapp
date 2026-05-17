@@ -133,6 +133,34 @@ export interface CreateSportRequest {
   requires_medical_certificate: boolean;
 }
 
+
+// ==========================================
+// Discipline
+// ==========================================
+
+export interface DisciplineDTO {
+  id: string; 
+  name: string; 
+  description: string | null; 
+  start_date: string; // ISO DateTime
+  end_date: string; // ISO DateTime
+  is_total_suspension: boolean;
+}
+
+export interface CreateDisciplineRequest {
+  name: string; 
+  description?: string;
+  start_date: string;
+  end_date: string;
+  member_id: string; 
+}
+
+export interface UpdateDisciplineRequest {
+  end_date?: string;
+  is_total_suspension?: boolean;
+  member_id?: string | null;
+  }
+
 export interface UpdateSportRequest {
   // Admito name pero tiro error para que sea explícita la regla de negocio de que no se puede cambiar el nombre
   name?: string | null;
@@ -140,4 +168,5 @@ export interface UpdateSportRequest {
   max_capacity?: number | null;
   additional_price?: number | null;
   requires_medical_certificate?: boolean | null;
+
 }
