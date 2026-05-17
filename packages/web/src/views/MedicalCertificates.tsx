@@ -11,10 +11,16 @@ import {
   Text,
   Input,
   Flex,
+  IconButton,
 } from '@chakra-ui/react';
 import { useEffect, useState, useMemo } from 'react';
-import { LuRefreshCw, LuPlus } from 'react-icons/lu';
-import type { MedicalCertificateResponse, CreateMedicalCertificateRequest, MemberDTO } from '@alentapp/shared';
+import { LuRefreshCw, LuPlus, LuPencil, LuShieldOff } from 'react-icons/lu';
+import type {
+  MedicalCertificateResponse,
+  CreateMedicalCertificateRequest,
+  UpdateMedicalCertificateRequest,
+  MemberDTO,
+} from '@alentapp/shared';
 import { medicalCertificatesService } from '../services/medicalCertificates';
 import { membersService } from '../services/members';
 import {
@@ -31,9 +37,16 @@ export function MedicalCertificatesView() {
 
   // Modal de creación
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingCertificateId, setEditingCertificateId] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<CreateMedicalCertificateRequest>({
     member_id: '',
+    issue_date: '',
+    expiry_date: '',
+    doctor_license: '',
+  });
+  const [editForm, setEditForm] = useState<UpdateMedicalCertificateRequest>({
     issue_date: '',
     expiry_date: '',
     doctor_license: '',
@@ -100,6 +113,49 @@ export function MedicalCertificatesView() {
       alert(err.message || 'Error al crear el certificado médico');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const openEditModal = (certificate: MedicalCertificateResponse) => {
+    setEditingCertificateId(certificate.id);
+    setEditForm({
+      issue_date: certificate.issue_date,
+      expiry_date: certificate.expiry_date,
+      doctor_license: certificate.doctor_license,
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingCertificateId) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await medicalCertificatesService.update(editingCertificateId, editForm);
+      setIsEditOpen(false);
+      setEditingCertificateId(null);
+      fetchData();
+    } catch (err: any) {
+      alert(err.message || 'Error al actualizar el certificado médico');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInvalidate = async (certificate: MedicalCertificateResponse) => {
+    if (!window.confirm('¿Seguro que desea invalidar este certificado médico?')) {
+      return;
+    }
+
+    try {
+      await medicalCertificatesService.invalidate(certificate.id);
+      fetchData();
+    } catch (err: any) {
+      alert(err.message || 'Error al invalidar el certificado médico');
     }
   };
 
@@ -170,6 +226,53 @@ export function MedicalCertificatesView() {
         </DialogContent>
       </DialogRoot>
 
+      <DialogRoot open={isEditOpen} onOpenChange={(e) => setIsEditOpen(e.open)}>
+        <DialogContent>
+          <form onSubmit={handleEdit}>
+            <DialogHeader>
+              <DialogTitle>Editar Certificado Médico</DialogTitle>
+            </DialogHeader>
+            <DialogBody>
+              <Stack gap='4'>
+                <Field label='Fecha de emisión' required>
+                  <Input
+                    type='date'
+                    value={editForm.issue_date || ''}
+                    onChange={(e) => setEditForm({ ...editForm, issue_date: e.target.value })}
+                    required
+                  />
+                </Field>
+                <Field label='Fecha de vencimiento' required>
+                  <Input
+                    type='date'
+                    value={editForm.expiry_date || ''}
+                    onChange={(e) => setEditForm({ ...editForm, expiry_date: e.target.value })}
+                    required
+                  />
+                </Field>
+                <Field label='Matrícula del médico' required>
+                  <Input
+                    type='text'
+                    value={editForm.doctor_license || ''}
+                    onChange={(e) => setEditForm({ ...editForm, doctor_license: e.target.value })}
+                    required
+                  />
+                </Field>
+              </Stack>
+            </DialogBody>
+            <DialogFooter>
+              <DialogActionTrigger asChild>
+                <Button variant='outline'>Cancelar</Button>
+              </DialogActionTrigger>
+              <Button type='submit' colorPalette='blue' loading={isSubmitting}>
+                Guardar Cambios
+              </Button>
+            </DialogFooter>
+            <DialogCloseTrigger />
+          </form>
+        </DialogContent>
+      </DialogRoot>
+
       {/* Vista principal */}
       <Stack gap='8'>
         <Flex justify='space-between' align='center'>
@@ -221,6 +324,7 @@ export function MedicalCertificatesView() {
                   <Table.ColumnHeader>Matrícula</Table.ColumnHeader>
                   <Table.ColumnHeader>Validado</Table.ColumnHeader>
                   <Table.ColumnHeader>Creado</Table.ColumnHeader>
+                  <Table.ColumnHeader textAlign='end'>Acciones</Table.ColumnHeader>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
@@ -233,6 +337,29 @@ export function MedicalCertificatesView() {
                     <Table.Cell>{certificate.doctor_license}</Table.Cell>
                     <Table.Cell>{certificate.is_validated ? 'Sí' : 'No'}</Table.Cell>
                     <Table.Cell>{new Date(certificate.created_at).toLocaleString()}</Table.Cell>
+                    <Table.Cell textAlign='end'>
+                      <HStack gap='2' justify='flex-end'>
+                        <IconButton
+                          variant='ghost'
+                          size='sm'
+                          aria-label='Editar certificado médico'
+                          onClick={() => openEditModal(certificate)}
+                          disabled={!certificate.is_validated}
+                        >
+                          <LuPencil />
+                        </IconButton>
+                        <IconButton
+                          variant='ghost'
+                          size='sm'
+                          colorPalette='orange'
+                          aria-label='Invalidar certificado médico'
+                          onClick={() => handleInvalidate(certificate)}
+                          disabled={!certificate.is_validated}
+                        >
+                          <LuShieldOff />
+                        </IconButton>
+                      </HStack>
+                    </Table.Cell>
                   </Table.Row>
                 ))}
               </Table.Body>
