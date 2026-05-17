@@ -36,6 +36,7 @@ import { CreateMedicalCertificateUseCase } from './application/MedicalCertificat
 import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
 import { UpdateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/UpdateMedicalCertificateUseCase.js';
 import { InvalidateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/InvalidateMedicalCertificateUseCase.js';
+import { DeleteMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/DeleteMedicalCertificateUseCase.js';
 import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
 
 import { MedicalCertificateValidator } from './domain/services/MedicalCertificateValidator.js';
@@ -111,6 +112,9 @@ export function buildApp() {
     const invalidateMedicalCertificateUseCase = new InvalidateMedicalCertificateUseCase(
         medicalCertificateRepo,
     );
+    const deleteMedicalCertificateUseCase = new DeleteMedicalCertificateUseCase(
+        medicalCertificateRepo,
+    );
 
     const memberController = new MemberController(
         createMemberUseCase,
@@ -134,6 +138,7 @@ export function buildApp() {
         listMedicalCertificatesUseCase,
         updateMedicalCertificateUseCase,
         invalidateMedicalCertificateUseCase,
+        deleteMedicalCertificateUseCase,
     );
 
     server.get('/api/v1/socios', memberController.getAll.bind(memberController));
@@ -151,6 +156,7 @@ export function buildApp() {
     server.get('/api/v1/medical-certificates', medicalCertificateController.getAll.bind(medicalCertificateController));
     server.patch('/api/v1/medical-certificates/:id', medicalCertificateController.update.bind(medicalCertificateController));
     server.patch('/api/v1/medical-certificates/:id/invalidar', medicalCertificateController.invalidate.bind(medicalCertificateController));
+    server.delete('/api/v1/medical-certificates/:id', medicalCertificateController.delete.bind(medicalCertificateController));
 
     server.get('/', async (req, rep) => {
         rep.status(200).send({ msg: 'asd' })
