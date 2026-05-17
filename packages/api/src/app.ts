@@ -31,35 +31,27 @@ import { PaymentController } from './delivery/PaymentController.js';
 
 
 // --- Imports de Sport ---
-
 import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresMedicalCertificateRepository.js';
 import { CreateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
 import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
-// --- IMPORTS SPORT ---
 
+// --- IMPORTS SPORT ---
 import { PostgresSportRepository } from './infrastructure/PostgresSportRepository.js';
 import { SportController } from './delivery/SportController.js';
-// --- create
 import { CreateSportUseCase } from './application/SportUseCases/NewSportUseCase.js';
 import { SportValidator } from './domain/services/SportValidator.js';
-
-
+import { UpdateSportUseCase } from './application/SportUseCases/UpdateSportUseCase.js';
+import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCase.js';
+import { ListSportsUseCase } from './application/SportUseCases/ListSportsUseCase.js';
+import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
 
 // --- Imports de Discipline (Nuevos) ---
 import { PostgresDisciplineRepository } from './infrastructure/PostgresDisciplineRepository.js';
 import { DisciplineValidator } from './domain/services/DisciplineValidator.js';
 import { CreateDisciplineUseCase } from './application/DisciplineUseCases/CreateDisciplineUseCase.js';
+import { ListDisciplinesUseCase } from './application/DisciplineUseCases/ListDisciplineUseCase.js'; // <-- NUEVO
 import { DisciplineController } from './delivery/DisciplineController.js';
-
-
-// --- update
-import { UpdateSportUseCase } from './application/SportUseCases/UpdateSportUseCase.js';
-// --- delete
-import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCase.js';
-// --- get-sport
-import { ListSportsUseCase } from './application/SportUseCases/ListSportsUseCase.js';
-import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
 
 
 export function buildApp() {
@@ -87,9 +79,6 @@ export function buildApp() {
     const paymentRepo = new PostgresPaymentRepository();
     const paymentValidator = new PaymentValidator();
     const medicalCertificateRepo = new PostgresMedicalCertificateRepository();
-
-
-
 
     const createMemberUseCase = new CreateMemberUseCase(memberRepo, memberValidator);
     const getMembersUseCase = new GetMembersUseCase(memberRepo);
@@ -200,18 +189,20 @@ export function buildApp() {
     const disciplineRepo = new PostgresDisciplineRepository();
     const disciplineValidator = new DisciplineValidator();
     const createDisciplineUseCase = new CreateDisciplineUseCase(disciplineRepo, disciplineValidator);
+    const listDisciplinesUseCase = new ListDisciplinesUseCase(disciplineRepo); // <-- AGREGADO
 
     const disciplineController = new DisciplineController(
-        createDisciplineUseCase
+        createDisciplineUseCase,
+        listDisciplinesUseCase // <-- AGREGADO
     );
 
-    // Endpoint de Alta según TDD-0016
+    // Endpoints de Disciplinas según TDD-0016
     server.post('/api/v1/disciplines', disciplineController.create.bind(disciplineController));
+    server.get('/api/v1/disciplines', disciplineController.getAll.bind(disciplineController)); // <-- AGREGADO
 
     return server;
 }
 
-// Solo iniciar el servidor si el script se ejecuta directamente (no cuando es importado por vitest)
 if (process.argv[1] && process.argv[1].endsWith('app.ts')) {
     const server = buildApp();
     const port = parseInt(process.env.PORT || '3000', 10);

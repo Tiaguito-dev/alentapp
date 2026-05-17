@@ -3,23 +3,22 @@ import { PrismaClient } from '../generated/client/client.js';
 import { DisciplineRepository } from '../domain/DisciplineRepository.js';
 import { DisciplineDTO } from '@alentapp/shared';
 
-// 1. Verificación obligatoria de la variable de entorno
+
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
 }
 
-// 2. Instancia de Prisma global con su adaptador de Postgres (Igual que en Members)
+
 const prisma = new PrismaClient({
     adapter: new PrismaPg(process.env.DATABASE_URL),
 });
 
 export class PostgresDisciplineRepository implements DisciplineRepository {
     
-    // El constructor no lleva nada porque "prisma" ya está declarado arriba afuera.
     constructor() {}
 
+    
     async create(discipline: Omit<DisciplineDTO, 'id'> & { member_id: string }): Promise<DisciplineDTO> {
-        // Usamos "prisma" directamente (sin el "this.")
         const created = await prisma.discipline.create({
             data: {
                 name: discipline.name,
@@ -39,5 +38,21 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
             end_date: created.end_date.toISOString(),
             is_total_suspension: created.is_total_suspension,
         };
+    }
+
+    
+    async findAll(): Promise<DisciplineDTO[]> {
+        const disciplines = await prisma.discipline.findMany({
+            orderBy: { start_date: 'desc' }, 
+        });
+
+        return disciplines.map(discipline => ({
+            id: discipline.id,
+            name: discipline.name,
+            description: discipline.description,
+            start_date: discipline.start_date.toISOString(),
+            end_date: discipline.end_date.toISOString(),
+            is_total_suspension: discipline.is_total_suspension,
+        }));
     }
 }
