@@ -1,7 +1,7 @@
 ---
 version: 2.1
 id: 0022
-estado: Aprobado
+estado: Implementado
 autor: Tiago Solis
 fecha: 2026-05-01
 titulo: Consulta de Deportes Existentes
