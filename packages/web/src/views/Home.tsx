@@ -1,6 +1,6 @@
 import { Box, SimpleGrid, Heading, Text, VStack } from "@chakra-ui/react";
-// Juntamos los tres íconos acá:
-import { LuUsers, LuArchive, LuCreditCard, LuGoal } from "react-icons/lu";
+// 👇 Agregamos LuGavel a los íconos importados
+import { LuUsers, LuArchive, LuCreditCard, LuGoal, LuGavel } from "react-icons/lu";
 import { SectionCard } from "../components/SectionCard";
 
 export function HomeView() {
@@ -39,7 +39,6 @@ export function HomeView() {
           icon={LuCreditCard}
         />
 
-        {/* Agregamos la tarjeta de Casilleros */}
         <SectionCard
           title="Casilleros"
           description="Gestiona el inventario de casilleros, sus ubicaciones y asignaciones a los socios."
@@ -47,7 +46,6 @@ export function HomeView() {
           icon={LuArchive}
         />
 
-        {/* Agregamos la tarjeta de Certificados */}
         <SectionCard
           title="Certificados"
           description="Gestioná los certificados médicos de los socios y su validez."
@@ -60,6 +58,14 @@ export function HomeView() {
           description="Gestioná los deportes del club y sus disciplinas."
           to="/sports"
           icon={LuGoal}
+        />
+
+        {/* 👇 Agregamos la tarjeta de Sanciones 👇 */}
+        <SectionCard
+          title="Sanciones"
+          description="Gestiona las penalizaciones, advertencias y suspensiones temporales de los socios."
+          to="/disciplines"
+          icon={LuGavel}
         />
 
         {/* Future sections can be added here following the same pattern */}
