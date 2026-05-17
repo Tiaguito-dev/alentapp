@@ -1,0 +1,13 @@
+docs/TDDs/TDD_0001_new-member.md
+docs/TDDs/TDD_0002_update_member.md
+docs/TDDs/TDD_0003_delete_member.md
+packages/api/src/application/DeleteMemberUseCase.ts
+packages/api/src/application/GetMembersUseCase.ts
+packages/api/src/application/NewMemberUseCase.ts
+packages/api/src/application/UpdateMemberUseCase.ts
+packages/api/src/delivery/MemberController.ts
+packages/api/src/domain/MemberRepository.ts
+packages/api/src/domain/services/MemberValidator.ts
+packages/api/src/infrastructure/PostgresMemberRepository.ts
+packages/web/src/services/members.ts
+packages/web/src/views/Members.tsx
