@@ -1,6 +1,6 @@
 ---
 id: 0017
-estado: propuesto
+estado: Implementado
 autor: Facundo Gomez
 fecha: 2026-05-01
 titulo: Modificación de Disciplina
