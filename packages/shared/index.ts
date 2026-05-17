@@ -133,3 +133,11 @@ export interface CreateSportRequest {
   requires_medical_certificate: boolean;
 }
 
+export interface UpdateSportRequest {
+  // Admito name pero tiro error para que sea explícita la regla de negocio de que no se puede cambiar el nombre
+  name?: string | null;
+  description?: string | null;
+  max_capacity?: number | null;
+  additional_price?: number | null;
+  requires_medical_certificate?: boolean | null;
+}

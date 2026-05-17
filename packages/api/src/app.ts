@@ -29,11 +29,19 @@ import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresM
 import { CreateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
 import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
+// --- IMPORTS SPORT ---
 import { PostgresSportRepository } from './infrastructure/PostgresSportRepository.js';
+import { SportController } from './delivery/SportController.js';
+// --- create
 import { CreateSportUseCase } from './application/SportUseCases/NewSportUseCase.js';
 import { SportValidator } from './domain/services/SportValidator.js';
-import { SportController } from './delivery/SportController.js';
-
+// --- update
+import { UpdateSportUseCase } from './application/SportUseCases/UpdateSportUseCase.js';
+// --- delete
+import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCase.js';
+// --- get-sport
+import { ListSportsUseCase } from './application/SportUseCases/ListSportsUseCase.js';
+import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
 
 export function buildApp() {
     const server = Fastify({
@@ -61,7 +69,7 @@ export function buildApp() {
     const paymentRepo = new PostgresPaymentRepository();
     const paymentValidator = new PaymentValidator();
     const medicalCertificateRepo = new PostgresMedicalCertificateRepository();
-    
+
 
 
 
@@ -96,10 +104,10 @@ export function buildApp() {
         getPaymentByIdUseCase,
     );
 
-        const medicalCertificateController = new MedicalCertificateController(
-            createMedicalCertificateUseCase,
-            listMedicalCertificatesUseCase,
-        );
+    const medicalCertificateController = new MedicalCertificateController(
+        createMedicalCertificateUseCase,
+        listMedicalCertificatesUseCase,
+    );
 
     server.get('/api/v1/socios', memberController.getAll.bind(memberController));
     server.post('/api/v1/socios', memberController.create.bind(memberController));
@@ -158,12 +166,24 @@ export function buildApp() {
 
     const sportValidator = new SportValidator(sportRepo);
     const createSportUseCase = new CreateSportUseCase(sportRepo, sportValidator);
+    const updateSportUseCase = new UpdateSportUseCase(sportRepo, sportValidator);
+    const deleteSportUseCase = new DeleteSportUseCase(sportRepo);
+    const listSportsUseCase = new ListSportsUseCase(sportRepo);
+    const getSportByIdUseCase = new GetSportByIdUseCase(sportRepo);
 
     const sportController = new SportController(
-        createSportUseCase
+        createSportUseCase,
+        updateSportUseCase,
+        deleteSportUseCase,
+        listSportsUseCase,
+        getSportByIdUseCase
     );
 
     server.post('/api/v1/sports', sportController.create.bind(sportController));
+    server.patch('/api/v1/sports/:id', sportController.update.bind(sportController));
+    server.delete('/api/v1/sports/:id', sportController.delete.bind(sportController));
+    server.get('/api/v1/sports', sportController.listAll.bind(sportController));
+    server.get('/api/v1/sports/:id', sportController.getById.bind(sportController));
 
     return server;
 }

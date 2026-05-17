@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/client/client.js';
 import { SportRepository } from '../domain/SportRepository.js';
-import { SportDTO, CreateSportRequest } from '@alentapp/shared';
+import { SportDTO, CreateSportRequest, UpdateSportRequest } from '@alentapp/shared';
 
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
@@ -45,16 +45,57 @@ export class PostgresSportRepository implements SportRepository {
         return this.mapToDTO(sport);
     }
 
-    async findByName(name: string): Promise<SportDTO | null> {
-        const sport = await prisma.sport.findUnique({
-            where: { name },
+    async update(id: string, data: UpdateSportRequest): Promise<SportDTO> {
+
+        const sport = await prisma.sport.update({
+            where: { id },
+            data: {
+                ...data
+            },
         });
 
-        if (sport && sport.deleted_at !== null) {
-            return null;
-        }
+        return this.mapToDTO(sport);
+    }
+
+    // Acá es donde se hace explícito el soft delete
+    async delete(id: string): Promise<void> {
+        await prisma.sport.update({
+            where: { id },
+            data: {
+                deleted_at: new Date()
+            },
+        });
+    }
+
+    // --- Métodos de búsqueda ---
+    async findByName(name: string): Promise<SportDTO | null> {
+        const sport = await prisma.sport.findFirst({
+            where: { name, deleted_at: null },
+        });
 
         return sport ? this.mapToDTO(sport) : null;
+    }
+
+    async findById(id: string): Promise<SportDTO | null> {
+        const sport = await prisma.sport.findUnique({
+            where: { id, deleted_at: null },
+        });
+
+        return sport ? this.mapToDTO(sport) : null;
+    }
+
+    async getAll(): Promise<SportDTO[]> {
+        const sports = await prisma.sport.findMany({
+            where: { deleted_at: null },
+        });
+        return sports.map(this.mapToDTO);
+    }
+
+    async isDeleted(id: string): Promise<boolean> {
+        const sport = await prisma.sport.findUnique({
+            where: { id },
+        });
+        return sport?.deleted_at !== null;
     }
 
     private mapToDTO(sport: DBSport): SportDTO {

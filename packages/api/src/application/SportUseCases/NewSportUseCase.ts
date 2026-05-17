@@ -10,9 +10,11 @@ export class CreateSportUseCase {
 
     async execute(data: CreateSportRequest): Promise<SportDTO> {
         await this.sportValidator.validateUniqueName(data.name);
+
         if (data.additional_price !== undefined) {
             this.sportValidator.validateAdditionalPrice(data.additional_price);
         }
+
         this.sportValidator.validateMaxCapacity(data.max_capacity);
 
         const newSport = await this.sportRepository.create(data);
