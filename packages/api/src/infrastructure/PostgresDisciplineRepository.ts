@@ -2,6 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/client/client.js';
 import { DisciplineRepository } from '../domain/DisciplineRepository.js';
 import { DisciplineDTO } from '@alentapp/shared';
+import { UpdateDisciplineRequest } from '../application/DisciplineUseCases/UpdateDisciplineUseCase.js';
 
 
 if (!process.env.DATABASE_URL) {
@@ -75,10 +76,34 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
         };
     }
 
-    // === NUEVO MÉTODO AGREGADO ===
+
     async delete(id: string): Promise<void> {
         await prisma.discipline.delete({
             where: { id },
         });
+    }
+
+    
+    async update(id: string, data: UpdateDisciplineRequest): Promise<DisciplineDTO> {
+        const updated = await prisma.discipline.update({
+            where: { id },
+            data: {
+                name: data.name,
+                description: data.description,
+                
+                start_date: data.start_date ? new Date(data.start_date) : undefined,
+                end_date: data.end_date ? new Date(data.end_date) : undefined,
+                is_total_suspension: data.is_total_suspension,
+            },
+        });
+
+        return {
+            id: updated.id,
+            name: updated.name,
+            description: updated.description,
+            start_date: updated.start_date.toISOString(),
+            end_date: updated.end_date.toISOString(),
+            is_total_suspension: updated.is_total_suspension,
+        };
     }
 }

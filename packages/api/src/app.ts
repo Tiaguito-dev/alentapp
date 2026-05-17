@@ -52,13 +52,14 @@ import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCa
 import { ListSportsUseCase } from './application/SportUseCases/ListSportsUseCase.js';
 import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
 
-// --- Imports de Discipline (Nuevos) ---
+// --- Imports de Discipline ---
 import { PostgresDisciplineRepository } from './infrastructure/PostgresDisciplineRepository.js';
 import { DisciplineValidator } from './domain/services/DisciplineValidator.js';
 import { CreateDisciplineUseCase } from './application/DisciplineUseCases/CreateDisciplineUseCase.js';
 import { ListDisciplinesUseCase } from './application/DisciplineUseCases/ListDisciplineUseCase.js'; 
 import { GetDisciplineByIdUseCase } from './application/DisciplineUseCases/GetDisciplineByIdUseCase.js'; 
-import { DeleteDisciplineUseCase } from './application/DisciplineUseCases/DeleteDisciplineUseCase.js'; // <-- IMPORT DEL DELETE
+import { DeleteDisciplineUseCase } from './application/DisciplineUseCases/DeleteDisciplineUseCase.js'; 
+import { UpdateDisciplineUseCase } from './application/DisciplineUseCases/UpdateDisciplineUseCase.js'; // <-- IMPORTADO EL UPDATE
 import { DisciplineController } from './delivery/DisciplineController.js';
 
 
@@ -217,18 +218,20 @@ export function buildApp() {
     const disciplineRepo = new PostgresDisciplineRepository();
     const disciplineValidator = new DisciplineValidator();
     
-    // Instanciamos los casos de uso
+    
     const createDisciplineUseCase = new CreateDisciplineUseCase(disciplineRepo, disciplineValidator);
     const listDisciplinesUseCase = new ListDisciplinesUseCase(disciplineRepo); 
     const getDisciplineByIdUseCase = new GetDisciplineByIdUseCase(disciplineRepo);
     const deleteDisciplineUseCase = new DeleteDisciplineUseCase(disciplineRepo); 
+    const updateDisciplineUseCase = new UpdateDisciplineUseCase(disciplineRepo, disciplineValidator); 
 
-    // Pasamos el nuevo caso de uso al controlador
+    
     const disciplineController = new DisciplineController(
         createDisciplineUseCase,
         listDisciplinesUseCase,
         getDisciplineByIdUseCase,
-        deleteDisciplineUseCase 
+        deleteDisciplineUseCase,
+        updateDisciplineUseCase 
     );
 
     // Endpoints de Disciplinas
@@ -236,6 +239,7 @@ export function buildApp() {
     server.get('/api/v1/disciplines', disciplineController.getAll.bind(disciplineController)); 
     server.get('/api/v1/disciplines/:id', disciplineController.getById.bind(disciplineController)); 
     server.delete('/api/v1/disciplines/:id', disciplineController.delete.bind(disciplineController)); 
+    server.patch('/api/v1/disciplines/:id', disciplineController.update.bind(disciplineController)); // <-- NUEVA RUTA REGISTRADA POR PATCH
 
     return server;
 }
