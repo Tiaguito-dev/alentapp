@@ -1,6 +1,6 @@
 ---
 id: 0016
-estado: propuesto
+estado: Implementado
 autor: Facundo Gomez
 fecha: 2026-05-01
 titulo: Alta de Disciplina
