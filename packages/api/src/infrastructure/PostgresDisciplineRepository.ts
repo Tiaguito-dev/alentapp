@@ -3,11 +3,9 @@ import { PrismaClient } from '../generated/client/client.js';
 import { DisciplineRepository } from '../domain/DisciplineRepository.js';
 import { DisciplineDTO, UpdateDisciplineRequest } from '@alentapp/shared';
 
-
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
 }
-
 
 const prisma = new PrismaClient({
     adapter: new PrismaPg(process.env.DATABASE_URL),
@@ -17,7 +15,6 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
     
     constructor() {}
 
-    
     async create(discipline: Omit<DisciplineDTO, 'id'> & { member_id: string }): Promise<DisciplineDTO> {
         const created = await prisma.discipline.create({
             data: {
@@ -37,10 +34,10 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
             start_date: created.start_date.toISOString(),
             end_date: created.end_date.toISOString(),
             is_total_suspension: created.is_total_suspension,
+            member_id: created.member_id, 
         };
     }
 
-    
     async findAll(): Promise<DisciplineDTO[]> {
         const disciplines = await prisma.discipline.findMany({
             orderBy: { start_date: 'desc' }, 
@@ -53,9 +50,9 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
             start_date: discipline.start_date.toISOString(),
             end_date: discipline.end_date.toISOString(),
             is_total_suspension: discipline.is_total_suspension,
+            member_id: discipline.member_id, 
         }));
     }
-
 
     async findById(id: string): Promise<DisciplineDTO | null> {
         const discipline = await prisma.discipline.findUnique({
@@ -71,9 +68,9 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
             start_date: discipline.start_date.toISOString(),
             end_date: discipline.end_date.toISOString(),
             is_total_suspension: discipline.is_total_suspension,
+            member_id: discipline.member_id, 
         };
     }
-
 
     async delete(id: string): Promise<void> {
         await prisma.discipline.delete({
@@ -81,15 +78,12 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
         });
     }
 
-    
     async update(id: string, data: UpdateDisciplineRequest): Promise<DisciplineDTO> {
         const updated = await prisma.discipline.update({
             where: { id },
             data: {
                 end_date: data.end_date ? new Date(data.end_date) : undefined,
                 is_total_suspension: data.is_total_suspension,
-                
-                
                 member_id: data.member_id ? data.member_id : undefined,
             },
         });
@@ -101,6 +95,7 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
             start_date: updated.start_date.toISOString(),
             end_date: updated.end_date.toISOString(),
             is_total_suspension: updated.is_total_suspension,
+            member_id: updated.member_id, 
         };
     }
 }

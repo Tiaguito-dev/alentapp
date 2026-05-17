@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { LuPlus, LuPencil, LuTrash2, LuRefreshCw } from "react-icons/lu";
 import { useEffect, useState, useMemo } from "react";
-import { disciplinesService } from "../services/disciplines";
+import { disciplinesService } from "../services/Disciplines";
 import { membersService } from "../services/members";
 import type { 
   DisciplineDTO, 
@@ -351,6 +351,8 @@ export function DisciplinesView() {
                 <Table.Row bg="bg.muted/50">
                   <Table.ColumnHeader py="4">Sanción</Table.ColumnHeader>
                   <Table.ColumnHeader py="4">Descripción</Table.ColumnHeader>
+                  {/* 👇 COLUMNA SOCIO AÑADIDA 👇 */}
+                  <Table.ColumnHeader py="4">Socio</Table.ColumnHeader>
                   <Table.ColumnHeader py="4">Inicio</Table.ColumnHeader>
                   <Table.ColumnHeader py="4">Fin</Table.ColumnHeader>
                   <Table.ColumnHeader py="4">Tipo</Table.ColumnHeader>
@@ -365,6 +367,10 @@ export function DisciplinesView() {
                     </Table.Cell>
                     <Table.Cell color="fg.muted" maxW="200px" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                       {discipline.description || "-"}
+                    </Table.Cell>
+                    {/* 👇 CELDA SOCIO AÑADIDA 👇 */}
+                    <Table.Cell fontWeight="medium" color="blue.600">
+                      {memberMap[discipline.member_id] || "Socio desconocido"}
                     </Table.Cell>
                     <Table.Cell color="fg.muted">{formatDate(discipline.start_date)}</Table.Cell>
                     <Table.Cell color="fg.muted">{formatDate(discipline.end_date)}</Table.Cell>

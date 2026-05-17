@@ -151,6 +151,7 @@ export interface DisciplineDTO {
   start_date: string; // ISO DateTime
   end_date: string; // ISO DateTime
   is_total_suspension: boolean;
+  member_id: string;
 }
 
 export interface CreateDisciplineRequest {
