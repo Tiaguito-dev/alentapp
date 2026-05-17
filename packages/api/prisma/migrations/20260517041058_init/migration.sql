@@ -6,13 +6,13 @@
 
 */
 -- DropForeignKey
-ALTER TABLE "lockers" DROP CONSTRAINT "lockers_sportId_fkey";
+ALTER TABLE "lockers" DROP CONSTRAINT IF EXISTS "lockers_sportId_fkey";
 
 -- DropForeignKey
-ALTER TABLE "payments" DROP CONSTRAINT "payments_sportId_fkey";
+ALTER TABLE "payments" DROP CONSTRAINT IF EXISTS "payments_sportId_fkey";
 
 -- AlterTable
-ALTER TABLE "lockers" DROP COLUMN "sportId";
+ALTER TABLE "lockers" DROP COLUMN IF EXISTS "sportId";
 
 -- AlterTable
-ALTER TABLE "payments" DROP COLUMN "sportId";
+ALTER TABLE "payments" DROP COLUMN IF EXISTS "sportId";
