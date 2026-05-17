@@ -74,5 +74,11 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
             is_total_suspension: discipline.is_total_suspension,
         };
     }
-}
 
+    // === NUEVO MÉTODO AGREGADO ===
+    async delete(id: string): Promise<void> {
+        await prisma.discipline.delete({
+            where: { id },
+        });
+    }
+}

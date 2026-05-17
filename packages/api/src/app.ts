@@ -30,7 +30,7 @@ import { GetPaymentByIdUseCase } from './application/PaymentUseCases/GetPaymentB
 import { PaymentController } from './delivery/PaymentController.js';
 
 
-// --- Imports de Sport ---
+// --- Imports de Medical Certificate ---
 import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresMedicalCertificateRepository.js';
 import { CreateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
@@ -39,7 +39,6 @@ import { InvalidateMedicalCertificateUseCase } from './application/MedicalCertif
 import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
 
 import { MedicalCertificateValidator } from './domain/services/MedicalCertificateValidator.js';
-// --- IMPORTS SPORT ---
 
 
 // --- IMPORTS SPORT ---
@@ -57,7 +56,8 @@ import { PostgresDisciplineRepository } from './infrastructure/PostgresDisciplin
 import { DisciplineValidator } from './domain/services/DisciplineValidator.js';
 import { CreateDisciplineUseCase } from './application/DisciplineUseCases/CreateDisciplineUseCase.js';
 import { ListDisciplinesUseCase } from './application/DisciplineUseCases/ListDisciplineUseCase.js'; 
-import { GetDisciplineByIdUseCase } from './application/DisciplineUseCases/GetDisciplineByIdUseCase.js'; // <-- NUEVO
+import { GetDisciplineByIdUseCase } from './application/DisciplineUseCases/GetDisciplineByIdUseCase.js'; 
+import { DeleteDisciplineUseCase } from './application/DisciplineUseCases/DeleteDisciplineUseCase.js'; // <-- IMPORT DEL DELETE
 import { DisciplineController } from './delivery/DisciplineController.js';
 
 
@@ -206,24 +206,30 @@ export function buildApp() {
     server.get('/api/v1/sports/:id', sportController.getById.bind(sportController));
 
     // ==========================================
-    // Dependencias y rutas de Discipline (NUEVO)
+    // Dependencias y rutas de Discipline
     // ==========================================
     const disciplineRepo = new PostgresDisciplineRepository();
     const disciplineValidator = new DisciplineValidator();
+    
+    // Instanciamos los casos de uso
     const createDisciplineUseCase = new CreateDisciplineUseCase(disciplineRepo, disciplineValidator);
     const listDisciplinesUseCase = new ListDisciplinesUseCase(disciplineRepo); 
-    const getDisciplineByIdUseCase = new GetDisciplineByIdUseCase(disciplineRepo); // <-- AGREGADO
+    const getDisciplineByIdUseCase = new GetDisciplineByIdUseCase(disciplineRepo);
+    const deleteDisciplineUseCase = new DeleteDisciplineUseCase(disciplineRepo); 
 
+    // Pasamos el nuevo caso de uso al controlador
     const disciplineController = new DisciplineController(
         createDisciplineUseCase,
         listDisciplinesUseCase,
-        getDisciplineByIdUseCase // <-- AGREGADO
+        getDisciplineByIdUseCase,
+        deleteDisciplineUseCase 
     );
 
-    // Endpoints de Disciplinas según TDD-0016
+    // Endpoints de Disciplinas
     server.post('/api/v1/disciplines', disciplineController.create.bind(disciplineController));
     server.get('/api/v1/disciplines', disciplineController.getAll.bind(disciplineController)); 
-    server.get('/api/v1/disciplines/:id', disciplineController.getById.bind(disciplineController)); // <-- AGREGADO
+    server.get('/api/v1/disciplines/:id', disciplineController.getById.bind(disciplineController)); 
+    server.delete('/api/v1/disciplines/:id', disciplineController.delete.bind(disciplineController)); 
 
     return server;
 }
