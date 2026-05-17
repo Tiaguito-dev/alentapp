@@ -1,8 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/client/client.js';
 import { DisciplineRepository } from '../domain/DisciplineRepository.js';
-import { DisciplineDTO } from '@alentapp/shared';
-import { UpdateDisciplineRequest } from '../application/DisciplineUseCases/UpdateDisciplineUseCase.js';
+import { DisciplineDTO, UpdateDisciplineRequest } from '@alentapp/shared';
 
 
 if (!process.env.DATABASE_URL) {
@@ -55,7 +54,6 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
             end_date: discipline.end_date.toISOString(),
             is_total_suspension: discipline.is_total_suspension,
         }));
-
     }
 
 
@@ -88,12 +86,11 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
         const updated = await prisma.discipline.update({
             where: { id },
             data: {
-                name: data.name,
-                description: data.description,
-                
-                start_date: data.start_date ? new Date(data.start_date) : undefined,
                 end_date: data.end_date ? new Date(data.end_date) : undefined,
                 is_total_suspension: data.is_total_suspension,
+                
+                
+                member_id: data.member_id ? data.member_id : undefined,
             },
         });
 

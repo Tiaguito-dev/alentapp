@@ -3,8 +3,8 @@ import { CreateDisciplineUseCase } from '../application/DisciplineUseCases/Creat
 import { ListDisciplinesUseCase } from '../application/DisciplineUseCases/ListDisciplineUseCase.js';
 import { GetDisciplineByIdUseCase } from '../application/DisciplineUseCases/GetDisciplineByIdUseCase.js';
 import { DeleteDisciplineUseCase } from '../application/DisciplineUseCases/DeleteDisciplineUseCase.js'; 
-import { UpdateDisciplineUseCase, UpdateDisciplineRequest } from '../application/DisciplineUseCases/UpdateDisciplineUseCase.js'; // <-- Importado el tipo también
-import { CreateDisciplineRequest } from '@alentapp/shared';
+import { UpdateDisciplineUseCase } from '../application/DisciplineUseCases/UpdateDisciplineUseCase.js'; 
+import { CreateDisciplineRequest, UpdateDisciplineRequest } from '@alentapp/shared';
 
 export class DisciplineController {
     constructor(
@@ -87,15 +87,22 @@ export class DisciplineController {
         }
     }
 
-    
     async update(
         request: FastifyRequest<{ Params: { id: string }; Body: UpdateDisciplineRequest }>, 
         reply: FastifyReply
     ) {
         try {
             const { id } = request.params;
+            const body = request.body;
 
-            const updatedDiscipline = await this.updateDisciplineUseCase.execute(id, request.body);
+            
+            if (!body || Object.keys(body).length === 0) {
+                return reply.status(400).send({ 
+                    error: 'El cuerpo de la solicitud no puede estar vacío. Debe enviar al menos un campo para actualizar.' 
+                });
+            }
+
+            const updatedDiscipline = await this.updateDisciplineUseCase.execute(id, body);
 
             return reply.status(200).send({ data: updatedDiscipline });
         } catch (error: any) {

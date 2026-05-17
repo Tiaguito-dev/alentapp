@@ -1,9 +1,6 @@
 import { DisciplineRepository } from '../../domain/DisciplineRepository.js';
 import { DisciplineValidator } from '../../domain/services/DisciplineValidator.js';
-import { DisciplineDTO } from '@alentapp/shared';
-
-
-export type UpdateDisciplineRequest = Partial<Omit<DisciplineDTO, 'id'>>;
+import { DisciplineDTO, UpdateDisciplineRequest } from '@alentapp/shared'; 
 
 export class UpdateDisciplineUseCase {
     constructor(
@@ -13,27 +10,24 @@ export class UpdateDisciplineUseCase {
 
     async execute(id: string, data: UpdateDisciplineRequest): Promise<DisciplineDTO> {
         
+        // 1. Comprobar existencia
         const existingDiscipline = await this.disciplineRepo.findById(id);
         if (!existingDiscipline) {
             throw new Error('La disciplina no existe');
         }
 
-        
+        // 2. Consolidar fechas (lo nuevo o lo que ya estaba en DB)
         const startDateStr = data.start_date || existingDiscipline.start_date;
         const endDateStr = data.end_date || existingDiscipline.end_date;
 
-        if (startDateStr && endDateStr) {
-            const start = new Date(startDateStr);
-            const end = new Date(endDateStr);
+        // 3. El validador ahora analiza formatos y consistencia cronológica de forma segura
+        this.disciplineValidator.validateUpdate({
+            name: data.name,
+            startDateStr,
+            endDateStr
+        });
 
-            if (end < start) {
-                throw new Error('La fecha de fin no puede ser mayor a la de inicio');
-            }
-        }
-
-        
-
-        
+        // 4. Persistir
         return this.disciplineRepo.update(id, data);
     }
 }

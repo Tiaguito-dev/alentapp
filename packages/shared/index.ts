@@ -161,14 +161,18 @@ export interface CreateDisciplineRequest {
   member_id: string; 
 }
 
+// === MODIFICADO: Agregamos las propiedades faltantes para el PATCH ===
 export interface UpdateDisciplineRequest {
+  name?: string;
+  description?: string | null;
+  start_date?: string;
   end_date?: string;
   is_total_suspension?: boolean;
   member_id?: string | null;
-  }
+}
 
 export interface UpdateSportRequest {
-  // Admito name pero tiro error para que sea explícita la regla de negocio de que no se puede cambiar el nombre
+  
   name?: string | null;
   description?: string | null;
   max_capacity?: number | null;
