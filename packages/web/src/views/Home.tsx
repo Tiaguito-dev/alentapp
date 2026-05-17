@@ -1,15 +1,15 @@
 import { Box, SimpleGrid, Heading, Text, VStack } from "@chakra-ui/react";
 // Juntamos los tres íconos acá:
-import { LuUsers, LuArchive, LuCreditCard } from "react-icons/lu"; 
+import { LuUsers, LuArchive, LuCreditCard, LuGoal } from "react-icons/lu";
 import { SectionCard } from "../components/SectionCard";
 
 export function HomeView() {
   return (
     <Box>
       <VStack gap="6" align="flex-start" mb="12">
-        <Heading 
-          size="4xl" 
-          fontWeight="extrabold" 
+        <Heading
+          size="4xl"
+          fontWeight="extrabold"
           letterSpacing="tight"
           bgGradient="to-r"
           gradientFrom="blue.600"
@@ -19,20 +19,20 @@ export function HomeView() {
           Bienvenido a Alentapp
         </Heading>
         <Text fontSize="xl" color="fg.muted" maxW="2xl">
-          El panel de administración central para gestionar todos los aspectos de tu club. 
+          El panel de administración central para gestionar todos los aspectos de tu club.
           Selecciona una sección a continuación para comenzar.
         </Text>
       </VStack>
 
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap="8">
-        <SectionCard 
+        <SectionCard
           title="Miembros"
           description="Administra el padrón de socios, sus categorías, estados de cuenta y datos personales."
           to="/members"
           icon={LuUsers}
         />
-        
-        <SectionCard 
+
+        <SectionCard
           title="Pagos"
           description="Registrá y hacé seguimiento de las cuotas mensuales de los socios del club."
           to="/payments"
@@ -40,7 +40,7 @@ export function HomeView() {
         />
 
         {/* Agregamos la tarjeta de Casilleros */}
-        <SectionCard 
+        <SectionCard
           title="Casilleros"
           description="Gestiona el inventario de casilleros, sus ubicaciones y asignaciones a los socios."
           to="/lockers"
@@ -48,19 +48,26 @@ export function HomeView() {
         />
 
         {/* Agregamos la tarjeta de Certificados */}
-        <SectionCard 
+        <SectionCard
           title="Certificados"
           description="Gestioná los certificados médicos de los socios y su validez."
           to="/medical-certificates"
           icon={LuArchive}
         />
 
+        <SectionCard
+          title="Deportes"
+          description="Gestioná los deportes del club y sus disciplinas."
+          to="/sports"
+          icon={LuGoal}
+        />
+
         {/* Future sections can be added here following the same pattern */}
-        <Box 
-          p="6" 
-          bg="bg.muted/30" 
-          borderRadius="2xl" 
-          borderWidth="1px" 
+        <Box
+          p="6"
+          bg="bg.muted/30"
+          borderRadius="2xl"
+          borderWidth="1px"
           borderColor="border.subtle"
           borderStyle="dashed"
           display="flex"
