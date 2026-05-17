@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+
 import { PostgresMemberRepository } from './infrastructure/PostgresMemberRepository.js';
 import { MemberValidator } from './domain/services/MemberValidator.js';
 import { CreateMemberUseCase } from './application/NewMemberUseCase.js';
@@ -7,14 +8,16 @@ import { GetMembersUseCase } from './application/GetMembersUseCase.js';
 import { UpdateMemberUseCase } from './application/UpdateMemberUseCase.js';
 import { DeleteMemberUseCase } from './application/DeleteMemberUseCase.js';
 import { MemberController } from './delivery/MemberController.js';
+
 // --- Imports de Locker ---
-import { PostgresLockerRepository } from './infrastructure/PostgresLockerRepository.js'; // Ajustar si es otra carpeta
+import { PostgresLockerRepository } from './infrastructure/PostgresLockerRepository.js'; 
 import { CreateLockerUseCase } from './application/LockerUseCases/NewLockerUseCase.js';
 import { UpdateLockerUseCase } from './application/LockerUseCases/UpdateLockerUseCase.js';
 import { DeleteLockerUseCase } from './application/LockerUseCases/DeleteLockerUseCase.js';
 import { ListLockersUseCase } from './application/LockerUseCases/ListLockersUseCase.js';
 import { GetLockerByNumberUseCase } from './application/LockerUseCases/GetLockerByNumberUseCase.js';
-import { LockerController } from './delivery/LockerController.js'; // O donde lo hayas guardado
+import { LockerController } from './delivery/LockerController.js'; 
+
 import { PostgresPaymentRepository } from './infrastructure/PostgresPaymentRepository.js';
 import { PaymentValidator } from './domain/services/PaymentValidator.js';
 import { CreatePaymentUseCase } from './application/PaymentUseCases/CreatePaymentUseCase.js';
@@ -25,16 +28,31 @@ import { DeletePaymentUseCase } from './application/PaymentUseCases/DeletePaymen
 import { ListPaymentsUseCase } from './application/PaymentUseCases/ListPaymentsUseCase.js';
 import { GetPaymentByIdUseCase } from './application/PaymentUseCases/GetPaymentByIdUseCase.js';
 import { PaymentController } from './delivery/PaymentController.js';
+
+
+// --- Imports de Sport ---
+
 import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresMedicalCertificateRepository.js';
 import { CreateMedicalCertificateUseCase } from './application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { ListMedicalCertificatesUseCase } from './application/MedicalCertificateUseCases/ListMedicalCertificatesUseCase.js';
 import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
 // --- IMPORTS SPORT ---
+
 import { PostgresSportRepository } from './infrastructure/PostgresSportRepository.js';
 import { SportController } from './delivery/SportController.js';
 // --- create
 import { CreateSportUseCase } from './application/SportUseCases/NewSportUseCase.js';
 import { SportValidator } from './domain/services/SportValidator.js';
+
+
+
+// --- Imports de Discipline (Nuevos) ---
+import { PostgresDisciplineRepository } from './infrastructure/PostgresDisciplineRepository.js';
+import { DisciplineValidator } from './domain/services/DisciplineValidator.js';
+import { CreateDisciplineUseCase } from './application/DisciplineUseCases/CreateDisciplineUseCase.js';
+import { DisciplineController } from './delivery/DisciplineController.js';
+
+
 // --- update
 import { UpdateSportUseCase } from './application/SportUseCases/UpdateSportUseCase.js';
 // --- delete
@@ -42,6 +60,7 @@ import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCa
 // --- get-sport
 import { ListSportsUseCase } from './application/SportUseCases/ListSportsUseCase.js';
 import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
+
 
 export function buildApp() {
     const server = Fastify({
@@ -59,7 +78,6 @@ export function buildApp() {
     server.register(cors, {
         origin: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
     });
@@ -127,22 +145,16 @@ export function buildApp() {
         rep.status(200).send({ msg: 'asd' })
     });
 
-
     // ==========================================
     // Dependencias y Rutas de Locker
     // ==========================================
-
-    // 1. Instanciamos el repositorio (Infraestructura)
     const lockerRepo = new PostgresLockerRepository();
-
-    // 2. Instanciamos los Casos de Uso (Aplicación) pasándoles el repositorio
     const createLockerUseCase = new CreateLockerUseCase(lockerRepo);
     const updateLockerUseCase = new UpdateLockerUseCase(lockerRepo);
     const deleteLockerUseCase = new DeleteLockerUseCase(lockerRepo);
     const listLockersUseCase = new ListLockersUseCase(lockerRepo);
     const getLockerByNumberUseCase = new GetLockerByNumberUseCase(lockerRepo);
 
-    // 3. Instanciamos el Controlador (Delivery/Entrada) pasándole los Casos de Uso
     const lockerController = new LockerController(
         createLockerUseCase,
         updateLockerUseCase,
@@ -151,7 +163,6 @@ export function buildApp() {
         getLockerByNumberUseCase
     );
 
-    // 4. Registramos las rutas de Fastify según los TDDs
     server.post('/api/v1/lockers', lockerController.create.bind(lockerController));
     server.patch('/api/v1/lockers/:number', lockerController.update.bind(lockerController));
     server.delete('/api/v1/lockers/:number', lockerController.delete.bind(lockerController));
@@ -161,9 +172,7 @@ export function buildApp() {
     // ==========================================
     // Dependencias y rutas de Sport
     // ==========================================
-
     const sportRepo = new PostgresSportRepository();
-
     const sportValidator = new SportValidator(sportRepo);
     const createSportUseCase = new CreateSportUseCase(sportRepo, sportValidator);
     const updateSportUseCase = new UpdateSportUseCase(sportRepo, sportValidator);
@@ -184,6 +193,20 @@ export function buildApp() {
     server.delete('/api/v1/sports/:id', sportController.delete.bind(sportController));
     server.get('/api/v1/sports', sportController.listAll.bind(sportController));
     server.get('/api/v1/sports/:id', sportController.getById.bind(sportController));
+
+    // ==========================================
+    // Dependencias y rutas de Discipline (NUEVO)
+    // ==========================================
+    const disciplineRepo = new PostgresDisciplineRepository();
+    const disciplineValidator = new DisciplineValidator();
+    const createDisciplineUseCase = new CreateDisciplineUseCase(disciplineRepo, disciplineValidator);
+
+    const disciplineController = new DisciplineController(
+        createDisciplineUseCase
+    );
+
+    // Endpoint de Alta según TDD-0016
+    server.post('/api/v1/disciplines', disciplineController.create.bind(disciplineController));
 
     return server;
 }
