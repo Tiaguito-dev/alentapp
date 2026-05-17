@@ -1,6 +1,6 @@
 ---
 id: 0009
-estado: Aprobado
+estado: Implementado
 autor: Federico Alvarez Pieroni
 fecha: 2026-05-01
 titulo: Modificación de Certificados Médicos

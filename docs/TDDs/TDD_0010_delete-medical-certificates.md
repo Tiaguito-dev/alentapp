@@ -1,6 +1,6 @@
 ---
 id: 0010
-estado: Aprobado
+estado: Implementado
 autor: Federico Alvarez Pieroni
 fecha: 2026-05-01
 titulo: Baja de Certificados Médicos
