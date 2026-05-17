@@ -7,7 +7,7 @@ export class CreateMedicalCertificateUseCase {
   constructor(
     private readonly medicalCertificateRepository: MedicalCertificateRepository,
     private readonly memberRepository: MemberRepository,
-    private readonly medicalCertificateValidator: MedicalCertificateValidator = new MedicalCertificateValidator(),
+    private readonly medicalCertificateValidator: MedicalCertificateValidator,
   ) {}
 
   async execute(data: CreateMedicalCertificateRequest): Promise<MedicalCertificateResponse> {
