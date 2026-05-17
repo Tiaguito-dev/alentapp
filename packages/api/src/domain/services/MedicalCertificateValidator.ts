@@ -41,8 +41,8 @@ export class MedicalCertificateValidator {
   validateIssueDate(issueDate: string): void {
     this.validateDateFormat(issueDate);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const parsedIssueDate = new Date(`${issueDate}T00:00:00.000Z`);
 
     if (parsedIssueDate > today) {
