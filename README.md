@@ -2,6 +2,8 @@
 
 Alentapp es una plataforma moderna para la gestión de socios y administración de clubes. Está construida como un monorepo utilizando Typescript, React (Vite + Chakra UI) en el frontend, y Fastify con Prisma (PostgreSQL) en el backend, siguiendo los principios de la Arquitectura Hexagonal.
 
+<!-- Comentario: Esta rama incluye la funcionalidad de borrado (delete) para entidades como socios, lockers, pagos, disciplinas, deportes y certificados médicos. Este comentario es exclusivo para identificar la rama delete y no afecta ninguna funcionalidad. -->
+
 Para conocer en detalle las decisiones de arquitectura del proyecto, puedes consultar la [Documentación de Arquitectura](./docs/ARCHITECTURE.md).
 
 ---
