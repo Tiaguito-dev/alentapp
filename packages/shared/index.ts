@@ -163,9 +163,7 @@ export interface CreateDisciplineRequest {
 
 // === MODIFICADO: Agregamos las propiedades faltantes para el PATCH ===
 export interface UpdateDisciplineRequest {
-  name?: string;
-  description?: string | null;
-  start_date?: string;
+  
   end_date?: string;
   is_total_suspension?: boolean;
   member_id?: string | null;

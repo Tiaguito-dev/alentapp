@@ -10,24 +10,26 @@ export class UpdateDisciplineUseCase {
 
     async execute(id: string, data: UpdateDisciplineRequest): Promise<DisciplineDTO> {
         
-        // 1. Comprobar existencia
+        // 1. Comprobar existencia en la base de datos
         const existingDiscipline = await this.disciplineRepo.findById(id);
         if (!existingDiscipline) {
-            throw new Error('La disciplina no existe');
+            throw new Error('La disciplina no existe'); // O tu excepción personalizada NotFound
         }
 
-        // 2. Consolidar fechas (lo nuevo o lo que ya estaba en DB)
-        const startDateStr = data.start_date || existingDiscipline.start_date;
+        // 2. Consolidar fechas para la validación de negocio
+        // Como 'start_date' no cambia, usamos siempre el de la BD. 
+        // 'end_date' usa el nuevo valor del request, o cae en el actual si no se envió.
+        const startDateStr = existingDiscipline.start_date;
         const endDateStr = data.end_date || existingDiscipline.end_date;
 
-        // 3. El validador ahora analiza formatos y consistencia cronológica de forma segura
+        // 3. El validador analiza la consistencia cronológica de forma segura
+        // Eliminamos 'name' de aquí porque el validador no lo necesita para el update
         this.disciplineValidator.validateUpdate({
-            name: data.name,
             startDateStr,
             endDateStr
         });
 
-        // 4. Persistir
+        // 4. Persistir los cambios permitidos
         return this.disciplineRepo.update(id, data);
     }
 }
