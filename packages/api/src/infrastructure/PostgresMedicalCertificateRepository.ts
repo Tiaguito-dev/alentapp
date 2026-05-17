@@ -71,6 +71,7 @@ export class PostgresMedicalCertificateRepository implements MedicalCertificateR
         ...(data.expiry_date !== undefined && { expiry_date: new Date(data.expiry_date) }),
         ...(data.doctor_license !== undefined && { doctor_license: data.doctor_license }),
         ...(data.is_validated !== undefined && { is_validated: data.is_validated }),
+        ...(data.deleted_at !== undefined && { deleted_at: data.deleted_at }),
       },
     });
 

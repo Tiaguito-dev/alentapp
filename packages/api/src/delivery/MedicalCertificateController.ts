@@ -4,6 +4,7 @@ import { GetMedicalCertificateByIdUseCase } from '../application/MedicalCertific
 import { CreateMedicalCertificateUseCase } from '../application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js';
 import { UpdateMedicalCertificateUseCase } from '../application/MedicalCertificateUseCases/UpdateMedicalCertificateUseCase.js';
 import { InvalidateMedicalCertificateUseCase } from '../application/MedicalCertificateUseCases/InvalidateMedicalCertificateUseCase.js';
+import { DeleteMedicalCertificateUseCase } from '../application/MedicalCertificateUseCases/DeleteMedicalCertificateUseCase.js';
 import { CreateMedicalCertificateRequest, UpdateMedicalCertificateRequest } from '@alentapp/shared';
 
 const VALIDATION_ERROR_CODES = new Set([
@@ -21,6 +22,7 @@ export class MedicalCertificateController {
     private readonly getMedicalCertificateByIdUseCase: GetMedicalCertificateByIdUseCase,
     private readonly updateMedicalCertificateUseCase: UpdateMedicalCertificateUseCase,
     private readonly invalidateMedicalCertificateUseCase: InvalidateMedicalCertificateUseCase,
+    private readonly deleteMedicalCertificateUseCase: DeleteMedicalCertificateUseCase,
   ) {}
 
   async create(
@@ -105,6 +107,21 @@ export class MedicalCertificateController {
       }
       if (error.message === 'El certificado ya se encuentra invalidado') {
         return reply.status(409).send({ error: error.message });
+      }
+      return reply.status(500).send({ error: 'Error interno, reintente más tarde' });
+    }
+  }
+
+  async delete(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+  ) {
+    try {
+      await this.deleteMedicalCertificateUseCase.execute(request.params.id);
+      return reply.status(204).send();
+    } catch (error: any) {
+      if (error.message === 'El certificado no existe') {
+        return reply.status(404).send({ error: error.message });
       }
       return reply.status(500).send({ error: 'Error interno, reintente más tarde' });
     }
