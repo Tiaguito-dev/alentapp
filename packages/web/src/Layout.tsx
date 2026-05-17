@@ -74,6 +74,19 @@ function Layout() {
                                 Certificados
                             </Text>
                         </RouterLink>
+
+                        <RouterLink to="/sports">
+                            <Text 
+                                fontWeight="semibold" 
+                                fontSize="sm" 
+                                textTransform="uppercase" 
+                                letterSpacing="wider"
+                                color="fg.muted"
+                                _hover={{ color: "blue.500", textDecoration: "none" }}
+                            >
+                                Deportes
+                            </Text>
+                        </RouterLink>
                     </HStack>
                 </Flex>
             </Box>
