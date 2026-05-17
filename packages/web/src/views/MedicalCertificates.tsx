@@ -14,7 +14,7 @@ import {
   IconButton,
 } from '@chakra-ui/react';
 import { useEffect, useState, useMemo } from 'react';
-import { LuRefreshCw, LuPlus, LuPencil, LuShieldOff } from 'react-icons/lu';
+import { LuRefreshCw, LuPlus, LuPencil, LuShieldOff, LuTrash2 } from 'react-icons/lu';
 import type {
   MedicalCertificateResponse,
   CreateMedicalCertificateRequest,
@@ -156,6 +156,23 @@ export function MedicalCertificatesView() {
       fetchData();
     } catch (err: any) {
       alert(err.message || 'Error al invalidar el certificado médico');
+    }
+  };
+
+  const handleDelete = async (certificate: MedicalCertificateResponse) => {
+    const confirmationMessage = certificate.is_validated
+      ? 'Advertencia: este certificado está activo. Si continuás, dejará de aparecer en el sistema. ¿Deseás darlo de baja igualmente?'
+      : '¿Seguro que desea dar de baja este certificado médico?';
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    try {
+      await medicalCertificatesService.delete(certificate.id);
+      fetchData();
+    } catch (err: any) {
+      alert(err.message || 'Error al dar de baja el certificado médico');
     }
   };
 
@@ -357,6 +374,15 @@ export function MedicalCertificatesView() {
                           disabled={!certificate.is_validated}
                         >
                           <LuShieldOff />
+                        </IconButton>
+                        <IconButton
+                          variant='ghost'
+                          size='sm'
+                          colorPalette='red'
+                          aria-label='Dar de baja certificado médico'
+                          onClick={() => handleDelete(certificate)}
+                        >
+                          <LuTrash2 />
                         </IconButton>
                       </HStack>
                     </Table.Cell>
