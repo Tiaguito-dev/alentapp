@@ -8,6 +8,7 @@ CREATE TABLE "medical_certificates" (
     "member_id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3),
+    CONSTRAINT "medical_certificates_date_order_check" CHECK ("expiry_date" >= "issue_date"),
 
     CONSTRAINT "medical_certificates_pkey" PRIMARY KEY ("id")
 );
