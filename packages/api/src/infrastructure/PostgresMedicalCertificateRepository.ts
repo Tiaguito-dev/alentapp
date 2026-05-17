@@ -27,6 +27,7 @@ type DBMedicalCertificate = {
 
 export class PostgresMedicalCertificateRepository implements MedicalCertificateRepository {
   async create(data: CreateMedicalCertificateRequest): Promise<MedicalCertificateResponse> {
+    // Mantener para compatibilidad, pero NO garantiza atomicidad
     const certificate = await prisma.medicalCertificate.create({
       data: {
         member_id: data.member_id,
@@ -35,8 +36,39 @@ export class PostgresMedicalCertificateRepository implements MedicalCertificateR
         doctor_license: data.doctor_license,
       },
     });
-
     return this.mapToDTO(certificate);
+  }
+
+  /**
+   * Invalida el certificado activo anterior (si existe) y crea el nuevo, todo en una transacción atómica.
+   */
+  async createWithInvalidation(data: CreateMedicalCertificateRequest): Promise<MedicalCertificateResponse> {
+    const result = await prisma.$transaction(async (tx) => {
+      // Invalidar certificado activo anterior (si existe)
+      await tx.medicalCertificate.updateMany({
+        where: {
+          member_id: data.member_id,
+          is_validated: true,
+          deleted_at: null,
+        },
+        data: {
+          is_validated: false,
+        },
+      });
+      // Crear el nuevo certificado (siempre is_validated: true, deleted_at: null)
+      const certificate = await tx.medicalCertificate.create({
+        data: {
+          member_id: data.member_id,
+          issue_date: new Date(data.issue_date),
+          expiry_date: new Date(data.expiry_date),
+          doctor_license: data.doctor_license,
+          is_validated: true,
+          deleted_at: null,
+        },
+      });
+      return certificate;
+    });
+    return this.mapToDTO(result);
   }
 
   async findById(id: string): Promise<MedicalCertificateResponse | null> {
@@ -61,6 +93,30 @@ export class PostgresMedicalCertificateRepository implements MedicalCertificateR
     });
 
     return certificates.map((certificate) => this.mapToDTO(certificate));
+  }
+
+  async findActiveByMember(memberId: string): Promise<MedicalCertificateResponse | null> {
+    const certificate = await prisma.medicalCertificate.findFirst({
+      where: {
+        member_id: memberId,
+        is_validated: true,
+        deleted_at: null,
+      },
+    });
+    return certificate ? this.mapToDTO(certificate) : null;
+  }
+
+  async invalidateByMember(memberId: string): Promise<void> {
+    await prisma.medicalCertificate.updateMany({
+      where: {
+        member_id: memberId,
+        is_validated: true,
+        deleted_at: null,
+      },
+      data: {
+        is_validated: false,
+      },
+    });
   }
 
   async update(id: string, data: MedicalCertificateUpdateData): Promise<MedicalCertificateResponse> {
