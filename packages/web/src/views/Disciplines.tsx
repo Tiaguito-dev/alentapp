@@ -190,10 +190,14 @@ export function DisciplinesView() {
     fetchData();
   }, []);
 
+  
   const formatDate = (isoString: string) => {
     if (!isoString) return "-";
     return new Date(isoString).toLocaleDateString('es-AR', {
-      day: '2-digit', month: '2-digit', year: 'numeric'
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric',
+      timeZone: 'UTC' 
     });
   };
 
