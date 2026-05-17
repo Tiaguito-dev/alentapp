@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
     provider = "postgresql"
-              }
+}
 
 enum MemberCategory {
     Pleno
@@ -56,8 +56,6 @@ model Locker {
     status    LockerStatus @default(Available)
     member_id String?
     member    Member?      @relation(fields: [member_id], references: [id])
-    sport     Sport?       @relation(fields: [sportId], references: [id])
-    sportId   String?
 
     @@map("lockers")
 }
@@ -79,27 +77,23 @@ model Payment {
     deleted_at   DateTime?
     member_id    String
     member       Member        @relation(fields: [member_id], references: [id])
-    sport        Sport?        @relation(fields: [sportId], references: [id])
-    sportId      String?
 
     @@map("payments")
 }
 
-
 model MedicalCertificate {
-    id             String   @id @default(uuid())
-    issue_date     DateTime @db.Date
-    expiry_date    DateTime @db.Date
+    id             String    @id @default(uuid())
+    issue_date     DateTime  @db.Date
+    expiry_date    DateTime  @db.Date
     doctor_license String
-    is_validated   Boolean  @default(true)
+    is_validated   Boolean   @default(true)
     member_id      String
-    member         Member   @relation(fields: [member_id], references: [id])
-    created_at     DateTime @default(now())
+    member         Member    @relation(fields: [member_id], references: [id])
+    created_at     DateTime  @default(now())
     deleted_at     DateTime?
 
     @@map("medical_certificates")
 }
-
 
 model Sport {
     id                           String    @id @default(uuid())
@@ -110,9 +104,6 @@ model Sport {
     requires_medical_certificate Boolean
     created_at                   DateTime  @default(now())
     deleted_at                   DateTime?
-    lockers                      Locker[]
-    payments                     Payment[]
-
 
     @@map("sport")
 }

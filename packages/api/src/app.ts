@@ -56,7 +56,7 @@ import { DisciplineController } from './delivery/DisciplineController.js';
 // --- update
 import { UpdateSportUseCase } from './application/SportUseCases/UpdateSportUseCase.js';
 // --- delete
-// import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCase.js';
+import { DeleteSportUseCase } from './application/SportUseCases/DeleteSportUseCase.js';
 // --- get-sport
 import { ListSportsUseCase } from './application/SportUseCases/ListSportsUseCase.js';
 import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUseCase.js';
@@ -176,23 +176,23 @@ export function buildApp() {
     const sportValidator = new SportValidator(sportRepo);
     const createSportUseCase = new CreateSportUseCase(sportRepo, sportValidator);
     const updateSportUseCase = new UpdateSportUseCase(sportRepo, sportValidator);
-    // const deleteSportUseCase = new DeleteSportUseCase(sportRepo);
+    const deleteSportUseCase = new DeleteSportUseCase(sportRepo);
     const listSportsUseCase = new ListSportsUseCase(sportRepo);
     const getSportByIdUseCase = new GetSportByIdUseCase(sportRepo);
 
     const sportController = new SportController(
         createSportUseCase,
         updateSportUseCase,
-        // deleteSportUseCase,
+        deleteSportUseCase,
         listSportsUseCase,
         getSportByIdUseCase
     );
 
     server.post('/api/v1/sports', sportController.create.bind(sportController));
     server.patch('/api/v1/sports/:id', sportController.update.bind(sportController));
+    server.delete('/api/v1/sports/:id', sportController.delete.bind(sportController));
     server.get('/api/v1/sports', sportController.listAll.bind(sportController));
     server.get('/api/v1/sports/:id', sportController.getById.bind(sportController));
-    // server.delete('/api/v1/sports/:id', sportController.delete.bind(sportController));
 
     // ==========================================
     // Dependencias y rutas de Discipline (NUEVO)
