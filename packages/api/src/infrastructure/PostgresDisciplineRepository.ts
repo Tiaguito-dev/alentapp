@@ -54,5 +54,25 @@ export class PostgresDisciplineRepository implements DisciplineRepository {
             end_date: discipline.end_date.toISOString(),
             is_total_suspension: discipline.is_total_suspension,
         }));
+
+    }
+
+
+    async findById(id: string): Promise<DisciplineDTO | null> {
+        const discipline = await prisma.discipline.findUnique({
+            where: { id },
+        });
+
+        if (!discipline) return null;
+
+        return {
+            id: discipline.id,
+            name: discipline.name,
+            description: discipline.description,
+            start_date: discipline.start_date.toISOString(),
+            end_date: discipline.end_date.toISOString(),
+            is_total_suspension: discipline.is_total_suspension,
+        };
     }
 }
+

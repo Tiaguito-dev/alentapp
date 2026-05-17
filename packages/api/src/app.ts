@@ -50,7 +50,8 @@ import { GetSportByIdUseCase } from './application/SportUseCases/GetSportByIdUse
 import { PostgresDisciplineRepository } from './infrastructure/PostgresDisciplineRepository.js';
 import { DisciplineValidator } from './domain/services/DisciplineValidator.js';
 import { CreateDisciplineUseCase } from './application/DisciplineUseCases/CreateDisciplineUseCase.js';
-import { ListDisciplinesUseCase } from './application/DisciplineUseCases/ListDisciplineUseCase.js'; // <-- NUEVO
+import { ListDisciplinesUseCase } from './application/DisciplineUseCases/ListDisciplineUseCase.js'; 
+import { GetDisciplineByIdUseCase } from './application/DisciplineUseCases/GetDisciplineByIdUseCase.js'; // <-- NUEVO
 import { DisciplineController } from './delivery/DisciplineController.js';
 
 
@@ -189,19 +190,23 @@ export function buildApp() {
     const disciplineRepo = new PostgresDisciplineRepository();
     const disciplineValidator = new DisciplineValidator();
     const createDisciplineUseCase = new CreateDisciplineUseCase(disciplineRepo, disciplineValidator);
-    const listDisciplinesUseCase = new ListDisciplinesUseCase(disciplineRepo); // <-- AGREGADO
+    const listDisciplinesUseCase = new ListDisciplinesUseCase(disciplineRepo); 
+    const getDisciplineByIdUseCase = new GetDisciplineByIdUseCase(disciplineRepo); // <-- AGREGADO
 
     const disciplineController = new DisciplineController(
         createDisciplineUseCase,
-        listDisciplinesUseCase // <-- AGREGADO
+        listDisciplinesUseCase,
+        getDisciplineByIdUseCase // <-- AGREGADO
     );
 
     // Endpoints de Disciplinas según TDD-0016
     server.post('/api/v1/disciplines', disciplineController.create.bind(disciplineController));
-    server.get('/api/v1/disciplines', disciplineController.getAll.bind(disciplineController)); // <-- AGREGADO
+    server.get('/api/v1/disciplines', disciplineController.getAll.bind(disciplineController)); 
+    server.get('/api/v1/disciplines/:id', disciplineController.getById.bind(disciplineController)); // <-- AGREGADO
 
     return server;
 }
+
 
 if (process.argv[1] && process.argv[1].endsWith('app.ts')) {
     const server = buildApp();
