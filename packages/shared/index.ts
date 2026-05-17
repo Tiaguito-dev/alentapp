@@ -110,6 +110,12 @@ export interface CreateMedicalCertificateRequest {
   doctor_license: string;
 }
 
+export interface UpdateMedicalCertificateRequest {
+  issue_date?: string; // ISO Date YYYY-MM-DD
+  expiry_date?: string; // ISO Date YYYY-MM-DD
+  doctor_license?: string;
+}
+
 
 
 // Sport
