@@ -5,7 +5,8 @@ import { SportDTO, UpdateSportRequest } from '@alentapp/shared';
 // Los campos que son null los acepto, pero los tomo como que no los quiere modificar según el TDD_0020_update-sport
 const filtrarAtributosNull = (data: any) => {
     Object.keys(data).forEach(key => {
-        if (data[key] === null) {
+        // Tiene que poder setear la descripción como null, por eso la excluimos de la regla
+        if (key !== 'description' && data[key] === null) {
             delete data[key];
         }
     });
