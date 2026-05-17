@@ -6,6 +6,7 @@ import {
 
 export type MedicalCertificateUpdateData = UpdateMedicalCertificateRequest & {
   is_validated?: boolean;
+  deleted_at?: Date;
 };
 
 export interface MedicalCertificateRepository {
