@@ -1,5 +1,5 @@
 ---
-version: 2.2
+version: 2.3
 id: 0020
 estado: Implementado
 autor: Tiago Solis
@@ -34,7 +34,7 @@ Permitir que un administrador modifique ciertos datos configurables de un deport
 
 Se utilizará el paquete compartido para definir el cuerpo de la petición. Todos los campos son opcionales ya que se trata de una actualización parcial.
 
-Aquellos campos enviados por el cliente como null serán ignorados en la actualización, a excepción de description que puede ser null.
+Aquellos campos enviados por el cliente como null serán ignorados en la actualización, a excepción del campo `description` que puede ser null. Además, el campo `additional_price` si se envía como null NO se interpretará como 0, eso es solo para el caso de creación del deporte, ya que conceptualmente un precio adicional no tiene sentido que sea null, pero sí que pueda ser 0.
 
 - Endpoint: `PATCH /api/v1/sports/:id`
 - Request Body (UpdateSportRequest):
