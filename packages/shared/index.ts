@@ -91,6 +91,27 @@ export interface MarkPaymentAsPaidRequest {
 }
 
 // ==========================================
+// MedicalCertificate
+// ==========================================
+export interface MedicalCertificateResponse {
+  id: string;
+  member_id: string;
+  issue_date: string; // ISO Date YYYY-MM-DD
+  expiry_date: string; // ISO Date YYYY-MM-DD
+  doctor_license: string;
+  is_validated: boolean;
+  created_at: string; // ISO DateTime
+}
+
+export interface CreateMedicalCertificateRequest {
+  member_id: string;
+  issue_date: string; // ISO Date YYYY-MM-DD
+  expiry_date: string; // ISO Date YYYY-MM-DD
+  doctor_license: string;
+}
+
+
+
 // Sport
 // ==========================================
 
@@ -111,3 +132,4 @@ export interface CreateSportRequest {
   additional_price?: number;
   requires_medical_certificate: boolean;
 }
+

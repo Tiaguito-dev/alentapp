@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
     provider = "postgresql"
-}
+              }
 
 enum MemberCategory {
     Pleno
@@ -36,6 +36,8 @@ model Member {
     lockers    Locker[]
 
     payments Payment[]
+
+    medical_certificates MedicalCertificate[]
 
     @@map("members") // Para que en la DB la tabla se llame 'members' en minúscula
 }
@@ -82,6 +84,22 @@ model Payment {
     @@map("payments")
 }
 
+
+model MedicalCertificate {
+    id             String   @id @default(uuid())
+    issue_date     DateTime @db.Date
+    expiry_date    DateTime @db.Date
+    doctor_license String
+    is_validated   Boolean  @default(true)
+    member_id      String
+    member         Member   @relation(fields: [member_id], references: [id])
+    created_at     DateTime @default(now())
+    deleted_at     DateTime?
+
+    @@map("medical_certificates")
+}
+
+
 model Sport {
     id                           String    @id @default(uuid())
     name                         String // No es unique porque tiene que poder dar de alta un nombre repetido siempre que deleted_at no sea nulo.
@@ -93,6 +111,7 @@ model Sport {
     deleted_at                   DateTime?
     lockers                      Locker[]
     payments                     Payment[]
+
 
     @@map("sport")
 }
