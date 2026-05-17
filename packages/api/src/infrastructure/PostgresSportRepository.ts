@@ -57,6 +57,16 @@ export class PostgresSportRepository implements SportRepository {
         return this.mapToDTO(sport);
     }
 
+    // Acá es donde se hace explícito el soft delete
+    async delete(id: string): Promise<void> {
+        await prisma.sport.update({
+            where: { id },
+            data: {
+                deleted_at: new Date()
+            },
+        });
+    }
+
     // --- Métodos de búsqueda ---
     async findByName(name: string): Promise<SportDTO | null> {
         const sport = await prisma.sport.findFirst({
@@ -79,6 +89,13 @@ export class PostgresSportRepository implements SportRepository {
             where: { deleted_at: null },
         });
         return sports.map(this.mapToDTO);
+    }
+
+    async isDeleted(id: string): Promise<boolean> {
+        const sport = await prisma.sport.findUnique({
+            where: { id },
+        });
+        return sport?.deleted_at !== null;
     }
 
     private mapToDTO(sport: DBSport): SportDTO {

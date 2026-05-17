@@ -1,5 +1,5 @@
 ---
-version: 2.1
+version: 2.2
 id: 0021
 estado: Aprobado
 autor: Tiago Solis
@@ -46,7 +46,7 @@ Se utilizará el paquete compartido para definir el cuerpo de la petición. La e
 | Escenario                  | Resultado Esperado                                   | Código HTTP actual        |
 | -------------------------- | -----------------------------------------------------| ------------------------- |
 | Deporte no existente       | Mensaje: "No existe deporte con ese id"              | 404 Not Found             |
-| Deporte ya dado de baja    | Mensaje: "El deporte ya está dado de baja"           | 400 Bad Request           |
+| Deporte ya dado de baja    | Mensaje: "El deporte ya está dado de baja"           | 409 Conflict              |
 | Error de conexión a DB     | Mensaje: "Error interno, reintente más tarde"        | 500 Internal Server Error |
 
 ## Plan de Implementación
