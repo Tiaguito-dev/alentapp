@@ -1,6 +1,6 @@
 ---
 id: 0005
-estado: Aprobado
+estado: Implementado
 autor: Sereno Santiago
 fecha: 2026-05-01
 titulo: Actualizacion de Casillero Existente 
