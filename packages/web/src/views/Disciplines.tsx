@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { LuPlus, LuPencil, LuTrash2, LuRefreshCw } from "react-icons/lu";
 import { useEffect, useState, useMemo } from "react";
-import { disciplinesService } from "../services/Disciplines";
+import { disciplinesService } from "../services/disciplines";
 import { membersService } from "../services/members";
 import type { 
   DisciplineDTO, 
