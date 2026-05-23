@@ -7,7 +7,11 @@ import { CreatePaymentRequest } from '@alentapp/shared';
 vi.mock('../infrastructure/PostgresPaymentRepository.js', () => {
     return {
         PostgresPaymentRepository: class {
-            async findAll() { return []; }
+            async findAll() {
+                return [
+                    { id: '1', member_id: 'member-1', amount: 1500, month: 4, year: 2026, status: 'Pending', due_date: '2026-04-30', payment_date: null },
+                ];
+            }
             async findById(id: string) {
                 if (id === '1') return { id: '1', member_id: 'member-1', amount: 1500, month: 4, year: 2026, status: 'Pending', due_date: '2026-04-30', payment_date: null };
                 if (id === 'paid-1') return { id: 'paid-1', member_id: 'member-1', amount: 1500, month: 3, year: 2026, status: 'Paid', due_date: '2026-03-31', payment_date: '2026-03-15T10:00:00.000Z' };
@@ -39,11 +43,7 @@ vi.mock('../infrastructure/PostgresPaymentRepository.js', () => {
 vi.mock('../infrastructure/PostgresMemberRepository.js', () => {
     return {
         PostgresMemberRepository: class {
-            async findAll() {
-                return [
-                    { id: '1', member_id: 'member-1', amount: 1500, month: 4, year: 2026, status: 'Pending', due_date: '2026-04-30', payment_date: null },
-                ];
-            }
+            async findAll() { return []; }
             async findById(id: string) {
                 return id === 'member-1' ? { id: 'member-1', name: 'Socio Test' } : null;
             }
