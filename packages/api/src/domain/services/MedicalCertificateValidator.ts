@@ -13,10 +13,19 @@ export const createMedicalCertificateValidationError = (
 
 export class MedicalCertificateValidator {
   validateDoctorLicense(doctorLicense: string): void {
-    if (!doctorLicense.trim()) {
+    const normalizedLicense = doctorLicense.trim();
+
+    if (!normalizedLicense) {
       throw createMedicalCertificateValidationError(
         'INVALID_DOCTOR_LICENSE',
         'La matrícula del médico es obligatoria',
+      );
+    }
+
+    if (!/^\d+$/.test(normalizedLicense) || Number.parseInt(normalizedLicense, 10) <= 0) {
+      throw createMedicalCertificateValidationError(
+        'INVALID_DOCTOR_LICENSE',
+        'La matrícula del médico debe ser un número entero positivo',
       );
     }
   }
