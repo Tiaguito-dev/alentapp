@@ -199,6 +199,7 @@ describe('PaymentController', () => {
 
             await controller.getById(mockRequest as any, mockReply as any);
 
+            expect(mockGetByIdUseCase.execute).toHaveBeenCalledWith('uuid-pay-1');
             expect(mockReply.status).toHaveBeenCalledWith(200);
             expect(mockReply.send).toHaveBeenCalledWith({ data: mockPago });
         });
