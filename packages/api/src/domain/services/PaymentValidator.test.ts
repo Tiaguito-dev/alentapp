@@ -37,4 +37,15 @@ describe('PaymentValidator', () => {
             expect(() => validator.validateDueDate('2026-05-31')).not.toThrow();
         });
     });
+
+    describe('validatePaymentDate', () => {
+        it('debe lanzar error con formato de fecha y hora inválido', () => {
+            expect(() => validator.validatePaymentDate('2026-05-31')).toThrow('Formato de fecha y hora inválido');
+            expect(() => validator.validatePaymentDate('no-es-una-fecha')).toThrow('Formato de fecha y hora inválido');
+        });
+
+        it('debe pasar con un formato ISO datetime válido', () => {
+            expect(() => validator.validatePaymentDate('2026-05-15T10:00:00.000Z')).not.toThrow();
+        });
+    });
 });
