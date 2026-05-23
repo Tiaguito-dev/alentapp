@@ -1,0 +1,9 @@
+# .husky/pre-push
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+PATTERN="^(main|develop|feature/.+|bugfix/.+|hotfix/.+|release/.+)$"
+
+if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
+  echo "❌ Nombre de rama inválido: '$BRANCH'"
+  echo "✅ Formato esperado: feature/xxx, bugfix/xxx, hotfix/xxx, release/xxx"
+  exit 1
+fi
