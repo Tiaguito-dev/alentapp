@@ -215,4 +215,33 @@ describe('PaymentsView', () => {
 
     confirmSpy.mockRestore();
   });
+
+  it('debe permitir eliminar un pago con confirmación', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup();
+
+    const mockPayments: PaymentResponse[] = [
+      { id: '1', member_id: 'member-1', amount: 1500, month: 5, year: 2026, status: 'Pending', due_date: '2026-05-31', payment_date: null },
+    ];
+
+    vi.mocked(paymentsService.getAll).mockResolvedValue(mockPayments);
+    vi.mocked(membersService.getAll).mockResolvedValue(mockMembers);
+    vi.mocked(paymentsService.delete).mockResolvedValueOnce(undefined);
+
+    //aca interceptamos la alerta del navegadir
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    renderWithProviders(<PaymentsView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Juan Perez')).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getByLabelText(/Eliminar/i);
+    await user.click(deleteButton);
+
+    expect(confirmSpy).toHaveBeenCalledWith('¿Estás seguro de que deseas eliminar este pago? Esta acción no se puede deshacer.');
+    expect(paymentsService.delete).toHaveBeenCalledWith('1');
+
+    confirmSpy.mockRestore();
+  });
 });
