@@ -34,7 +34,7 @@ describe('LockerValidator - Update', () => {
         });
 
         // =======================================================
-        // REGLA C: Protección contra sobreescritura (Robo de casillero)
+        // REGLA C: Protección contra sobreescritura 
         // =======================================================
         it('debe lanzar error si se intenta asignar a un socio pero el casillero ya lo tiene otro', () => {
             const currentLocker = { status: 'Occupied', member_id: 'socio-1' } as LockerDTO;
