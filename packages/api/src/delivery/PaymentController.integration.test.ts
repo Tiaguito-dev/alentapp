@@ -8,14 +8,39 @@ vi.mock('../infrastructure/PostgresPaymentRepository.js', () => {
     return {
         PostgresPaymentRepository: class {
             async findAll() { return []; }
-            async findById(id: string) { return null; }
+            async findById(id: string) {
+                return id === '1'
+                    ? {
+                        id: '1',
+                        member_id: 'member-1',
+                        amount: 1500,
+                        month: 4,
+                        year: 2026,
+                        status: 'Pending',
+                        due_date: '2026-04-30',
+                        payment_date: null,
+                    }
+                    : null;
+            }
             async existsActiveForPeriod(member_id: string, month: number, year: number) {
                 return member_id === 'member-1' && month === 5 && year === 2026;
             }
             async create(data: any) {
                 return { id: '2', ...data, status: 'Pending', payment_date: null };
             }
-            async update(id: string, data: any) { return { id, ...data }; }
+            async update(id: string, data: any) {
+                return {
+                    id,
+                    member_id: 'member-1',
+                    amount: 1500,
+                    month: 4,
+                    year: 2026,
+                    due_date: '2026-04-30',
+                    payment_date: null,
+                    status: 'Pending',
+                    ...data,
+                };
+            }
         },
     };
 });
