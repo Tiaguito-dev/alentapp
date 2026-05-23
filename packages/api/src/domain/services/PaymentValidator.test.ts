@@ -33,6 +33,11 @@ describe('PaymentValidator', () => {
             expect(() => validator.validateDueDate('31/12/2026')).toThrow('Formato de fecha inválido (esperado YYYY-MM-DD)');
         });
 
+        it('debe lanzar error con fecha de formato válido pero lógicamente inválida', () => {
+            expect(() => validator.validateDueDate('2026-02-30')).toThrow('Formato de fecha inválido (esperado YYYY-MM-DD)');
+            expect(() => validator.validateDueDate('2026-13-45')).toThrow('Formato de fecha inválido (esperado YYYY-MM-DD)');
+        });
+
         it('debe pasar con una fecha en formato YYYY-MM-DD válido', () => {
             expect(() => validator.validateDueDate('2026-05-31')).not.toThrow();
         });
