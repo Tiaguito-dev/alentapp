@@ -168,5 +168,28 @@ describe('Payment API Integration Tests', () => {
             expect(body.data.status).toBe('Canceled');
         });
     });
+
+    describe('DELETE /api/v1/payments/:id', () => {
+        it('debe retornar 204 si se da de baja correctamente', async () => {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/payments/1',
+            });
+
+            expect(response.statusCode).toBe(204);
+            expect(response.payload).toBe('');
+        });
+
+        it('debe retornar 404 si el pago no existe', async () => {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/payments/999',
+            });
+
+            expect(response.statusCode).toBe(404);
+            const body = JSON.parse(response.payload);
+            expect(body.error).toBe('El pago no existe');
+        });
+    });
 });
 
