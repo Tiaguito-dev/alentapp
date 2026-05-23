@@ -170,4 +170,46 @@ describe('PaymentController', () => {
             expect(mockReply.send).toHaveBeenCalledWith({ error: 'No se puede dar de baja un pago ya cobrado' });
         });
     });
+
+    describe('getAll', () => {
+        it('debe retornar 200 y la lista de pagos', async () => {
+            const mockPagos = [{ id: '1', status: 'Pending' }, { id: '2', status: 'Paid' }];
+            mockListUseCase.execute.mockResolvedValueOnce(mockPagos);
+
+            await controller.getAll(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(200);
+            expect(mockReply.send).toHaveBeenCalledWith({ data: mockPagos });
+        });
+
+        it('debe retornar 500 si falla el caso de uso', async () => {
+            mockListUseCase.execute.mockRejectedValueOnce(new Error('DB falló'));
+
+            await controller.getAll(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(500);
+            expect(mockReply.send).toHaveBeenCalledWith({ error: 'Error interno, reintente más tarde' });
+        });
+    });
+
+    describe('getById', () => {
+        it('debe retornar 200 y el pago solicitado', async () => {
+            const mockPago = { id: 'uuid-pay-1', status: 'Pending' };
+            mockGetByIdUseCase.execute.mockResolvedValueOnce(mockPago);
+
+            await controller.getById(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(200);
+            expect(mockReply.send).toHaveBeenCalledWith({ data: mockPago });
+        });
+
+        it('debe retornar 404 si el pago no existe', async () => {
+            mockGetByIdUseCase.execute.mockRejectedValueOnce(new Error('El pago no existe'));
+
+            await controller.getById(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(404);
+            expect(mockReply.send).toHaveBeenCalledWith({ error: 'El pago no existe' });
+        });
+    });
 });
