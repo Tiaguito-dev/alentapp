@@ -9,18 +9,9 @@ vi.mock('../infrastructure/PostgresPaymentRepository.js', () => {
         PostgresPaymentRepository: class {
             async findAll() { return []; }
             async findById(id: string) {
-                return id === '1'
-                    ? {
-                        id: '1',
-                        member_id: 'member-1',
-                        amount: 1500,
-                        month: 4,
-                        year: 2026,
-                        status: 'Pending',
-                        due_date: '2026-04-30',
-                        payment_date: null,
-                    }
-                    : null;
+                if (id === '1') return { id: '1', member_id: 'member-1', amount: 1500, month: 4, year: 2026, status: 'Pending', due_date: '2026-04-30', payment_date: null };
+                if (id === 'paid-1') return { id: 'paid-1', member_id: 'member-1', amount: 1500, month: 3, year: 2026, status: 'Paid', due_date: '2026-03-31', payment_date: '2026-03-15T10:00:00.000Z' };
+                return null;
             }
             async existsActiveForPeriod(member_id: string, month: number, year: number) {
                 return member_id === 'member-1' && month === 5 && year === 2026;
@@ -189,6 +180,17 @@ describe('Payment API Integration Tests', () => {
             expect(response.statusCode).toBe(404);
             const body = JSON.parse(response.payload);
             expect(body.error).toBe('El pago no existe');
+        });
+
+        it('debe retornar 409 si el pago ya fue cobrado', async () => {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/payments/paid-1',
+            });
+
+            expect(response.statusCode).toBe(409);
+            const body = JSON.parse(response.payload);
+            expect(body.error).toBe('No se puede dar de baja un pago ya cobrado');
         });
     });
 });

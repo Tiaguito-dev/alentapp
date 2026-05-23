@@ -147,6 +147,7 @@ describe('PaymentController', () => {
 
             await controller.delete(mockRequest as any, mockReply as any);
 
+            expect(mockDeleteUseCase.execute).toHaveBeenCalledWith('uuid-pay-1');
             expect(mockReply.status).toHaveBeenCalledWith(204);
             expect(mockReply.send).toHaveBeenCalledWith();
         });
@@ -166,6 +167,7 @@ describe('PaymentController', () => {
             await controller.delete(mockRequest as any, mockReply as any);
 
             expect(mockReply.status).toHaveBeenCalledWith(409);
+            expect(mockReply.send).toHaveBeenCalledWith({ error: 'No se puede dar de baja un pago ya cobrado' });
         });
     });
 });
