@@ -27,6 +27,9 @@ describe('ListPaymentsUseCase', () => {
     });
 
     it('debe resolver el status Overdue para pagos Pending vencidos', async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-05-15T10:00:00Z'));
+
         const mockPayments: PaymentResponse[] = [
             { id: '1', member_id: 'member-1', amount: 1500, month: 1, year: 2025, status: 'Pending', due_date: '2025-01-31', payment_date: null },
         ];
@@ -35,5 +38,7 @@ describe('ListPaymentsUseCase', () => {
         const result = await useCase.execute();
 
         expect(result[0].status).toBe('Overdue');
+
+        vi.useRealTimers();
     });
 });
