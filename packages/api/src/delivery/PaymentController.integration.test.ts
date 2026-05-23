@@ -8,14 +8,39 @@ vi.mock('../infrastructure/PostgresPaymentRepository.js', () => {
     return {
         PostgresPaymentRepository: class {
             async findAll() { return []; }
-            async findById(id: string) { return null; }
+            async findById(id: string) {
+                return id === '1'
+                    ? {
+                        id: '1',
+                        member_id: 'member-1',
+                        amount: 1500,
+                        month: 4,
+                        year: 2026,
+                        status: 'Pending',
+                        due_date: '2026-04-30',
+                        payment_date: null,
+                    }
+                    : null;
+            }
             async existsActiveForPeriod(member_id: string, month: number, year: number) {
                 return member_id === 'member-1' && month === 5 && year === 2026;
             }
             async create(data: any) {
                 return { id: '2', ...data, status: 'Pending', payment_date: null };
             }
-            async update(id: string, data: any) { return { id, ...data }; }
+            async update(id: string, data: any) {
+                return {
+                    id,
+                    member_id: 'member-1',
+                    amount: 1500,
+                    month: 4,
+                    year: 2026,
+                    due_date: '2026-04-30',
+                    payment_date: null,
+                    status: 'Pending',
+                    ...data,
+                };
+            }
         },
     };
 });
@@ -89,4 +114,59 @@ describe('Payment API Integration Tests', () => {
             expect(body.error).toContain('Ya existe un pago activo');
         });
     });
+
+    describe('PATCH /api/v1/payments/:id', () => {
+        it('debe retornar 200 y el pago actualizado', async () => {
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/payments/1',
+                payload: { amount: 2000 },
+            });
+
+            expect(response.statusCode).toBe(200);
+            const body = JSON.parse(response.payload);
+            expect(body.data.amount).toBe(2000);
+        });
+
+        it('debe retornar 404 si el pago no existe', async () => {
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/payments/999',
+                payload: { amount: 2000 },
+            });
+
+            expect(response.statusCode).toBe(404);
+            const body = JSON.parse(response.payload);
+            expect(body.error).toBe('El pago no existe');
+        });
+    });
+
+    describe('PATCH /api/v1/payments/:id/pay', () => {
+        it('debe retornar 200 y marcar el pago como pagado', async () => {
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/payments/1/pay',
+                payload: {},
+            });
+
+            expect(response.statusCode).toBe(200);
+            const body = JSON.parse(response.payload);
+            expect(body.data.status).toBe('Paid');
+        });
+    });
+
+    describe('PATCH /api/v1/payments/:id/cancel', () => {
+        it('debe retornar 200 y cancelar el pago', async () => {
+            const response = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/payments/1/cancel',
+                payload: {},
+            });
+
+            expect(response.statusCode).toBe(200);
+            const body = JSON.parse(response.payload);
+            expect(body.data.status).toBe('Canceled');
+        });
+    });
 });
+

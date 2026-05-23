@@ -80,4 +80,64 @@ describe('PaymentController', () => {
             expect(mockReply.send).toHaveBeenCalledWith({ error: 'Error interno, reintente más tarde' });
         });
     });
+
+    describe('update', () => {
+        it('debe retornar 200 y el pago actualizado', async () => {
+            const mockPago = { id: 'uuid-pay-1', amount: 2000, status: 'Pending' };
+            mockUpdateUseCase.execute.mockResolvedValueOnce(mockPago);
+
+            await controller.update(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(200);
+            expect(mockReply.send).toHaveBeenCalledWith({ data: mockPago });
+        });
+
+        it('debe retornar 409 si el pago no está en estado Pending', async () => {
+            mockUpdateUseCase.execute.mockRejectedValueOnce(new Error('No se puede modificar un pago en estado Paid'));
+
+            await controller.update(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(409);
+        });
+    });
+
+    describe('markAsPaid', () => {
+        it('debe retornar 200 y el pago marcado como pagado', async () => {
+            const mockPago = { id: 'uuid-pay-1', status: 'Paid', payment_date: '2026-05-15T10:00:00.000Z' };
+            mockMarkAsPaidUseCase.execute.mockResolvedValueOnce(mockPago);
+
+            await controller.markAsPaid(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(200);
+            expect(mockReply.send).toHaveBeenCalledWith({ data: mockPago });
+        });
+
+        it('debe retornar 409 si el pago ya fue cobrado', async () => {
+            mockMarkAsPaidUseCase.execute.mockRejectedValueOnce(new Error('El pago ya fue marcado como pagado'));
+
+            await controller.markAsPaid(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(409);
+        });
+    });
+
+    describe('cancel', () => {
+        it('debe retornar 200 y el pago cancelado', async () => {
+            const mockPago = { id: 'uuid-pay-1', status: 'Canceled' };
+            mockCancelUseCase.execute.mockResolvedValueOnce(mockPago);
+
+            await controller.cancel(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(200);
+            expect(mockReply.send).toHaveBeenCalledWith({ data: mockPago });
+        });
+
+        it('debe retornar 409 si intenta cancelar un pago ya cobrado', async () => {
+            mockCancelUseCase.execute.mockRejectedValueOnce(new Error('No se puede cancelar un pago ya cobrado'));
+
+            await controller.cancel(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(409);
+        });
+    });
 });
