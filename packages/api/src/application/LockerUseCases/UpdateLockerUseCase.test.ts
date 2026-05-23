@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UpdateLockerUseCase } from './UpdateLockerUseCase.js';
 import { LockerRepository } from '../../domain/LockerRepository.js';
+import { LockerValidator } from '../../domain/services/LockerValidator.js';
+import { LockerDTO } from '@alentapp/shared';
 
 describe('UpdateLockerUseCase', () => {
-    // Armamos el mock del repositorio
+    
     const mockLockerRepo = {
         findByNumber: vi.fn(),
         findByMemberId: vi.fn(),
@@ -12,45 +14,94 @@ describe('UpdateLockerUseCase', () => {
 
     const useCase = new UpdateLockerUseCase(mockLockerRepo);
 
+    const mockAvailableLocker: LockerDTO = {
+        id: 'uuid-1',
+        location: 'Vestuario A',
+        number: 10,
+        status: 'Available',
+        member_id: null,
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
+  
+    it('debe invocar al LockerValidator para validar las reglas de negocio antes de actualizar', async () => {
+        vi.mocked(mockLockerRepo.findByNumber).mockResolvedValueOnce(mockAvailableLocker as any);
+        vi.mocked(mockLockerRepo.findByMemberId).mockResolvedValueOnce(null);
+        vi.mocked(mockLockerRepo.update).mockResolvedValueOnce({
+            ...mockAvailableLocker,
+            status: 'Occupied',
+            member_id: 'socio-nuevo'
+        } as any);
+
+        // ESPIAMOS AL VALIDADOR: Le decimos a Vitest que vigile el método estático
+        const validatorSpy = vi.spyOn(LockerValidator, 'validateUpdate');
+
+        await useCase.execute(10, { member_id: 'socio-nuevo' });
+
+        // VERIFICAMOS: Comprobamos que el Caso de Uso usó el validador con los datos correctos
+        expect(validatorSpy).toHaveBeenCalledTimes(1);
+        expect(validatorSpy).toHaveBeenCalledWith(
+            mockAvailableLocker,
+            'Occupied', // Tu UseCase deduce esto automáticamente y se lo pasa al Validator
+            'socio-nuevo'
+        );
+        
+        // Limpiamos el espía
+        validatorSpy.mockRestore();
+    });
+
+    it('debe frenar la ejecución y lanzar el error si el LockerValidator falla (Ej: Regla A)', async () => {
+        // Simulamos un escenario donde el validador real va a fallar: 
+        // Intentar asignar un socio a un casillero que ya está en Mantenimiento.
+        const mockMaintenanceLocker = { ...mockAvailableLocker, status: 'Maintenance' };
+        vi.mocked(mockLockerRepo.findByNumber).mockResolvedValueOnce(mockMaintenanceLocker as any);
+
+        // El UseCase ejecuta, llama internamente al Validator, y el Validator lanza el error
+        await expect(useCase.execute(10, { member_id: 'socio-nuevo' }))
+            .rejects.toThrow('error: casillero en mantenimiento');
+            
+       
+        expect(mockLockerRepo.update).not.toHaveBeenCalled();
+    });
+
+    // ====================================================================
+    // REGLAS DEL USE CASE Y BASE DE DATOS
+    // ====================================================================
     it('debe lanzar error si el casillero no existe', async () => {
         vi.mocked(mockLockerRepo.findByNumber).mockResolvedValueOnce(null);
 
         await expect(useCase.execute(99, { status: 'Maintenance' }))
             .rejects.toThrow('El casillero especificado no fue encontrado');
+            
+        expect(mockLockerRepo.update).not.toHaveBeenCalled();
     });
 
     it('debe lanzar error si el socio ya tiene otro casillero asignado (Regla 1 a 1)', async () => {
-        // 1. El casillero a editar existe y está libre
-        vi.mocked(mockLockerRepo.findByNumber).mockResolvedValueOnce({ 
-            number: 10, status: 'Available', member_id: null 
-        } as any);
-
-        // 2. Simulamos que la DB nos dice que este socio YA TIENE el casillero 5
+        vi.mocked(mockLockerRepo.findByNumber).mockResolvedValueOnce(mockAvailableLocker as any);
+        
+       
         vi.mocked(mockLockerRepo.findByMemberId).mockResolvedValueOnce({ 
             number: 5, member_id: 'socio-123' 
         } as any);
 
-        // 3. Verificamos que frene la actualización
         await expect(useCase.execute(10, { member_id: 'socio-123' }))
             .rejects.toThrow('ya tiene un casillero asignado');
+            
+        expect(mockLockerRepo.update).not.toHaveBeenCalled();
     });
 
-    it('debe mutar el estado a Occupied automáticamente si se asigna un socio', async () => {
-        vi.mocked(mockLockerRepo.findByNumber).mockResolvedValueOnce({ 
-            number: 10, status: 'Available', member_id: null 
-        } as any);
+    it('debe mutar el estado a Occupied automáticamente si se asigna un socio y guardar en BD', async () => {
+        vi.mocked(mockLockerRepo.findByNumber).mockResolvedValueOnce(mockAvailableLocker as any);
         vi.mocked(mockLockerRepo.findByMemberId).mockResolvedValueOnce(null);
-        vi.mocked(mockLockerRepo.update).mockResolvedValueOnce({ 
-            number: 10, status: 'Occupied', member_id: 'socio-123' 
-        } as any);
+        
+        
+        vi.mocked(mockLockerRepo.update).mockResolvedValueOnce({} as any);
 
         await useCase.execute(10, { member_id: 'socio-123' });
 
-        // Verificamos que el use case le inyectó status: 'Occupied' antes de guardar
         expect(mockLockerRepo.update).toHaveBeenCalledWith(10, expect.objectContaining({
             member_id: 'socio-123',
             status: 'Occupied'
