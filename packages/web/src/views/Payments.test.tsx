@@ -106,6 +106,10 @@ describe('PaymentsView', () => {
       amount: 2000,
       member_id: 'member-1',
     }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('Crear Pago')).not.toBeInTheDocument();
+    });
   });
 
   it('debe permitir editar un pago existente', async () => {
@@ -141,6 +145,10 @@ describe('PaymentsView', () => {
     expect(paymentsService.update).toHaveBeenCalledWith('1', expect.objectContaining({
       amount: 2000,
     }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('Guardar Cambios')).not.toBeInTheDocument();
+    });
   });
 
   it('debe permitir marcar un pago como pagado', async () => {
@@ -170,7 +178,11 @@ describe('PaymentsView', () => {
     const submitButton = screen.getByText('Confirmar Pago');
     await user.click(submitButton);
 
-    expect(paymentsService.markAsPaid).toHaveBeenCalledWith('1', expect.objectContaining({}));
+    expect(paymentsService.markAsPaid).toHaveBeenCalledWith('1', {});
+
+    await waitFor(() => {
+      expect(screen.queryByText('Confirmar Pago')).not.toBeInTheDocument();
+    });
   });
 
   it('debe permitir cancelar un pago con confirmación', async () => {

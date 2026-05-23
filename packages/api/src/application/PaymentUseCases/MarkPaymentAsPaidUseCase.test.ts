@@ -44,6 +44,7 @@ describe('MarkPaymentAsPaidUseCase', () => {
         expect(mockValidator.validatePaymentDate).toHaveBeenCalledWith('2026-05-15T10:00:00.000Z');
         expect(mockPaymentRepo.update).toHaveBeenCalledWith('uuid-pay-1', expect.objectContaining({
             status: 'Paid',
+            payment_date: '2026-05-15T10:00:00.000Z',
         }));
         expect(result.status).toBe('Paid');
         expect(result.payment_date).not.toBeNull();
