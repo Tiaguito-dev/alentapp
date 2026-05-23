@@ -85,9 +85,11 @@ El flag `--no-verify` (que saltea la validación) debe reservarse para situacion
 Para el detalle completo del estándar, ejemplos y reglas aplicadas, ver la sección [Estándar de Commits](./CONTRIBUTING.md#estándar-de-commits) en el CONTRIBUTING.md.
  
 ### Ramas
- 
+
 Se trabaja con la estrategia **Feature Branch**. Cada rama representa una funcionalidad, corrección o tarea específica. No se permite pushear directamente a `main`.
- 
+
+Los nombres de rama siguen la convención **Conventional Branch**, que aplica una estructura similar a Conventional Commits pero para ramas: `<tipo>/<descripcion-en-kebab-case>`.
+
 Independientemente de el equipo expresa su decisión de no implementar herramientas que validen automáticamente las normas de este flujo de trabajo (de momento no se cree necesario), el detalle del formato de nombres de rama y el workflow completo puede consultarse en [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## 7. Acuerdo

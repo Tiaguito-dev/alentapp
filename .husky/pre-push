@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Ramas base del proyecto
+# feature/*     → nuevas funcionalidades
+# bugfix/*      → corrección de bugs
+# hotfix/*      → corrección urgente en producción
+# release/*     → preparación de release
+PATTERN="^(main|develop|feature/.+|bugfix/.+|hotfix/.+|release/.+)$"
+
+if ! echo "$BRANCH" | grep -qE "$PATTERN"; then
+  echo "❌ Nombre de rama inválido: '$BRANCH'"
+  echo "✅ Formato esperado: feature/xxx, bugfix/xxx, hotfix/xxx, release/xxx"
+  exit 1
+fi
