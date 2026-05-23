@@ -1,6 +1,6 @@
 import { Box, SimpleGrid, Heading, Text, VStack } from "@chakra-ui/react";
 // 👇 Agregamos LuGavel a los íconos importados
-import { LuUsers, LuArchive, LuCreditCard, LuGoal, LuGavel } from "react-icons/lu";
+import { LuUsers, LuArchive, LuCreditCard, LuGoal, LuGavel, LuFileText } from "react-icons/lu";
 import { SectionCard } from "../components/SectionCard";
 
 export function HomeView() {
@@ -50,7 +50,7 @@ export function HomeView() {
           title="Certificados"
           description="Gestioná los certificados médicos de los socios y su validez."
           to="/medical-certificates"
-          icon={LuArchive}
+          icon={LuFileText}
         />
 
         <SectionCard
