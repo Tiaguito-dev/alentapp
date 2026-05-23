@@ -59,7 +59,7 @@ describe('CreateSportUseCase', () => {
     });
 
 
-    it('No debe registrar un deporte y debe generar una alerta si el nombre del deporte ya existe en el reservorio de datos', async () => {
+    it('No debe registrar un deporte y debe generar una alerta si el nombre del deporte en la solicitud ya existe en el reservorio de datos', async () => {
         const mockRequest: CreateSportRequest = {
             name: 'Natacion',
             description: null,
@@ -88,5 +88,66 @@ describe('CreateSportUseCase', () => {
         expect(mockSportRepository.create).not.toHaveBeenCalled();
     });
 
+    /*
+        Dada una solicitud de deporte
+        Si el nombre no existe en un deporte activo
+        Debe registrarlo en el reservorio
+    */
+
+    it('Debe registrar un deporte si todos los campos son válidos', async () => {
+        const mockRequest: CreateSportRequest = {
+            name: 'Tenis',
+            description: null,
+            max_capacity: 10,
+            additional_price: 100,
+            requires_medical_certificate: false
+        }
+
+        const result = await useCase.execute(mockRequest);
+
+        expect(mockSportValidator.validateUniqueName).toHaveBeenCalledWith('Tenis');
+
+        expect(mockSportValidator.validateAdditionalPrice).toHaveBeenCalledWith(100);
+        expect(mockSportValidator.validateMaxCapacity).toHaveBeenCalledWith(10);
+        expect(mockSportRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+            name: 'Tenis',
+            description: null,
+            max_capacity: 10,
+            additional_price: 100,
+            requires_medical_certificate: false
+        }));
+
+    })
+
+    /*
+        Dada una solicitud de deporte
+        Si el nombre no existe en un deporte activo y el precio adicional no es notificado
+        Debe registrarlo en el reservorio con additional_price = 0
+    */
+    /*
+    ESTO FALLA PORQUE EL ADDITIONAL PRICE SE ASIGNA EN EL REPO, NO EN EL CASO DE USO -> voy a hacer un test para eso después
+    it('Debe registrar un deporte con additional_price = 0 si todos los campos son válidos y el campo no es notificado', async () => {
+     const mockRequest: CreateSportRequest = {
+         name: 'Tenis',
+         description: null,
+         max_capacity: 10,
+         requires_medical_certificate: false
+     }
+     
+     const result = await useCase.execute(mockRequest);
+     
+     expect(mockSportValidator.validateUniqueName).toHaveBeenCalledWith('Tenis');
+     
+     expect(mockSportValidator.validateAdditionalPrice).not.toHaveBeenCalled();
+     expect(mockSportValidator.validateMaxCapacity).toHaveBeenCalledWith(10);
+     expect(mockSportRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+         name: 'Tenis',
+         description: null,
+         max_capacity: 10,
+         additional_price: 0,
+         requires_medical_certificate: false
+     }));
+ })
+ */
 })
 
