@@ -227,7 +227,7 @@ describe('PaymentsView', () => {
     vi.mocked(membersService.getAll).mockResolvedValue(mockMembers);
     vi.mocked(paymentsService.delete).mockResolvedValueOnce(undefined);
 
-    //aca interceptamos la alerta del navegadir
+    //aca interceptamos el alerta del navegador
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     renderWithProviders(<PaymentsView />);
