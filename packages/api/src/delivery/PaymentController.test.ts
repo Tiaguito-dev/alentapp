@@ -140,4 +140,34 @@ describe('PaymentController', () => {
             expect(mockReply.status).toHaveBeenCalledWith(409);
         });
     });
+
+    describe('delete', () => {
+        it('debe retornar 204 si la baja es exitosa', async () => {
+            mockDeleteUseCase.execute.mockResolvedValueOnce(undefined);
+
+            await controller.delete(mockRequest as any, mockReply as any);
+
+            expect(mockDeleteUseCase.execute).toHaveBeenCalledWith('uuid-pay-1');
+            expect(mockReply.status).toHaveBeenCalledWith(204);
+            expect(mockReply.send).toHaveBeenCalledWith();
+        });
+
+        it('debe retornar 404 si el pago no existe', async () => {
+            mockDeleteUseCase.execute.mockRejectedValueOnce(new Error('El pago no existe'));
+
+            await controller.delete(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(404);
+            expect(mockReply.send).toHaveBeenCalledWith({ error: 'El pago no existe' });
+        });
+
+        it('debe retornar 409 si el pago ya fue cobrado', async () => {
+            mockDeleteUseCase.execute.mockRejectedValueOnce(new Error('No se puede dar de baja un pago ya cobrado'));
+
+            await controller.delete(mockRequest as any, mockReply as any);
+
+            expect(mockReply.status).toHaveBeenCalledWith(409);
+            expect(mockReply.send).toHaveBeenCalledWith({ error: 'No se puede dar de baja un pago ya cobrado' });
+        });
+    });
 });
