@@ -19,6 +19,7 @@ vi.mock('../services/payments', () => ({
   },
 }));
 
+//tambien mockeamos
 vi.mock('../services/members', () => ({
   membersService: {
     getAll: vi.fn(),
@@ -105,5 +106,101 @@ describe('PaymentsView', () => {
       amount: 2000,
       member_id: 'member-1',
     }));
+  });
+
+  it('debe permitir editar un pago existente', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup();
+
+    const mockPayments: PaymentResponse[] = [
+      { id: '1', member_id: 'member-1', amount: 1500, month: 5, year: 2026, status: 'Pending', due_date: '2026-05-31', payment_date: null },
+    ];
+
+    vi.mocked(paymentsService.getAll).mockResolvedValue(mockPayments);
+    vi.mocked(membersService.getAll).mockResolvedValue(mockMembers);
+    vi.mocked(paymentsService.update).mockResolvedValueOnce({
+      ...mockPayments[0],
+      amount: 2000,
+    });
+
+    renderWithProviders(<PaymentsView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Juan Perez')).toBeInTheDocument();
+    });
+
+    const editButton = screen.getByLabelText(/Editar/i);
+    await user.click(editButton);
+
+    const montoInput = screen.getByDisplayValue('1500');
+    await user.clear(montoInput);
+    await user.type(montoInput, '2000');
+
+    const submitButton = screen.getByText('Guardar Cambios');
+    await user.click(submitButton);
+
+    expect(paymentsService.update).toHaveBeenCalledWith('1', expect.objectContaining({
+      amount: 2000,
+    }));
+  });
+
+  it('debe permitir marcar un pago como pagado', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup();
+
+    const mockPayments: PaymentResponse[] = [
+      { id: '1', member_id: 'member-1', amount: 1500, month: 5, year: 2026, status: 'Pending', due_date: '2026-05-31', payment_date: null },
+    ];
+
+    vi.mocked(paymentsService.getAll).mockResolvedValue(mockPayments);
+    vi.mocked(membersService.getAll).mockResolvedValue(mockMembers);
+    vi.mocked(paymentsService.markAsPaid).mockResolvedValueOnce({
+      ...mockPayments[0],
+      status: 'Paid',
+      payment_date: '2026-05-15T10:00:00.000Z',
+    });
+
+    renderWithProviders(<PaymentsView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Juan Perez')).toBeInTheDocument();
+    });
+
+    const payButton = screen.getByLabelText(/Marcar como pagado/i);
+    await user.click(payButton);
+
+    const submitButton = screen.getByText('Confirmar Pago');
+    await user.click(submitButton);
+
+    expect(paymentsService.markAsPaid).toHaveBeenCalledWith('1', expect.objectContaining({}));
+  });
+
+  it('debe permitir cancelar un pago con confirmación', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup();
+
+    const mockPayments: PaymentResponse[] = [
+      { id: '1', member_id: 'member-1', amount: 1500, month: 5, year: 2026, status: 'Pending', due_date: '2026-05-31', payment_date: null },
+    ];
+
+    vi.mocked(paymentsService.getAll).mockResolvedValue(mockPayments);
+    vi.mocked(membersService.getAll).mockResolvedValue(mockMembers);
+    vi.mocked(paymentsService.cancel).mockResolvedValueOnce({
+      ...mockPayments[0],
+      status: 'Canceled',
+    });
+
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    renderWithProviders(<PaymentsView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Juan Perez')).toBeInTheDocument();
+    });
+
+    const cancelButton = screen.getByLabelText(/Cancelar pago/i);
+    await user.click(cancelButton);
+
+    expect(confirmSpy).toHaveBeenCalledWith('¿Estás seguro de que deseas cancelar este pago?');
+    expect(paymentsService.cancel).toHaveBeenCalledWith('1');
+
+    confirmSpy.mockRestore();
   });
 });
