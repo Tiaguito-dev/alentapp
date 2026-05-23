@@ -36,7 +36,7 @@ describe('CreatePaymentUseCase', () => {
         vi.clearAllMocks();
     });
 
-    it('debe crear el pago con status Pending ignorando cualquier estado enviado', async () => {
+    it('debe crear el pago con status Pending y payment_date null', async () => {
         vi.mocked(mockMemberRepo.findById).mockResolvedValueOnce({ id: 'uuid-member-1' } as any);
         vi.mocked(mockPaymentRepo.existsActiveForPeriod).mockResolvedValueOnce(false);
         vi.mocked(mockPaymentRepo.create).mockResolvedValueOnce({
@@ -53,6 +53,12 @@ describe('CreatePaymentUseCase', () => {
         expect(mockValidator.validateDueDate).toHaveBeenCalledWith(mockRequest.due_date);
         expect(result.status).toBe('Pending');
         expect(result.payment_date).toBeNull();
+        expect(mockPaymentRepo.create).toHaveBeenCalledWith(expect.objectContaining({
+            member_id: mockRequest.member_id,
+            amount: mockRequest.amount,
+            month: mockRequest.month,
+            year: mockRequest.year,
+        }));
     });
 
     it('debe lanzar error si el socio no existe', async () => {
@@ -69,4 +75,16 @@ describe('CreatePaymentUseCase', () => {
         await expect(useCase.execute(mockRequest)).rejects.toThrow(/Ya existe un pago activo/);
         expect(mockPaymentRepo.create).not.toHaveBeenCalled();
     });
+
+    it('debe lanzar error y detenerse si la validación del monto falla', async () => {
+        vi.mocked(mockValidator.validateAmount).mockImplementationOnce(() => {
+            throw new Error('El monto debe ser mayor a cero');
+        });
+
+        await expect(useCase.execute(mockRequest)).rejects.toThrow('El monto debe ser mayor a cero');
+
+        expect(mockMemberRepo.findById).not.toHaveBeenCalled();
+        expect(mockPaymentRepo.create).not.toHaveBeenCalled();
+    });
+
 });
