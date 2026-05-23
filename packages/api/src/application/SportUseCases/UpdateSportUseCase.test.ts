@@ -106,4 +106,16 @@ describe('UpdateSportUseCase', () => {
 
     })
 
+    it('Debe lanzar error si el deporte no existe', async () => {
+        vi.mocked(mockSportRepository.findById).mockResolvedValueOnce(null);
+
+        await expect(useCase.execute('uuid-no', {})).rejects.toThrow('Deporte no encontrado: No existe deporte con ese id');
+    })
+
+    it('Debe lanzar error si se intenta modificar el nombre', async () => {
+        const mockRequest: UpdateSportRequest = {
+            name: 'Fútbol Modificado'
+        }
+        await expect(useCase.execute('uuid-1', mockRequest)).rejects.toThrow('Conflicto de solicitud: El nombre de un deporte registrado no puede ser modificado');
+    })
 })
