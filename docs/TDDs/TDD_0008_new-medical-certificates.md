@@ -31,6 +31,7 @@ los registros anteriores al crear uno nuevo.
 - Si ya existe un certificado activo para el socio, el sistema debe marcarlo como invalidado (`is_validated = false`) antes de crear el nuevo. Esta operación debe ejecutarse atómicamente con la creación del nuevo.
 - El sistema debe validar que `expiry_date` sea estrictamente posterior a `issue_date`.
 - El sistema debe rechazar certificados con `issue_date` futura; debe cumplirse `issue_date <= hoy`.
+- El sistema debe validar que `doctor_license` sea una matrícula numérica entera positiva (`> 0`).
 - El sistema debe validar que el socio referenciado exista.
 - El campo `created_at` debe registrar automáticamente el momento de inserción en la base de datos.
 - El campo `deleted_at` debe quedar nulo en el alta; solo se completa cuando se da de baja el certificado (ver TDD-0010).
@@ -63,7 +64,7 @@ respetando el ER del enunciado:
    member_id:      string; // UUID del socio
    issue_date:     string; // ISO Date YYYY-MM-DD
    expiry_date:    string; // ISO Date YYYY-MM-DD, debe ser > issue_date
-   doctor_license: string; // matrícula del médico
+   doctor_license: string; // matrícula del médico, entero positivo
 }
 ```
 
@@ -90,7 +91,8 @@ respetando el ER del enunciado:
 2. **Servicio de Dominio**: `MedicalCertificateValidator` (centraliza las validaciones
    de campos: `validateIssueDate(issue_date)` verifica que `issue_date <= hoy`;
    `validateExpiryDate(issue_date, expiry_date)` verifica que `expiry_date > issue_date`;
-   `validateDateFormat(date)` verifica que la fecha tenga formato ISO válido `YYYY-MM-DD`).
+   `validateDateFormat(date)` verifica que la fecha tenga formato ISO válido `YYYY-MM-DD`;
+   `validateDoctorLicense(doctor_license)` verifica que la matrícula sea un entero positivo).
 3. **Caso de Uso**: `CreateMedicalCertificateUseCase` (delega las validaciones
    de campos en `MedicalCertificateValidator`; verifica existencia del socio vía
    `MemberRepository`; busca certificado activo previo y lo invalida si existe;
@@ -113,6 +115,7 @@ respetando el ER del enunciado:
 | `issue_date` es una fecha futura       | Mensaje: "La fecha de emisión no puede ser futura"                         | 400 Bad Request           |
 | `expiry_date` ≤ `issue_date`           | Mensaje: "La fecha de vencimiento debe ser posterior a la de emisión"      | 400 Bad Request           |
 | Formato de fecha inválido              | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"                 | 400 Bad Request           |
+| `doctor_license` vacío, no numérico o ≤ 0 | Mensaje: "La matrícula del médico debe ser un número entero positivo"   | 400 Bad Request           |
 | Cliente envía `is_validated = false`   | Se ignora; se persiste con `is_validated = true`                           | 201 Created               |
 | Cliente envía `deleted_at`             | Se ignora; se persiste con `deleted_at = null`                              | 201 Created               |
 | Ya existe un certificado activo        | Se invalida el anterior y se crea el nuevo correctamente (transacción)     | 201 Created               |
@@ -126,8 +129,8 @@ respetando el ER del enunciado:
    default `now()` y `deleted_at` nullable) y ejecutar la migración.
 3. Crear el puerto `MedicalCertificateRepository` en la capa de Dominio con los métodos
    especificados.
-4. Implementar el `MedicalCertificateValidator` con los métodos de validación de fechas
-   y formato.
+4. Implementar el `MedicalCertificateValidator` con los métodos de validación de fechas,
+   formato y matrícula médica.
 5. Implementar `PostgresMedicalCertificateRepository` con los métodos `create`,
    `findActiveByMember` e `invalidateByMember`, asegurando transaccionalidad.
 6. Implementar `CreateMedicalCertificateUseCase`, delegando validaciones en
