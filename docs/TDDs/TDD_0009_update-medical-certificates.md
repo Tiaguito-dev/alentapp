@@ -28,6 +28,7 @@ Permitir al administrativo modificar un certificado médico existente en dos esc
 - No se permite editar `member_id` ni `is_validated` por esta vía.
 - Si se editan ambas fechas, o una de ellas junto con la otra ya existente, `expiry_date` debe seguir siendo estrictamente posterior a `issue_date`.
 - La `issue_date` editada no puede ser una fecha futura (debe cumplir `issue_date <= hoy`), consistente con la restricción definida en TDD-0008.
+- Si se edita `doctor_license`, debe ser una matrícula numérica entera positiva (`> 0`), consistente con la restricción definida en TDD-0008.
 
 **Invalidación manual:**
 - Solo se puede invalidar un certificado que esté activo (`is_validated = true`). Intentar invalidar uno ya invalidado debe rechazarse.
@@ -57,7 +58,7 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 {
   issue_date?:     string; // ISO Date YYYY-MM-DD
   expiry_date?:    string; // ISO Date YYYY-MM-DD, debe ser > issue_date resultante
-  doctor_license?: string; // matrícula del médico
+  doctor_license?: string; // matrícula del médico, entero positivo
 }
 ```
 
@@ -86,8 +87,8 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 ### Componentes de Arquitectura Hexagonal
 
 1. **Puerto**: `MedicalCertificateRepository` (métodos `findById(id)` y `update(certificate)`).
-2. **Servicio de Dominio**: `MedicalCertificateValidator` (reutilizado desde TDD-0008; `validateIssueDate(issue_date)` verifica que `issue_date <= hoy`; `validateExpiryDate(issue_date, expiry_date)` verifica que `expiry_date > issue_date`; `validateDateFormat(date)` verifica el formato ISO `YYYY-MM-DD`).
-3. **Caso de Uso**: `UpdateMedicalCertificateUseCase` (recupera el certificado vía `findById`; si no existe o está dado de baja devuelve 404; si `is_validated = false` lanza error; delega las validaciones de `issue_date` y/o `expiry_date` en `MedicalCertificateValidator`; aplica los cambios y delega la persistencia al repositorio).
+2. **Servicio de Dominio**: `MedicalCertificateValidator` (reutilizado desde TDD-0008; `validateIssueDate(issue_date)` verifica que `issue_date <= hoy`; `validateExpiryDate(issue_date, expiry_date)` verifica que `expiry_date > issue_date`; `validateDateFormat(date)` verifica el formato ISO `YYYY-MM-DD`; `validateDoctorLicense(doctor_license)` verifica que la matrícula sea un entero positivo).
+3. **Caso de Uso**: `UpdateMedicalCertificateUseCase` (recupera el certificado vía `findById`; si no existe o está dado de baja devuelve 404; si `is_validated = false` lanza error; delega las validaciones de `issue_date`, `expiry_date` y/o `doctor_license` en `MedicalCertificateValidator`; aplica los cambios y delega la persistencia al repositorio).
 4. **Caso de Uso**: `InvalidateMedicalCertificateUseCase` (recupera el certificado vía `findById`; si no existe o está dado de baja devuelve 404; si `is_validated = false` lanza error; transiciona el estado a `is_validated = false` y delega la persistencia al repositorio).
 5. **Adaptador de Salida**: `PostgresMedicalCertificateRepository` (actualización usando el método `update` de Prisma).
 6. **Adaptador de Entrada**: `MedicalCertificateController` (rutas `PATCH /api/v1/medical-certificates/:id` y `PATCH /api/v1/medical-certificates/:id/invalidar`, que extraen el `id` y mapean excepciones a códigos HTTP).
@@ -104,6 +105,7 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 | `issue_date` editada es futura                   | Mensaje: "La fecha de emisión no puede ser futura"                          | 400 Bad Request           |
 | `expiry_date` resultante ≤ `issue_date` resultante | Mensaje: "La fecha de vencimiento debe ser posterior a la de emisión"       | 400 Bad Request           |
 | Formato de fecha inválido                        | Mensaje: "Formato de fecha inválido (esperado YYYY-MM-DD)"                  | 400 Bad Request           |
+| `doctor_license` vacío, no numérico o ≤ 0        | Mensaje: "La matrícula del médico debe ser un número entero positivo"        | 400 Bad Request           |
 | Cliente envía `member_id` o `is_validated`      | Se ignora; no se persiste el campo prohibido                                | 200 OK                    |
 | Operación exitosa                                | Devuelve el certificado actualizado con los campos modificados              | 200 OK                    |
 | Error de conexión a la base de datos             | Mensaje: "Error interno, reintente más tarde"                               | 500 Internal Server Error |
@@ -123,7 +125,7 @@ Se exponen dos endpoints diferenciados para mantener explícita la semántica de
 1. Definir el tipo `UpdateMedicalCertificateRequest` en el paquete `@alentapp/shared`.
 2. Ampliar el puerto `MedicalCertificateRepository` con el método `update` y su implementación en `PostgresMedicalCertificateRepository`.
 3. Asegurar que `findById` filtre `deleted_at IS NULL` para tratar certificados dados de baja como inexistentes.
-4. Agregar métodos de validación al `MedicalCertificateValidator` definido en TDD-0008 si no están presentes.
+4. Agregar métodos de validación al `MedicalCertificateValidator` definido en TDD-0008 si no están presentes (incluyendo validación de `doctor_license` como entero positivo).
 5. Implementar los casos de uso `UpdateMedicalCertificateUseCase` e `InvalidateMedicalCertificateUseCase`, delegando las validaciones de fechas en `MedicalCertificateValidator` y manejando el chequeo de estado (`is_validated`) y baja lógica (`deleted_at`) directamente en cada caso de uso.
 6. Exponer las rutas `PATCH /api/v1/medical-certificates/:id` y `PATCH /api/v1/medical-certificates/:id/invalidar` en el `MedicalCertificateController` y registrarlas en la app de Fastify.
 7. En el frontend, agregar la acción "Editar" (modal con los tres campos editables) y la acción "Invalidar" (botón con confirmación de usuario) en la tabla de certificados.
