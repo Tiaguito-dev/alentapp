@@ -41,6 +41,9 @@ describe('GetPaymentByIdUseCase', () => {
     });
 
     it('debe resolver el status Overdue para un pago Pending vencido', async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-05-15T10:00:00Z'));
+
         const mockPayment: PaymentResponse = {
             id: 'uuid-pay-1',
             member_id: 'uuid-member-1',
@@ -56,5 +59,7 @@ describe('GetPaymentByIdUseCase', () => {
         const result = await useCase.execute('uuid-pay-1');
 
         expect(result.status).toBe('Overdue');
+
+        vi.useRealTimers();
     });
 });
