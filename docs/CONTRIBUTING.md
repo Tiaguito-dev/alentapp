@@ -6,25 +6,32 @@
 
 No se permite pushear directamente a la rama `main`. Todas las contribuciones deben hacerse a través de **Feature Branches**.
 
+Los nombres de rama siguen la convención **Conventional Branch**, que aplica una estructura similar a Conventional Commits pero para ramas: `<tipo>/<descripcion-en-kebab-case>`. Esto permite identificar de un vistazo el propósito de cada rama y mantener consistencia en todo el equipo.
+
 ### Formato de nombres de rama:
 *   `feature/nombre-de-la-funcionalidad` (para nuevas características)
 *   `fix/descripcion-del-error` (para corrección de bugs)
 *   `docs/mejoras-en-documentacion` (para cambios en docs)
 *   `refactor/nombre-del-cambio` (para mejoras de código sin cambio de lógica)
 
+> ⚠️ El formato es validado automáticamente por un hook de `pre-push`. Las ramas que no respeten la convención serán bloqueadas al intentar subirse al repositorio remoto.
+
+"Why aren’t branch types as detailed as Conventional Commits (e.g., build, ci, docs, style, refactor)?
+Branches are different from commits—they are temporary and mainly used until merged. Introducing too many types for branches would be unnecessary and would make them harder to manage and remember."
+
 ---
 
 ## 🛠 Flujo de Trabajo (Workflow)
 
 1.  **Sincronizar**: Asegúrate de tener la última versión de `main`:
-    ```bash
+```bash
     git checkout main
     git pull origin main
-    ```
+```
 2.  **Crear Rama**: Crea tu rama de trabajo:
-    ```bash
+```bash
     git checkout -b feature/nueva-funcionalidad
-    ```
+```
 3.  **Desarrollar**: Escribe tu código siguiendo los estándares del proyecto.
 4.  **Verificar**: Antes de subir tus cambios, **todos los tests deben pasar**. Consulta la [Guía de Testing](./TESTING.md) para más detalles.
     *   `npm run test` (Unitarios)
