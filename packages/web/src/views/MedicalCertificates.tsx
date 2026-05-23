@@ -334,7 +334,6 @@ export function MedicalCertificatesView() {
             <Table.Root size='md' variant='line'>
               <Table.Header>
                 <Table.Row bg='bg.muted/50'>
-                  <Table.ColumnHeader>ID</Table.ColumnHeader>
                   <Table.ColumnHeader>Socio</Table.ColumnHeader>
                   <Table.ColumnHeader>Emisión</Table.ColumnHeader>
                   <Table.ColumnHeader>Vencimiento</Table.ColumnHeader>
@@ -347,7 +346,6 @@ export function MedicalCertificatesView() {
               <Table.Body>
                 {certificates.map((certificate) => (
                   <Table.Row key={certificate.id}>
-                    <Table.Cell>{certificate.id}</Table.Cell>
                     <Table.Cell>{members.find(m => m.id === certificate.member_id)?.name || certificate.member_id}</Table.Cell>
                     <Table.Cell>{certificate.issue_date}</Table.Cell>
                     <Table.Cell>{certificate.expiry_date}</Table.Cell>
