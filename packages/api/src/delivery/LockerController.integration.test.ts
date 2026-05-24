@@ -10,7 +10,7 @@ vi.mock('../infrastructure/PostgresLockerRepository.js', () => {
       async findByNumber(number: number) {
         if (number === 10) return { number: 10, status: 'Available', member_id: null };
         if (number === 20) return { number: 20, status: 'Occupied', member_id: 'socio-999' };
-        return null; // Cualquier otro número (ej: 30) cuenta como libre/no existe
+        return null; 
       }
       async findByMemberId(memberId: string) {
         if (memberId === 'socio-123') return { number: 5, status: 'Occupied', member_id: 'socio-123' };

@@ -8,7 +8,7 @@ import { membersService } from '../services/members'; // <-- Importamos el servi
 import { Provider } from '../components/ui/provider';
 import type { LockerDTO, MemberDTO } from '@alentapp/shared';
 
-// 1. Mockeamos el servicio principal (Lockers)
+
 vi.mock('../services/lockers', () => ({
   lockersService: {
     getAll: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock('../services/lockers', () => ({
   }
 }));
 
-// 2. Mockeamos el servicio dependiente (Members)
+
 vi.mock('../services/members', () => ({
   membersService: {
     getAll: vi.fn(),
@@ -34,7 +34,7 @@ describe('LockersView - Integración de UI', () => {
     { id: 'uuid-2', location: 'Vestuario B', number: 20, status: 'Occupied', member_id: 'socio-123' }
   ];
 
-  // Agregamos un mock de socios para que la vista pueda armar su memberMap sin explotar
+  
   const mockMembers: MemberDTO[] = [
     { id: 'socio-123', name: 'Juan Perez', dni: '12345678', email: 'juan@test.com', birthdate: '1990-01-01', category: 'Pleno', status: 'Activo', created_at: new Date().toISOString() },
   ];
