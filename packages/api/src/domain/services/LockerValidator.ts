@@ -3,7 +3,7 @@ import { LockerDTO, LockerStatus } from '@alentapp/shared';
 export class LockerValidator {
   
   // Reglas del TDD-0005: Validaciones al actualizar
-  static validateUpdate(currentLocker: LockerDTO, newStatus?: LockerStatus, newMemberId?: string | null): void {
+  validateUpdate(currentLocker: LockerDTO, newStatus?: LockerStatus, newMemberId?: string | null): void {
     
     // 1. Calculamos la "foto final"
     const finalStatus = newStatus !== undefined ? newStatus : currentLocker.status;
@@ -40,7 +40,7 @@ export class LockerValidator {
   }
 
   // Reglas del TDD-0006: Validaciones al eliminar
-  static validateDelete(currentLocker: LockerDTO): void {
+  validateDelete(currentLocker: LockerDTO): void {
     // Por razones de integridad, impedir eliminación si está ocupado
     if (currentLocker.member_id !== null) {
       throw new Error('No se puede eliminar un casillero ocupado por un socio');
@@ -48,7 +48,7 @@ export class LockerValidator {
   }
 
   // Regla del TDD-0004: Validaciones al crear
-  static validateCreate(status: LockerStatus): void {
+  validateCreate(status: LockerStatus): void {
     if (status !== 'Available') {
       // El TDD dice que el estado inicial debe ser Available
       throw new Error('error de validacion: El estado inicial debe ser Available');
