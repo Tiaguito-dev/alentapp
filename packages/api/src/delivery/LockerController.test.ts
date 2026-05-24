@@ -7,9 +7,8 @@ describe('LockerController - Tests Unitarios', () => {
   const mockCreateUseCase = { execute: vi.fn() };
   const mockUpdateUseCase = { execute: vi.fn() };
 
-  // Inyectamos los mocks y pasamos 'any' a los demás para no romper la firma del constructor
   const controller = new LockerController(
-    mockCreateUseCase as any, // CREATE (Nuevo)
+    mockCreateUseCase as any, // CREATE 
     mockUpdateUseCase as any, // UPDATE 
     {} as any, // delete
     {} as any, // list
@@ -27,7 +26,7 @@ describe('LockerController - Tests Unitarios', () => {
   });
 
   // ====================================================================
-  // TESTS DEL CREATE (Nuevo)
+  // TESTS DEL CREATE 
   // ====================================================================
   describe('POST /api/v1/lockers', () => {
     it('debe retornar 201 y el casillero creado en caso de éxito', async () => {

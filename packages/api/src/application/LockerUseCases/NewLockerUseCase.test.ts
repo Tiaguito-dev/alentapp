@@ -96,7 +96,7 @@ describe('CreateLockerUseCase', () => {
         expect(mockLockerRepo.create).toHaveBeenCalledTimes(1);
         expect(mockLockerRepo.create).toHaveBeenCalledWith(mockRequest);
         
-        // Verificamos que devuelve el casillero ya armado (DTO)
+        // Verificamos que devuelve el casillero ya armado 
         expect(result).toEqual(mockCreatedLocker);
     });
 });
