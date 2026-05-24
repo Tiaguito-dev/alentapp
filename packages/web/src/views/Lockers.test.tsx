@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LockersView } from './Lockers';
 import { lockersService } from '../services/lockers';
-import { membersService } from '../services/members'; // <-- Importamos el servicio de socios
+import { membersService } from '../services/members'; 
 import { Provider } from '../components/ui/provider';
 import type { LockerDTO, MemberDTO } from '@alentapp/shared';
 
