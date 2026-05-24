@@ -3,7 +3,7 @@ import { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.js';
 import { UpdateLockerRequest, CreateLockerRequest } from '@alentapp/shared';
 
-// Mockeamos el repositorio para cubrir las necesidades de Update y Create
+// Mockeamos el repositorio
 vi.mock('../infrastructure/PostgresLockerRepository.js', () => {
   return {
     PostgresLockerRepository: class {
