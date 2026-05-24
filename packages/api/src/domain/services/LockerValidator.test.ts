@@ -2,15 +2,36 @@ import { describe, it, expect } from 'vitest';
 import { LockerValidator } from './LockerValidator.js';
 import { LockerDTO } from '@alentapp/shared';
 
-describe('LockerValidator - Update', () => {
+describe('LockerValidator', () => {
     
+    // Instancia única del validador para todos los bloques de prueba
     const validator = new LockerValidator();
 
-    describe('validateUpdate (TDD-0005)', () => {
+    // =======================================================
+    // VALIDACIONES AL CREAR
+    // =======================================================
+    describe('validateCreate', () => {
+        it('debe permitir la creación si el estado inicial es Available (Camino Feliz)', () => {
+            expect(() => validator.validateCreate('Available')).not.toThrow();
+        });
+
+        it('debe lanzar error si se intenta inicializar un casillero como Occupied', () => {
+            expect(() => validator.validateCreate('Occupied'))
+                .toThrow('error de validacion: El estado inicial debe ser Available');
+        });
+
+        it('debe lanzar error si se intenta inicializar un casillero como Maintenance', () => {
+            expect(() => validator.validateCreate('Maintenance'))
+                .toThrow('error de validacion: El estado inicial debe ser Available');
+        });
+    });
+
+    // =======================================================
+    // VALIDACIONES AL ACTUALIZAR 
+    // =======================================================
+    describe('validateUpdate', () => {
         
-        // =======================================================
         // REGLA A: No asignar socios a casilleros en mantenimiento
-        // =======================================================
         it('debe lanzar error si se asigna un socio a un casillero que ya está en Maintenance', () => {
             const currentLocker = { status: 'Maintenance', member_id: null } as LockerDTO;
             
@@ -25,9 +46,7 @@ describe('LockerValidator - Update', () => {
                 .toThrow('error: casillero en mantenimiento');
         });
 
-        // =======================================================
         // REGLA B: No mandar a mantenimiento si hay cosas adentro
-        // =======================================================
         it('debe lanzar error si se pasa a Maintenance un casillero que ya tiene un socio', () => {
             const currentLocker = { status: 'Occupied', member_id: 'socio-existente' } as LockerDTO;
             
@@ -35,9 +54,7 @@ describe('LockerValidator - Update', () => {
                 .toThrow('desasigne al socio primero');
         });
 
-        // =======================================================
         // REGLA C: Protección contra sobreescritura 
-        // =======================================================
         it('debe lanzar error si se intenta asignar a un socio pero el casillero ya lo tiene otro', () => {
             const currentLocker = { status: 'Occupied', member_id: 'socio-1' } as LockerDTO;
             
@@ -45,9 +62,7 @@ describe('LockerValidator - Update', () => {
                 .toThrow('El casillero ya está asignado a otro socio. Desasígnelo primero.');
         });
 
-        // =======================================================
         // CAMINOS FELICES (Happy Paths)
-        // =======================================================
         it('debe permitir asignar un socio a un casillero Available', () => {
             const currentLocker = { status: 'Available', member_id: null } as LockerDTO;
             
