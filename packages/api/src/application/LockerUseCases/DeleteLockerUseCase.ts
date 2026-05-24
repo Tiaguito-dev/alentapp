@@ -2,7 +2,10 @@ import { LockerRepository } from '../../domain/LockerRepository.js';
 import { LockerValidator } from '../../domain/services/LockerValidator.js';
 
 export class DeleteLockerUseCase {
-  constructor(private readonly lockerRepository: LockerRepository) {}
+  constructor(
+    private readonly lockerRepository: LockerRepository,
+    private readonly lockerValidator: LockerValidator
+  ) {}
 
   async execute(number: number): Promise<void> {
     // 1. Buscamos el casillero
@@ -13,7 +16,7 @@ export class DeleteLockerUseCase {
     }
 
     // 2. Validamos que se pueda borrar (que no tenga socio)
-    LockerValidator.validateDelete(currentLocker);
+    this.lockerValidator.validateDelete(currentLocker);
 
     // 3. Lo eliminamos
     await this.lockerRepository.delete(number);
