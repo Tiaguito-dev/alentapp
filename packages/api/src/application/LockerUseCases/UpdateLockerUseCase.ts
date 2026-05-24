@@ -3,7 +3,10 @@ import { LockerRepository } from '../../domain/LockerRepository.js';
 import { LockerValidator } from '../../domain/services/LockerValidator.js';
 
 export class UpdateLockerUseCase {
-  constructor(private readonly lockerRepository: LockerRepository) {}
+  constructor(
+    private readonly lockerRepository: LockerRepository,
+    private readonly lockerValidator: LockerValidator
+  ) {}
 
   async execute(number: number, data: UpdateLockerRequest): Promise<LockerDTO> {
     // 1. Buscamos el casillero actual
@@ -41,7 +44,7 @@ export class UpdateLockerUseCase {
 
     // 3. Validamos las demás reglas de negocio pura (Mantenimiento, reasignación, etc)
     // Delegamos toda la lógica al validador para no ensuciar el UseCase
-    LockerValidator.validateUpdate(currentLocker, data.status, data.member_id);
+    this.lockerValidator.validateUpdate(currentLocker, data.status, data.member_id);
 
     // 4. Si todo está bien, actualizamos
     return this.lockerRepository.update(number, data);

@@ -17,6 +17,7 @@ import { DeleteLockerUseCase } from './application/LockerUseCases/DeleteLockerUs
 import { ListLockersUseCase } from './application/LockerUseCases/ListLockersUseCase.js';
 import { GetLockerByNumberUseCase } from './application/LockerUseCases/GetLockerByNumberUseCase.js';
 import { LockerController } from './delivery/LockerController.js'; 
+import { LockerValidator } from './domain/services/LockerValidator.js';
 
 import { PostgresPaymentRepository } from './infrastructure/PostgresPaymentRepository.js';
 import { PaymentValidator } from './domain/services/PaymentValidator.js';
@@ -174,9 +175,10 @@ export function buildApp() {
     // Dependencias y Rutas de Locker
     // ==========================================
     const lockerRepo = new PostgresLockerRepository();
-    const createLockerUseCase = new CreateLockerUseCase(lockerRepo);
-    const updateLockerUseCase = new UpdateLockerUseCase(lockerRepo);
-    const deleteLockerUseCase = new DeleteLockerUseCase(lockerRepo);
+    const lockerValidator = new LockerValidator();
+    const createLockerUseCase = new CreateLockerUseCase(lockerRepo, lockerValidator);
+    const updateLockerUseCase = new UpdateLockerUseCase(lockerRepo,lockerValidator);
+    const deleteLockerUseCase = new DeleteLockerUseCase(lockerRepo, lockerValidator);
     const listLockersUseCase = new ListLockersUseCase(lockerRepo);
     const getLockerByNumberUseCase = new GetLockerByNumberUseCase(lockerRepo);
 

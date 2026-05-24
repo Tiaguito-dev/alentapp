@@ -3,12 +3,15 @@ import { LockerValidator } from '../../domain/services/LockerValidator.js';
 import { CreateLockerRequest, LockerDTO } from '@alentapp/shared';
 
 export class CreateLockerUseCase {
-  constructor(private readonly lockerRepository: LockerRepository) {}
+  constructor(
+    private readonly lockerRepository: LockerRepository,
+    private readonly lockerValidator: LockerValidator
+  ) {}
 
   async execute(data: CreateLockerRequest): Promise<LockerDTO> {
     
     // verifico que el estado inicial sea available
-    LockerValidator.validateCreate(data.status);
+    this.lockerValidator.validateCreate(data.status);
 
     //  Verificamos si ya existe un casillero con ese número
     const existingLocker = await this.lockerRepository.findByNumber(data.number);
