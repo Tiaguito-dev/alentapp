@@ -4,6 +4,8 @@ import { LockerDTO } from '@alentapp/shared';
 
 describe('LockerValidator - Update', () => {
     
+    const validator = new LockerValidator();
+
     describe('validateUpdate (TDD-0005)', () => {
         
         // =======================================================
@@ -12,14 +14,14 @@ describe('LockerValidator - Update', () => {
         it('debe lanzar error si se asigna un socio a un casillero que ya está en Maintenance', () => {
             const currentLocker = { status: 'Maintenance', member_id: null } as LockerDTO;
             
-            expect(() => LockerValidator.validateUpdate(currentLocker, undefined, 'socio-nuevo'))
+            expect(() => validator.validateUpdate(currentLocker, undefined, 'socio-nuevo'))
                 .toThrow('error: casillero en mantenimiento');
         });
 
         it('debe lanzar error si se asigna un socio y se pasa a Maintenance en la misma petición', () => {
             const currentLocker = { status: 'Available', member_id: null } as LockerDTO;
             
-            expect(() => LockerValidator.validateUpdate(currentLocker, 'Maintenance', 'socio-nuevo'))
+            expect(() => validator.validateUpdate(currentLocker, 'Maintenance', 'socio-nuevo'))
                 .toThrow('error: casillero en mantenimiento');
         });
 
@@ -29,7 +31,7 @@ describe('LockerValidator - Update', () => {
         it('debe lanzar error si se pasa a Maintenance un casillero que ya tiene un socio', () => {
             const currentLocker = { status: 'Occupied', member_id: 'socio-existente' } as LockerDTO;
             
-            expect(() => LockerValidator.validateUpdate(currentLocker, 'Maintenance', undefined))
+            expect(() => validator.validateUpdate(currentLocker, 'Maintenance', undefined))
                 .toThrow('desasigne al socio primero');
         });
 
@@ -39,7 +41,7 @@ describe('LockerValidator - Update', () => {
         it('debe lanzar error si se intenta asignar a un socio pero el casillero ya lo tiene otro', () => {
             const currentLocker = { status: 'Occupied', member_id: 'socio-1' } as LockerDTO;
             
-            expect(() => LockerValidator.validateUpdate(currentLocker, undefined, 'socio-2'))
+            expect(() => validator.validateUpdate(currentLocker, undefined, 'socio-2'))
                 .toThrow('El casillero ya está asignado a otro socio. Desasígnelo primero.');
         });
 
@@ -49,19 +51,19 @@ describe('LockerValidator - Update', () => {
         it('debe permitir asignar un socio a un casillero Available', () => {
             const currentLocker = { status: 'Available', member_id: null } as LockerDTO;
             
-            expect(() => LockerValidator.validateUpdate(currentLocker, 'Occupied', 'socio-1')).not.toThrow();
+            expect(() => validator.validateUpdate(currentLocker, 'Occupied', 'socio-1')).not.toThrow();
         });
 
         it('debe permitir pasar a Maintenance un casillero vacío', () => {
             const currentLocker = { status: 'Available', member_id: null } as LockerDTO;
             
-            expect(() => LockerValidator.validateUpdate(currentLocker, 'Maintenance', undefined)).not.toThrow();
+            expect(() => validator.validateUpdate(currentLocker, 'Maintenance', undefined)).not.toThrow();
         });
 
         it('debe permitir desasignar a un socio (member_id null)', () => {
             const currentLocker = { status: 'Occupied', member_id: 'socio-1' } as LockerDTO;
             
-            expect(() => LockerValidator.validateUpdate(currentLocker, 'Available', null)).not.toThrow();
+            expect(() => validator.validateUpdate(currentLocker, 'Available', null)).not.toThrow();
         });
     });
 });
