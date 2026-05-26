@@ -6,13 +6,15 @@ describe('LockerController - Tests Unitarios', () => {
   // 1. Mockeamos los UseCases que vamos a testear
   const mockCreateUseCase = { execute: vi.fn() };
   const mockUpdateUseCase = { execute: vi.fn() };
+  const mockListUseCase = { execute: vi.fn() }; // NUEVO MOCK
+  const mockGetByNumberUseCase = { execute: vi.fn() }; // NUEVO MOCK
 
   const controller = new LockerController(
     mockCreateUseCase as any, // CREATE 
     mockUpdateUseCase as any, // UPDATE 
     {} as any, // delete
-    {} as any, // list
-    {} as any  // getByNumber
+    mockListUseCase as any, // list
+    mockGetByNumberUseCase as any  // getByNumber
   );
 
   let mockReply: Partial<FastifyReply>;
@@ -122,6 +124,57 @@ describe('LockerController - Tests Unitarios', () => {
 
       expect(mockReply.status).toHaveBeenCalledWith(409);
       expect(mockReply.send).toHaveBeenCalledWith({ error: 'desasigne al socio primero' });
+    });
+  });
+
+  // ====================================================================
+  // TESTS DEL LIST
+  // ====================================================================
+  describe('GET /api/v1/lockers', () => {
+    it('debe retornar 200 y la lista de casilleros', async () => {
+      const mockRequest = {} as unknown as FastifyRequest<any>;
+      const fakeLockers = [
+        { id: 'uuid-1', location: 'Vestuario A', number: 10, status: 'Available', member_id: null }
+      ];
+
+      mockListUseCase.execute.mockResolvedValue(fakeLockers);
+
+      
+      await controller.list(mockRequest, mockReply as FastifyReply);
+
+      expect(mockReply.status).toHaveBeenCalledWith(200);
+      expect(mockReply.send).toHaveBeenCalledWith(fakeLockers);
+    });
+  });
+
+  // ====================================================================
+  // TESTS DEL GET BY NUMBER
+  // ====================================================================
+  describe('GET /api/v1/lockers/:number', () => {
+    it('debe retornar 200 y el casillero solicitado si existe', async () => {
+      const mockRequest = { params: { number: '10' } } as unknown as FastifyRequest<any>;
+      const fakeLocker = { id: 'uuid-1', location: 'Vestuario A', number: 10, status: 'Available', member_id: null };
+
+      mockGetByNumberUseCase.execute.mockResolvedValue(fakeLocker);
+
+      
+      await controller.getByNumber(mockRequest, mockReply as FastifyReply);
+
+      // Asumimos que tu controlador parsea el string '10' a número 10 antes de llamar al UseCase
+      expect(mockGetByNumberUseCase.execute).toHaveBeenCalledWith(10);
+      expect(mockReply.status).toHaveBeenCalledWith(200);
+      expect(mockReply.send).toHaveBeenCalledWith(fakeLocker);
+    });
+
+    it('debe retornar 404 si el casillero no existe', async () => {
+      const mockRequest = { params: { number: '999' } } as unknown as FastifyRequest<any>;
+
+      mockGetByNumberUseCase.execute.mockRejectedValue(new Error('El casillero especificado no fue encontrado'));
+
+      await controller.getByNumber(mockRequest, mockReply as FastifyReply);
+
+      expect(mockReply.status).toHaveBeenCalledWith(404);
+      expect(mockReply.send).toHaveBeenCalledWith({ error: 'El casillero especificado no fue encontrado' });
     });
   });
 });
