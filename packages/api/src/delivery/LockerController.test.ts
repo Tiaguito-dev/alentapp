@@ -6,8 +6,8 @@ describe('LockerController - Tests Unitarios', () => {
   // 1. Mockeamos los UseCases que vamos a testear
   const mockCreateUseCase = { execute: vi.fn() };
   const mockUpdateUseCase = { execute: vi.fn() };
-  const mockListUseCase = { execute: vi.fn() }; // NUEVO MOCK
-  const mockGetByNumberUseCase = { execute: vi.fn() }; // NUEVO MOCK
+  const mockListUseCase = { execute: vi.fn() }; 
+  const mockGetByNumberUseCase = { execute: vi.fn() }; 
 
   const controller = new LockerController(
     mockCreateUseCase as any, // CREATE 
