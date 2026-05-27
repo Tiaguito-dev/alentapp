@@ -7,7 +7,7 @@ import { UpdateLockerRequest, CreateLockerRequest } from '@alentapp/shared';
 vi.mock('../infrastructure/PostgresLockerRepository.js', () => {
   return {
     PostgresLockerRepository: class {
-      // NUEVO: Agregamos findAll para que el GET listAll tenga datos
+      
       async findAll() {
         return [
           { number: 10, status: 'Available', member_id: null },
