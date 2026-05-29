@@ -3,12 +3,10 @@ import { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.js';
 import { UpdateDisciplineRequest, CreateDisciplineRequest } from '@alentapp/shared';
 
-
 vi.mock('../infrastructure/PostgresDisciplineRepository.js', () => {
   return {
     PostgresDisciplineRepository: class {
       async findById(id: string) {
-        
         if (id === 'uuid-disciplina-1') {
           return { 
             id: 'uuid-disciplina-1', 
@@ -70,7 +68,6 @@ describe('Discipline API Integration Tests - Create & Update', () => {
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload);
-      
       
       const data = body.data || body; 
       expect(data.id).toBe('uuid-mock');
@@ -136,7 +133,7 @@ describe('Discipline API Integration Tests - Create & Update', () => {
       expect(data.is_total_suspension).toBe(true); 
     });
 
-    it('debe retornar 404 (o 400) si la disciplina no existe en el sistema', async () => {
+    it('debe retornar 404 si la disciplina no existe en el sistema', async () => {
       const payload: UpdateDisciplineRequest = { is_total_suspension: true };
 
       const response = await app.inject({
@@ -146,7 +143,7 @@ describe('Discipline API Integration Tests - Create & Update', () => {
       });
 
       
-      expect(response.statusCode).toBeGreaterThanOrEqual(400);
+      expect(response.statusCode).toBe(404);
     });
 
     it('debe retornar 400 si se intenta actualizar con fechas inconsistentes', async () => {
