@@ -8,7 +8,6 @@ import { membersService } from '../services/members';
 import { Provider } from '../components/ui/provider';
 import type { LockerDTO, MemberDTO } from '@alentapp/shared';
 
-
 vi.mock('../services/lockers', () => ({
   lockersService: {
     getAll: vi.fn(),
@@ -16,7 +15,6 @@ vi.mock('../services/lockers', () => ({
     create: vi.fn(), 
   }
 }));
-
 
 vi.mock('../services/members', () => ({
   membersService: {
@@ -34,7 +32,6 @@ describe('LockersView - Integración de UI', () => {
     { id: 'uuid-2', location: 'Vestuario B', number: 20, status: 'Occupied', member_id: 'socio-123' }
   ];
 
-  
   const mockMembers: MemberDTO[] = [
     { id: 'socio-123', name: 'Juan Perez', dni: '12345678', email: 'juan@test.com', birthdate: '1990-01-01', category: 'Pleno', status: 'Activo', created_at: new Date().toISOString() },
   ];
@@ -69,6 +66,38 @@ describe('LockersView - Integración de UI', () => {
     await user.type(numberInput, '30');
     await user.type(locationInput, 'Vestuario C');
   };
+
+  // ==========================================
+  // TESTS DE CARGA INICIAL 
+  // ==========================================
+  describe('Carga Inicial y Listado', () => {
+    it('debe renderizar lista vacía si el backend no devuelve casilleros', async () => {
+      vi.mocked(lockersService.getAll).mockResolvedValueOnce([]);
+      vi.mocked(membersService.getAll).mockResolvedValueOnce(mockMembers);
+
+      renderWithProviders(<LockersView />);
+
+      await waitFor(() => {
+        expect(screen.getByText('No se encontraron casilleros.')).toBeInTheDocument();
+      });
+    });
+
+    it('debe renderizar la lista de casilleros si el backend responde exitosamente', async () => {
+      vi.mocked(lockersService.getAll).mockResolvedValueOnce(mockLockers);
+      vi.mocked(membersService.getAll).mockResolvedValueOnce(mockMembers);
+
+      renderWithProviders(<LockersView />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Vestuario A')).toBeInTheDocument();
+      });
+
+      // Validamos que los datos mockeados aparezcan en la tabla
+      expect(screen.getByText(/10/)).toBeInTheDocument();
+      expect(screen.getByText(/20/)).toBeInTheDocument();
+      expect(screen.getByText('Juan Perez')).toBeInTheDocument();
+    });
+  });
 
   // ==========================================
   // TESTS DEL UPDATE 
