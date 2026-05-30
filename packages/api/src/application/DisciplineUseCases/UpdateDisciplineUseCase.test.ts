@@ -10,7 +10,6 @@ describe('UpdateDisciplineUseCase', () => {
         update: vi.fn(),
     };
 
-    
     const mockDisciplineValidator = {
         validateUpdate: vi.fn(),
         validateName: vi.fn(),
@@ -32,12 +31,10 @@ describe('UpdateDisciplineUseCase', () => {
         vi.clearAllMocks();
     });
 
-    
     it('debe invocar al DisciplineValidator para validar antes de actualizar', async () => {
         vi.mocked(mockDisciplineRepo.findById).mockResolvedValueOnce(mockExistingDiscipline);
         vi.mocked(mockDisciplineRepo.update).mockResolvedValueOnce({ ...mockExistingDiscipline, end_date: '2027-01-01T00:00:00.000Z' });
 
-        
         vi.mocked(mockDisciplineValidator.validateUpdate).mockReturnValueOnce(undefined);
 
         const payload: UpdateDisciplineRequest = { 
@@ -47,13 +44,21 @@ describe('UpdateDisciplineUseCase', () => {
         await useCase.execute('uuid-disciplina-1', payload);
 
         
-        expect(mockDisciplineValidator.validateUpdate).toHaveBeenCalled();
+        expect(mockDisciplineValidator.validateUpdate).toHaveBeenCalledWith({
+            startDateStr: mockExistingDiscipline.start_date,
+            endDateStr: '2027-01-01T00:00:00.000Z'
+        });
+
+        
+        const validateCallOrder = vi.mocked(mockDisciplineValidator.validateUpdate).mock.invocationCallOrder[0];
+        const updateCallOrder = vi.mocked(mockDisciplineRepo.update).mock.invocationCallOrder[0];
+        
+        expect(validateCallOrder).toBeLessThan(updateCallOrder);
     });
 
     it('debe frenar la ejecución si el DisciplineValidator falla', async () => {
         vi.mocked(mockDisciplineRepo.findById).mockResolvedValueOnce(mockExistingDiscipline);
 
-        
         vi.mocked(mockDisciplineValidator.validateUpdate).mockImplementationOnce(() => {
             throw new Error('La fecha de fin debe ser mayor a la de inicio');
         });
@@ -69,7 +74,6 @@ describe('UpdateDisciplineUseCase', () => {
     it('debe actualizar correctamente y guardar en BD si todo es válido', async () => {
         vi.mocked(mockDisciplineRepo.findById).mockResolvedValueOnce(mockExistingDiscipline);
         
-        
         vi.mocked(mockDisciplineValidator.validateUpdate).mockReturnValueOnce(undefined);
         vi.mocked(mockDisciplineRepo.update).mockResolvedValueOnce({} as any);
 
@@ -80,5 +84,21 @@ describe('UpdateDisciplineUseCase', () => {
         expect(mockDisciplineRepo.update).toHaveBeenCalledWith('uuid-disciplina-1', expect.objectContaining({
             is_total_suspension: true
         }));
+    });
+
+   
+    it('debe lanzar un error si la disciplina a modificar no existe', async () => {
+        
+        vi.mocked(mockDisciplineRepo.findById).mockResolvedValueOnce(null);
+
+        const payload: UpdateDisciplineRequest = { end_date: '2027-01-01T00:00:00.000Z' };
+
+        
+        await expect(useCase.execute('id-inexistente', payload))
+            .rejects.toThrow();
+
+        
+        expect(mockDisciplineValidator.validateUpdate).not.toHaveBeenCalled();
+        expect(mockDisciplineRepo.update).not.toHaveBeenCalled();
     });
 });
