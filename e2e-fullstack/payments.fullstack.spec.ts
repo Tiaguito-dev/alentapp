@@ -51,4 +51,24 @@ test.describe('Payments Full-Stack E2E', () => {
         await expect(page.getByText('1.500')).toBeVisible({ timeout: 10000 });
         await expect(page.getByText('Pendiente')).toBeVisible({ timeout: 10000 });
     });
+
+    test('debe marcar un pago como pagado y ver el cambio de estado en la tabla', async ({ page }) => {
+        await page.goto('/payments');
+
+        // El pago del test anterior debe estar en la tabla
+        await expect(page.getByText('1.500')).toBeVisible({ timeout: 10000 });
+
+        // Clic en el botón de marcar como pagado
+        await page.getByRole('button', { name: /Marcar como pagado/i }).first().click();
+        await expect(page.getByRole('heading', { name: 'Registrar Pago' })).toBeVisible();
+
+        // Confirmar sin ingresar fecha 
+        await page.getByRole('button', { name: 'Confirmar Pago' }).click();
+        await expect(page.getByRole('heading', { name: 'Registrar Pago' })).toBeHidden({ timeout: 10000 });
+
+        // Verificar que el estado cambió a Pagado
+        await expect(page.getByText('Pagado')).toBeVisible({ timeout: 10000 });
+    });
+
+
 });
