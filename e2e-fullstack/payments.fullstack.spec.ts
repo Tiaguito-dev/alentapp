@@ -44,7 +44,10 @@ test.describe('Payments Full-Stack E2E', () => {
         await page.locator('input[type="date"]').fill(`${currentYear}-12-31`);
 
         await page.getByRole('button', { name: 'Crear Pago' }).click();
+
+        //verifica que el modal de "Crear pago" se cerró
         await expect(page.getByRole('heading', { name: 'Nuevo Pago' })).toBeHidden({ timeout: 10000 });
+        
         await expect(page.getByText('1.500')).toBeVisible({ timeout: 10000 });
         await expect(page.getByText('Pendiente')).toBeVisible({ timeout: 10000 });
     });
