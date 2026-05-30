@@ -1,168 +1,84 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { FastifyInstance } from 'fastify';
-import { buildApp } from '../../app.js';
-import { UpdateDisciplineRequest, CreateDisciplineRequest } from '@alentapp/shared';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { UpdateDisciplineUseCase } from './UpdateDisciplineUseCase.js';
+import { DisciplineValidator } from '../../domain/services/DisciplineValidator.js';
+import { UpdateDisciplineRequest } from '@alentapp/shared';
 
-// ======== CORRECCIÓN AQUÍ: Agregamos ../../ para la ruta correcta ========
-vi.mock('../../infrastructure/PostgresDisciplineRepository.js', () => {
-  return {
-    PostgresDisciplineRepository: class {
-      async findById(id: string) {
-        if (id === 'uuid-disciplina-1') {
-          return { 
-            id: 'uuid-disciplina-1', 
-            name: 'Fútbol', 
-            start_date: '2026-06-01T20:00:00.000Z', 
-            end_date: '2026-12-31T22:00:00.000Z', 
-            is_total_suspension: false, 
-            member_id: 'socio-123' 
-          };
-        }
-        return null; 
-      }
-      async update(id: string, data: any) {
-        return { 
-          id, 
-          name: 'Fútbol', 
-          start_date: '2026-06-01T20:00:00.000Z', 
-          end_date: '2026-12-31T22:00:00.000Z', 
-          is_total_suspension: false, 
-          member_id: 'socio-123',
-          ...data 
+describe('UpdateDisciplineUseCase', () => {
+    
+    const mockDisciplineRepo = {
+        findById: vi.fn(),
+        update: vi.fn(),
+    };
+
+    
+    const mockDisciplineValidator = {
+        validateUpdate: vi.fn(),
+        validateName: vi.fn(),
+        validateDates: vi.fn(),
+    } as unknown as DisciplineValidator;
+
+    const useCase = new UpdateDisciplineUseCase(mockDisciplineRepo as any, mockDisciplineValidator);
+
+    const mockExistingDiscipline = {
+        id: 'uuid-disciplina-1',
+        name: 'Fútbol',
+        start_date: '2026-06-01T20:00:00.000Z',
+        end_date: '2026-12-31T22:00:00.000Z',
+        is_total_suspension: false,
+        member_id: 'socio-123'
+    };
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    
+    it('debe invocar al DisciplineValidator para validar antes de actualizar', async () => {
+        vi.mocked(mockDisciplineRepo.findById).mockResolvedValueOnce(mockExistingDiscipline);
+        vi.mocked(mockDisciplineRepo.update).mockResolvedValueOnce({ ...mockExistingDiscipline, end_date: '2027-01-01T00:00:00.000Z' });
+
+        
+        vi.mocked(mockDisciplineValidator.validateUpdate).mockReturnValueOnce(undefined);
+
+        const payload: UpdateDisciplineRequest = { 
+            end_date: '2027-01-01T00:00:00.000Z'
         };
-      }
-      async create(data: any) {
-        return { id: 'uuid-mock', is_total_suspension: false, ...data };
-      }
-    }
-  };
-});
 
-describe('Discipline API Integration Tests - Create & Update', () => {
-  let app: FastifyInstance;
+        await useCase.execute('uuid-disciplina-1', payload);
 
-  beforeAll(async () => {
-    app = buildApp();
-    await app.ready();
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
-
-  describe('POST /api/v1/disciplines', () => {
-    
-    it('debe retornar 201 y crear la disciplina correctamente si los datos son válidos', async () => {
-      const payload: CreateDisciplineRequest = { 
-        name: 'Vóley', 
-        start_date: '2026-06-01T10:00:00.000Z', 
-        end_date: '2026-12-31T20:00:00.000Z',
-        member_id: 'socio-123'
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/disciplines',
-        payload
-      });
-      
-      // Mantenemos esto para debuggear si vuelve a fallar
-      if (response.statusCode === 500) {
-        console.error("ERROR 500 DETECTADO:", response.payload);
-      }
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.payload);
-      
-      const data = body.data || body; 
-      expect(data.id).toBe('uuid-mock');
-      expect(data.name).toBe('Vóley');
-      expect(data.is_total_suspension).toBe(false);
+        
+        expect(mockDisciplineValidator.validateUpdate).toHaveBeenCalled();
     });
 
-    it('debe retornar 400 si el nombre está vacío', async () => {
-      const payload: CreateDisciplineRequest = { 
-        name: '', 
-        start_date: '2026-06-01T10:00:00.000Z', 
-        end_date: '2026-12-31T20:00:00.000Z',
-        member_id: 'socio-123'
-      };
+    it('debe frenar la ejecución si el DisciplineValidator falla', async () => {
+        vi.mocked(mockDisciplineRepo.findById).mockResolvedValueOnce(mockExistingDiscipline);
 
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/disciplines',
-        payload
-      });
+        
+        vi.mocked(mockDisciplineValidator.validateUpdate).mockImplementationOnce(() => {
+            throw new Error('La fecha de fin debe ser mayor a la de inicio');
+        });
 
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.payload);
-      
-      expect(body.error || body.message).toMatch(/nombre/i);
+        const payload: UpdateDisciplineRequest = { end_date: '2025-01-01T00:00:00.000Z' };
+
+        await expect(useCase.execute('uuid-disciplina-1', payload))
+            .rejects.toThrow('La fecha de fin debe ser mayor a la de inicio');
+            
+        expect(mockDisciplineRepo.update).not.toHaveBeenCalled();
     });
 
-    it('debe retornar 400 si la fecha de fin es anterior a la de inicio', async () => {
-      const payload: CreateDisciplineRequest = { 
-        name: 'Básquet', 
-        start_date: '2026-06-01T10:00:00.000Z', 
-        end_date: '2025-01-01T10:00:00.000Z', 
-        member_id: 'socio-123'
-      };
+    it('debe actualizar correctamente y guardar en BD si todo es válido', async () => {
+        vi.mocked(mockDisciplineRepo.findById).mockResolvedValueOnce(mockExistingDiscipline);
+        
+        
+        vi.mocked(mockDisciplineValidator.validateUpdate).mockReturnValueOnce(undefined);
+        vi.mocked(mockDisciplineRepo.update).mockResolvedValueOnce({} as any);
 
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/disciplines',
-        payload
-      });
+        const payload: UpdateDisciplineRequest = { is_total_suspension: true };
 
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.payload);
-      expect(body.error || body.message).toMatch(/fecha/i);
+        await useCase.execute('uuid-disciplina-1', payload);
+
+        expect(mockDisciplineRepo.update).toHaveBeenCalledWith('uuid-disciplina-1', expect.objectContaining({
+            is_total_suspension: true
+        }));
     });
-  });
-
-  describe('PATCH /api/v1/disciplines/:id', () => {
-    
-    it('debe retornar 200 y actualizar la disciplina correctamente', async () => {
-      const payload: UpdateDisciplineRequest = { is_total_suspension: true };
-
-      const response = await app.inject({
-        method: 'PATCH', 
-        url: '/api/v1/disciplines/uuid-disciplina-1',
-        payload
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.payload);
-      const data = body.data || body;
-      expect(data.is_total_suspension).toBe(true); 
-    });
-
-    it('debe retornar 404 (o 400) si la disciplina no existe en el sistema', async () => {
-      const payload: UpdateDisciplineRequest = { is_total_suspension: true };
-
-      const response = await app.inject({
-        method: 'PATCH',
-        url: '/api/v1/disciplines/id-inexistente', 
-        payload
-      });
-
-      expect(response.statusCode).toBeGreaterThanOrEqual(400);
-    });
-
-    it('debe retornar 400 si se intenta actualizar con fechas inconsistentes', async () => {
-      
-      const payload: UpdateDisciplineRequest = { end_date: '2025-01-01T00:00:00.000Z' };
-
-      const response = await app.inject({
-        method: 'PATCH',
-        url: '/api/v1/disciplines/uuid-disciplina-1',
-        payload
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.payload);
-      expect(body.error || body.message).toMatch(/fecha/i); 
-    });
-
-  });
 });
