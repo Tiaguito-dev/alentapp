@@ -203,6 +203,7 @@ describe('Sport API Integration Tests', () => {
             });
 
             expect(response.statusCode).toBe(200);
+            expect(response.body).toBe('{"data":"Deporte eliminado correctamente"}');
         });
 
         it('debe retornar 404 si el deporte no existe', async () => {
