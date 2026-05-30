@@ -51,4 +51,52 @@ test.describe('Payments Full-Stack E2E', () => {
         await expect(page.getByText('1.500')).toBeVisible({ timeout: 10000 });
         await expect(page.getByText('Pendiente')).toBeVisible({ timeout: 10000 });
     });
+
+    test('debe marcar un pago como pagado y ver el cambio de estado en la tabla', async ({ page }) => {
+        await page.goto('/payments');
+
+        // El pago del test anterior debe estar en la tabla
+        await expect(page.getByText('1.500')).toBeVisible({ timeout: 10000 });
+
+        // Clic en el botón de marcar como pagado
+        await page.getByRole('button', { name: /Marcar como pagado/i }).first().click();
+        await expect(page.getByRole('heading', { name: 'Registrar Pago' })).toBeVisible();
+
+        // Confirmar sin ingresar fecha 
+        await page.getByRole('button', { name: 'Confirmar Pago' }).click();
+        await expect(page.getByRole('heading', { name: 'Registrar Pago' })).toBeHidden({ timeout: 10000 });
+
+        // Verificar que el estado cambió a Pagado
+        await expect(page.getByText('Pagado')).toBeVisible({ timeout: 10000 });
+    });
+
+    test('debe eliminar un pago y mostrar el estado vacío', async ({ page }) => {
+        // Crear un pago nuevo en Pending para poder eliminarlo, ya que si está en estado Paid no se puede eliminar
+        await page.goto('/payments');
+
+        page.on('dialog', (dialog) => dialog.accept());
+
+        await page.locator('button:has-text("Nuevo Pago")').click();
+        await expect(page.getByRole('heading', { name: 'Nuevo Pago' })).toBeVisible();
+
+        const currentYear = new Date().getFullYear().toString();
+        const currentMonth = ((new Date().getMonth() + 2) % 12 + 1).toString(); // mes diferente al anterior
+
+        await page.getByPlaceholder('Ej. 5000').fill('2000');
+        await page.locator('input[placeholder="1-12"]').fill(currentMonth);
+        await page.locator(`input[placeholder="${currentYear}"]`).fill(currentYear);
+        await page.locator('input[type="date"]').fill(`${currentYear}-12-31`);
+
+        await page.getByRole('button', { name: 'Crear Pago' }).click();
+        await expect(page.getByRole('heading', { name: 'Nuevo Pago' })).toBeHidden({ timeout: 10000 });
+        await expect(page.getByText('2.000')).toBeVisible({ timeout: 10000 });
+
+        // Eliminar el pago recién creado
+        await page.getByRole('button', { name: /Eliminar/i }).first().click();
+
+        // Verificar que ese pago desapareció
+        await expect(page.getByText('2.000')).toBeHidden({ timeout: 10000 });
+    });
+
+
 });
