@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { FastifyInstance } from 'fastify';
-// Asegúrate de que esta ruta apunte correctamente a tu app.js
 import { buildApp } from '../app.js'; 
 import { UpdateDisciplineRequest, CreateDisciplineRequest } from '@alentapp/shared';
 
-// Asegúrate de que esta ruta apunte correctamente a tu repositorio
 vi.mock('../infrastructure/PostgresDisciplineRepository.js', () => {
   return {
     PostgresDisciplineRepository: class {
