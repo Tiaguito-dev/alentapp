@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MedicalCertificateController } from './MedicalCertificateController';
+import { MedicalCertificateController } from './MedicalCertificateController.js';
 
 const mockReply = () => {
   const reply: any = {
@@ -195,6 +195,59 @@ describe('MedicalCertificateController - update', () => {
     const reply = mockReply();
 
     await controller.update(req, reply);
+
+    expect(reply.status).toHaveBeenCalledWith(500);
+    expect(reply.send).toHaveBeenCalledWith({ error: 'Error interno, reintente más tarde' });
+  });
+});
+
+// Tests de lectura (getById)
+describe('MedicalCertificateController - getById', () => {
+  let controller: MedicalCertificateController;
+  let mockGetByIdUseCase: { execute: any };
+
+  beforeEach(() => {
+    mockGetByIdUseCase = { execute: vi.fn() };
+    controller = new MedicalCertificateController(
+      {} as any, // create
+      {} as any, // list
+      mockGetByIdUseCase as any,
+      {} as any, // update
+      {} as any, // invalidate
+      {} as any  // delete
+    );
+  });
+
+  it('debe retornar 200 y el certificado solicitado', async () => {
+    const mockCert = { id: 'cert-1', member_id: 'member-1', doctor_license: '12345' };
+    mockGetByIdUseCase.execute.mockResolvedValueOnce(mockCert);
+    const req = { params: { id: 'cert-1' } } as any;
+    const reply = mockReply();
+
+    await controller.getById(req, reply);
+
+    expect(mockGetByIdUseCase.execute).toHaveBeenCalledWith('cert-1');
+    expect(reply.status).toHaveBeenCalledWith(200);
+    expect(reply.send).toHaveBeenCalledWith({ data: mockCert });
+  });
+
+  it('debe retornar 404 si el certificado no existe', async () => {
+    mockGetByIdUseCase.execute.mockRejectedValueOnce(new Error('El certificado no existe'));
+    const req = { params: { id: 'cert-404' } } as any;
+    const reply = mockReply();
+
+    await controller.getById(req, reply);
+
+    expect(reply.status).toHaveBeenCalledWith(404);
+    expect(reply.send).toHaveBeenCalledWith({ error: 'El certificado no existe' });
+  });
+
+  it('debe retornar 500 ante un error inesperado', async () => {
+    mockGetByIdUseCase.execute.mockRejectedValueOnce(new Error('DB connection failed'));
+    const req = { params: { id: 'cert-1' } } as any;
+    const reply = mockReply();
+
+    await controller.getById(req, reply);
 
     expect(reply.status).toHaveBeenCalledWith(500);
     expect(reply.send).toHaveBeenCalledWith({ error: 'Error interno, reintente más tarde' });
