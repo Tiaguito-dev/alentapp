@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { CreateMedicalCertificateRequest } from '@alentapp/shared';
+import { CreateMedicalCertificateRequest, UpdateMedicalCertificateRequest } from '@alentapp/shared';
 
-
+// Mocks de main
 vi.mock('../infrastructure/PostgresMedicalCertificateRepository.js', () => {
   return {
     PostgresMedicalCertificateRepository: class {
@@ -37,7 +37,43 @@ vi.mock('../infrastructure/PostgresMedicalCertificateRepository.js', () => {
           created_at: new Date().toISOString(),
         };
       }
-      
+      // Métodos de update de tu rama (si los necesitas para PATCH)
+      async findById(id: string) {
+        if (id === 'cert-1') return {
+          id: 'cert-1',
+          member_id: 'member-1',
+          issue_date: '2026-05-01',
+          expiry_date: '2027-05-01',
+          doctor_license: '12345',
+          is_validated: true,
+          created_at: '2026-05-01T00:00:00.000Z',
+        };
+        if (id === 'cert-invalid') return {
+          id: 'cert-invalid',
+          member_id: 'member-1',
+          issue_date: '2026-05-01',
+          expiry_date: '2027-05-01',
+          doctor_license: '12345',
+          is_validated: false,
+          created_at: '2026-05-01T00:00:00.000Z',
+        };
+        return null;
+      }
+      async update(id: string, data: any) {
+        if (id === 'cert-1') {
+          const existing = {
+            id: 'cert-1',
+            member_id: 'member-1',
+            issue_date: '2026-05-01',
+            expiry_date: '2027-05-01',
+            doctor_license: '12345',
+            is_validated: true,
+            created_at: '2026-05-01T00:00:00.000Z',
+          };
+          return { ...existing, ...data };
+        }
+        throw new Error('El certificado no existe');
+      }
     }
   };
 });
@@ -49,13 +85,11 @@ vi.mock('../infrastructure/PostgresMemberRepository.js', () => {
         if (id === 'member-1') return { id: 'member-1', name: 'Socio Test' };
         return null;
       }
-    
     }
   };
 });
 
 describe('MedicalCertificate API Integration Tests', () => {
-
   let app;
 
   beforeAll(async () => {
@@ -69,9 +103,9 @@ describe('MedicalCertificate API Integration Tests', () => {
     await app.close();
   });
 
+  // --- TESTS DE CREACIÓN (main) ---
   describe('POST /api/v1/medical-certificates', () => {
     it('debe retornar 201 y crear el certificado correctamente', async () => {
-      // Restaurar cualquier mock previo
       const { CreateMedicalCertificateUseCase } = await import('../application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js');
       if ((CreateMedicalCertificateUseCase.prototype.execute as any).mockRestore) {
         (CreateMedicalCertificateUseCase.prototype.execute as any).mockRestore();
@@ -82,13 +116,11 @@ describe('MedicalCertificate API Integration Tests', () => {
         expiry_date: '2027-05-01',
         doctor_license: '12345',
       };
-
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/medical-certificates',
         payload,
       });
-
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.payload);
       expect(body.data.member_id).toBe('member-1');
@@ -99,43 +131,94 @@ describe('MedicalCertificate API Integration Tests', () => {
     });
 
     it('debe retornar 400 si la fecha de emisión es posterior a la de vencimiento', async () => {
-
       const payload: CreateMedicalCertificateRequest = {
         member_id: 'member-1',
         issue_date: '2027-06-01',
         expiry_date: '2027-05-01',
         doctor_license: '12345',
       };
-
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/medical-certificates',
         payload,
       });
-
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.payload);
       expect(body.error).toContain('La fecha de emisión no puede ser futura');
     });
 
     it('debe retornar 400 si la matrícula médica es inválida', async () => {
-
       const payload: CreateMedicalCertificateRequest = {
         member_id: 'member-1',
         issue_date: '2026-05-01',
         expiry_date: '2027-05-01',
         doctor_license: 'INVALID',
       };
-
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/medical-certificates',
         payload,
       });
-
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.payload);
       expect(body.error).toContain('La matrícula del médico debe ser un número entero positivo');
+    });
+  });
+
+  // --- AGREGA AQUÍ LOS TESTS DE UPDATE DE TU RAMA ---
+  describe('PATCH /api/v1/medical-certificates/:id', () => {
+    it('debe retornar 200 y actualizar el certificado', async () => {
+      const payload: UpdateMedicalCertificateRequest = {
+        doctor_license: '54321',
+      };
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/medical-certificates/cert-1',
+        payload,
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body.data.doctor_license).toBe('54321');
+    });
+
+    it('debe retornar 404 si el certificado no existe', async () => {
+      const payload: UpdateMedicalCertificateRequest = {
+        doctor_license: '54321',
+      };
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/medical-certificates/cert-404',
+        payload,
+      });
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.payload);
+      expect(body.error).toBe('El certificado no existe');
+    });
+
+    it('debe retornar 409 si el certificado está invalidado', async () => {
+      const payload: UpdateMedicalCertificateRequest = {
+        doctor_license: '54321',
+      };
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/medical-certificates/cert-invalid',
+        payload,
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.payload);
+      expect(body.error).toBe('No se puede modificar un certificado invalidado');
+    });
+
+    it('debe retornar 400 si no se provee ningún campo a modificar', async () => {
+      const payload: UpdateMedicalCertificateRequest = {};
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/medical-certificates/cert-1',
+        payload,
+      });
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.payload);
+      expect(body.error).toBe('Debe proveer al menos un campo a modificar');
     });
   });
 });
