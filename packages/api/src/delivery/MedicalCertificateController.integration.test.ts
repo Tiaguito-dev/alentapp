@@ -61,15 +61,16 @@ vi.mock('../infrastructure/PostgresMedicalCertificateRepository.js', () => {
       }
       async update(id: string, data: any) {
         if (id === 'cert-1') {
-          return {
+          const existing = {
             id: 'cert-1',
             member_id: 'member-1',
-            issue_date: data.issue_date || '2026-05-01',
-            expiry_date: data.expiry_date || '2027-05-01',
-            doctor_license: data.doctor_license || '12345',
+            issue_date: '2026-05-01',
+            expiry_date: '2027-05-01',
+            doctor_license: '12345',
             is_validated: true,
             created_at: '2026-05-01T00:00:00.000Z',
           };
+          return { ...existing, ...data };
         }
         throw new Error('El certificado no existe');
       }
