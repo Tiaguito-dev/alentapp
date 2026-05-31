@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { FastifyInstance } from 'fastify';
-import { buildApp } from '../app.js';
+import { buildApp } from '../app.js'; 
 import { UpdateDisciplineRequest, CreateDisciplineRequest } from '@alentapp/shared';
 
 vi.mock('../infrastructure/PostgresDisciplineRepository.js', () => {
@@ -48,7 +48,6 @@ describe('Discipline API Integration Tests - Create & Update', () => {
   afterAll(async () => {
     await app.close();
   });
-
 
   describe('POST /api/v1/disciplines', () => {
     
@@ -115,7 +114,6 @@ describe('Discipline API Integration Tests - Create & Update', () => {
     });
   });
 
- 
   describe('PATCH /api/v1/disciplines/:id', () => {
     
     it('debe retornar 200 y actualizar la disciplina correctamente', async () => {
@@ -142,7 +140,6 @@ describe('Discipline API Integration Tests - Create & Update', () => {
         payload
       });
 
-      
       expect(response.statusCode).toBe(404);
     });
 
