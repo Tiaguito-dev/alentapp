@@ -99,11 +99,9 @@ export function SportsView() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Parse numbers just in case
       const payload: CreateSportRequest = {
         ...formData,
         max_capacity: Number(formData.max_capacity),
@@ -113,7 +111,6 @@ export function SportsView() {
             : Number(formData.additional_price),
       };
 
-      // Limpiamos descripcion vacía si es necesario
       if (!payload.description) {
         payload.description = undefined;
       }
@@ -123,9 +120,10 @@ export function SportsView() {
       } else {
         await sportsService.create(payload);
       }
+      await fetchSports();
       setIsDialogOpen(false);
-      fetchSports(); // Refresh the list
     } catch (err: any) {
+      console.error("Error completo:", err);
       alert(err.message || "Error al guardar el deporte");
     } finally {
       setIsSubmitting(false);
@@ -136,7 +134,7 @@ export function SportsView() {
     if (window.confirm(`¿Estás seguro de que deseas eliminar el deporte "${name}"? Esta acción no se puede deshacer.`)) {
       try {
         await sportsService.delete(id);
-        fetchSports(); // Refresh the list
+        await fetchSports(); // Refresh the list
       } catch (err: any) {
         alert(err.message || "Error al eliminar el deporte");
       }
@@ -169,78 +167,80 @@ export function SportsView() {
 
         {/* Modal para agregar/editar deporte */}
         <DialogContent>
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle>{editingSportId ? "Editar Deporte" : "Agregar Nuevo Deporte"}</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <Stack gap="4">
-                <Field label="Nombre" required>
+          <DialogHeader>
+            <DialogTitle>{editingSportId ? "Editar Deporte" : "Agregar Nuevo Deporte"}</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <Stack gap="4">
+              <Field label="Nombre" required>
+                <Input
+                  placeholder="Ej. Natación"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                // disabled={editingSportId} de momento lo dejo habilitado para ver el error
+                />
+              </Field>
+              <Field label="Descripción">
+                <Input
+                  placeholder="Ej. Clases de natación para todas las edades"
+                  value={formData.description || ""}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </Field>
+              <HStack gap="4">
+                <Field label="Capacidad Máxima" required>
                   <Input
-                    placeholder="Ej. Natación"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
+                    type="number"
+                    min="1"
+                    placeholder="Ej. 20"
+                    value={formData.max_capacity}
+                    onChange={(e) => setFormData({ ...formData, max_capacity: Number(e.target.value) })}
                   />
                 </Field>
-                <Field label="Descripción">
+                <Field label="Precio Adicional">
                   <Input
-                    placeholder="Ej. Clases de natación para todas las edades"
-                    value={formData.description || ""}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    type="number"
+                    min="0"
+                    placeholder="Ej. 1500"
+                    value={formData.additional_price || ""}
+                    onChange={(e) => setFormData({ ...formData, additional_price: e.target.value ? Number(e.target.value) : undefined })}
                   />
                 </Field>
-                <HStack gap="4">
-                  <Field label="Capacidad Máxima" required>
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="Ej. 20"
-                      value={formData.max_capacity}
-                      onChange={(e) => setFormData({ ...formData, max_capacity: Number(e.target.value) })}
-                      required
-                    />
-                  </Field>
-                  <Field label="Precio Adicional">
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="Ej. 1500"
-                      value={formData.additional_price || ""}
-                      onChange={(e) => setFormData({ ...formData, additional_price: e.target.value ? Number(e.target.value) : undefined })}
-                    />
-                  </Field>
-                </HStack>
-                <Field label="¿Requiere Certificado Médico?" required>
-                  <SelectRoot
-                    collection={requiresCertificateOptions}
-                    value={[formData.requires_medical_certificate ? "true" : "false"]}
-                    onValueChange={(e) => setFormData({ ...formData, requires_medical_certificate: e.value[0] === "true" })}
-                  >
-                    <SelectTrigger>
-                      <SelectValueText placeholder="Seleccione una opción" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {requiresCertificateOptions.items.map((opt) => (
-                        <SelectItem item={opt} key={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </SelectRoot>
-                </Field>
-              </Stack>
-            </DialogBody>
-            <DialogFooter>
-              <DialogActionTrigger asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogActionTrigger>
-              <Button type="submit" colorPalette="blue" loading={isSubmitting}>
-                {editingSportId ? "Guardar Cambios" : "Crear Deporte"}
-              </Button>
-            </DialogFooter>
-            <DialogCloseTrigger />
-          </form>
+              </HStack>
+              <Field label="¿Requiere Certificado Médico?" required>
+                <SelectRoot
+                  collection={requiresCertificateOptions}
+                  value={[formData.requires_medical_certificate ? "true" : "false"]}
+                  onValueChange={(e) => setFormData({ ...formData, requires_medical_certificate: e.value[0] === "true" })}
+                >
+                  <SelectTrigger>
+                    <SelectValueText placeholder="Seleccione una opción" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {requiresCertificateOptions.items.map((opt) => (
+                      <SelectItem item={opt} key={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectRoot>
+              </Field>
+            </Stack>
+          </DialogBody>
+          <DialogFooter>
+            <DialogActionTrigger asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogActionTrigger>
+            <Button
+              type="button"
+              colorPalette="blue"
+              loading={isSubmitting}
+              onClick={handleSubmit}
+            >
+              {editingSportId ? "Guardar Cambios" : "Crear Deporte"}
+            </Button>
+          </DialogFooter>
+          <DialogCloseTrigger />
         </DialogContent>
 
         {error && (
@@ -287,7 +287,10 @@ export function SportsView() {
               </Table.Header>
               <Table.Body>
                 {sports.map((sport) => (
-                  <Table.Row key={sport.id} _hover={{ bg: "bg.muted/30" }}>
+                  <Table.Row
+                    key={sport.id}
+                    _hover={{ bg: "bg.muted/30" }}
+                  >
                     <Table.Cell fontWeight="semibold" color="fg.emphasized">
                       {sport.name}
                     </Table.Cell>
