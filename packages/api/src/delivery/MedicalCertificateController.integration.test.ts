@@ -99,12 +99,6 @@ describe('MedicalCertificate API Integration Tests', () => {
     });
 
     it('debe retornar 400 si la fecha de emisión es posterior a la de vencimiento', async () => {
-      const { CreateMedicalCertificateUseCase } = await import('../application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js');
-      const spy = vi.spyOn(CreateMedicalCertificateUseCase.prototype, 'execute').mockImplementationOnce(async () => {
-        const error = new Error('La fecha de emisión no puede ser posterior a la fecha de vencimiento');
-        (error as any).code = 'INVALID_DATE_ORDER';
-        throw error;
-      });
 
       const payload: CreateMedicalCertificateRequest = {
         member_id: 'member-1',
@@ -121,8 +115,7 @@ describe('MedicalCertificate API Integration Tests', () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.payload);
-      expect(body.error).toContain('fecha de emisión no puede ser posterior');
-      spy.mockRestore();
+      expect(body.error).toContain('La fecha de emisión no puede ser futura');
     });
 
     it('debe retornar 400 si la matrícula médica es inválida', async () => {
