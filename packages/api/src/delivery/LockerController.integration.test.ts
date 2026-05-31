@@ -7,6 +7,13 @@ import { UpdateLockerRequest, CreateLockerRequest } from '@alentapp/shared';
 vi.mock('../infrastructure/PostgresLockerRepository.js', () => {
   return {
     PostgresLockerRepository: class {
+      
+      async findAll() {
+        return [
+          { number: 10, status: 'Available', member_id: null },
+          { number: 20, status: 'Occupied', member_id: 'socio-999' }
+        ];
+      }
       async findByNumber(number: number) {
         if (number === 10) return { number: 10, status: 'Available', member_id: null };
         if (number === 20) return { number: 20, status: 'Occupied', member_id: 'socio-999' };
@@ -26,7 +33,7 @@ vi.mock('../infrastructure/PostgresLockerRepository.js', () => {
   };
 });
 
-describe('Locker API Integration Tests - Create & Update', () => {
+describe('Locker API Integration Tests - CRUD', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
@@ -149,5 +156,54 @@ describe('Locker API Integration Tests - Create & Update', () => {
       expect(body.error).toBe('El casillero ya está asignado a otro socio. Desasígnelo primero.'); 
     });
 
+  });
+
+  // ====================================================================
+  // TESTS DE INTEGRACIÓN - GET (ListAll)
+  // ====================================================================
+  describe('GET /api/v1/lockers', () => {
+    it('debe retornar 200 y el array de casilleros', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/lockers'
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      
+      // Chequeamos que devuelva la info del mock que pusimos arriba
+      expect(body).toBeInstanceOf(Array);
+      expect(body.length).toBe(2);
+      expect(body[0].number).toBe(10);
+      expect(body[1].number).toBe(20);
+    });
+  });
+
+  // ====================================================================
+  // TESTS DE INTEGRACIÓN - GET (FindByNumber)
+  // ====================================================================
+  describe('GET /api/v1/lockers/:number', () => {
+    it('debe retornar 200 y el casillero solicitado si existe', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/lockers/10'
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body.number).toBe(10);
+      expect(body.status).toBe('Available');
+    });
+
+    it('debe retornar 404 si el casillero no existe', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/lockers/999'
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.payload);
+      expect(body.error).toBe('El casillero especificado no fue encontrado');
+    });
   });
 });
