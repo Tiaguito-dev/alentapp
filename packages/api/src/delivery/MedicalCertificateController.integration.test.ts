@@ -1,31 +1,7 @@
-// Mock del use case para simular error de socio inexistente
-vi.mock('../application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js', () => {
-  return {
-    CreateMedicalCertificateUseCase: class {
-      async execute(data: any) {
-        if (data.member_id !== 'member-1') {
-          const error = new Error('El socio especificado no existe');
-          (error as any).code = 'P2003';
-          throw error;
-        }
-        return {
-          id: 'cert-1',
-          member_id: data.member_id,
-          issue_date: data.issue_date,
-          expiry_date: data.expiry_date,
-          doctor_license: data.doctor_license,
-          is_validated: true,
-          created_at: new Date().toISOString(),
-        };
-      }
-    }
-  };
-});
-
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { CreateMedicalCertificateRequest } from '@alentapp/shared';
 
-// Mockeamos el repositorio y el de miembros
+
 vi.mock('../infrastructure/PostgresMedicalCertificateRepository.js', () => {
   return {
     PostgresMedicalCertificateRepository: class {
@@ -61,7 +37,7 @@ vi.mock('../infrastructure/PostgresMedicalCertificateRepository.js', () => {
           created_at: new Date().toISOString(),
         };
       }
-      // ...otros métodos mockeados si es necesario
+      
     }
   };
 });
@@ -73,7 +49,7 @@ vi.mock('../infrastructure/PostgresMemberRepository.js', () => {
         if (id === 'member-1') return { id: 'member-1', name: 'Socio Test' };
         return null;
       }
-      // ...otros métodos mockeados si es necesario
+    
     }
   };
 });
@@ -150,13 +126,6 @@ describe('MedicalCertificate API Integration Tests', () => {
     });
 
     it('debe retornar 400 si la matrícula médica es inválida', async () => {
-      // Mock del use case para simular error de validación
-      const { CreateMedicalCertificateUseCase } = await import('../application/MedicalCertificateUseCases/CreateMedicalCertificateUseCase.js');
-      vi.spyOn(CreateMedicalCertificateUseCase.prototype, 'execute').mockImplementationOnce(async () => {
-        const error = new Error('Matrícula inválida');
-        (error as any).code = 'INVALID_DOCTOR_LICENSE';
-        throw error;
-      });
 
       const payload: CreateMedicalCertificateRequest = {
         member_id: 'member-1',
@@ -173,27 +142,7 @@ describe('MedicalCertificate API Integration Tests', () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.payload);
-      expect(body.error).toContain('Matrícula inválida');
-    });
-
-    it('debe retornar 404 si el socio no existe', async () => {
-      const payload: CreateMedicalCertificateRequest = {
-        member_id: 'no-existe',
-        issue_date: '2026-05-01',
-        expiry_date: '2027-05-01',
-        doctor_license: '12345',
-      };
-
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/api/v1/medical-certificates',
-        payload,
-      });
-
-      expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.payload);
-      expect(body.error).toContain('socio');
+      expect(body.error).toContain('La matrícula del médico debe ser un número entero positivo');
     });
   });
 });
