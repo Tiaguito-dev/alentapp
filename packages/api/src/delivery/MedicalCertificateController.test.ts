@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MedicalCertificateController } from './MedicalCertificateController';
+import { MedicalCertificateController } from './MedicalCertificateController.js';
 
 const mockReply = () => {
   const reply: any = {

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { CreateMedicalCertificateRequest, UpdateMedicalCertificateRequest } from '@alentapp/shared';
+import type { FastifyInstance } from 'fastify';
 
 // Mocks de main
 vi.mock('../infrastructure/PostgresMedicalCertificateRepository.js', () => {
@@ -90,7 +91,7 @@ vi.mock('../infrastructure/PostgresMemberRepository.js', () => {
 });
 
 describe('MedicalCertificate API Integration Tests', () => {
-  let app;
+  let app: FastifyInstance;
 
   beforeAll(async () => {
     process.env.DATABASE_URL = 'mock';
