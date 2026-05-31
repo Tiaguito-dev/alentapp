@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { CreateMedicalCertificateRequest, UpdateMedicalCertificateRequest } from '@alentapp/shared';
+import type { FastifyInstance } from 'fastify';
 
 // Mocks de main
 vi.mock('../infrastructure/PostgresMedicalCertificateRepository.js', () => {
@@ -90,7 +91,7 @@ vi.mock('../infrastructure/PostgresMemberRepository.js', () => {
 });
 
 describe('MedicalCertificate API Integration Tests', () => {
-  let app;
+  let app: FastifyInstance;
 
   beforeAll(async () => {
     process.env.DATABASE_URL = 'mock';
@@ -219,6 +220,30 @@ describe('MedicalCertificate API Integration Tests', () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.payload);
       expect(body.error).toBe('Debe proveer al menos un campo a modificar');
+    });
+  });
+
+  // --- TESTS DE LECTURA (READ) ---
+  describe('GET /api/v1/medical-certificates/:id', () => {
+    it('debe retornar 200 y el certificado solicitado', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/medical-certificates/cert-1',
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.payload);
+      expect(body.data.id).toBe('cert-1');
+      expect(body.data.member_id).toBe('member-1');
+    });
+
+    it('debe retornar 404 si el certificado no existe', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/medical-certificates/cert-404',
+      });
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.payload);
+      expect(body.error).toBe('El certificado no existe');
     });
   });
 });
