@@ -21,3 +21,69 @@ relevados de los archivos `docker-compose.yml`, `packages/api/Dockerfile` y
 
 ---
 
+## 2. Investigación sobre OpenTelemetry
+ 
+### ¿Qué es OpenTelemetry y cómo se diferencia de Prometheus?
+ 
+OpenTelemetry (OTel) es un estándar unificado de observabilidad de código abierto y vendor-neutral 
+para la generación, recolección y exportación de datos de telemetría (trazas, métricas y logs). 
+Su principal ventaja es que desacopla la instrumentación del backend de destino: el código que 
+mide la aplicación (contadores de requests, histogramas de latencia, etc.) no sabe a dónde van 
+esos datos. De esta forma, el mismo código puede enviar datos a Prometheus, Grafana, Jaeger o 
+cualquier herramienta compatible sin modificaciones. 
+ 
+Prometheus, en cambio, es un sistema de monitoreo completo. Incluye su propia base de datos 
+de series temporales (), un modelo de recolección pull-based (scraping)
+y el lenguaje de consulta PromQL. A diferencia de OTel, Prometheus recolecta las métricas 
+(utilizando scraping), guarda esas métricas en su propia base de datos interna y permite hacer
+consultas sobre esos datos mediante PromQL. OTel solo hace la parte de "instrumentar y exportar":
+instrumentar es agregar código en nuestra aplicación que registre lo que está pasando internamente
+(sería como colocar sensores dentro de la app), y luego se exportan esos datos que recolectamos
+con OTel hacia herramientas como Prometheus. 
+ 
+### Los 3 pilares de la observabilidad
+ 
+Los tres pilares son:
+ 
+- **Trazas (Traces):** registran el recorrido completo de una request a través de los distintos servicios de un sistema distribuido.
+- **Métricas (Metrics):** valores numéricos agregados que describen el estado del sistema en un momento dado (ej: cantidad de requests por segundo, uso de memoria).
+- **Logs:** registro cronológico de eventos discretos que ocurren dentro de un componente (un usuario inició sesión, se creó un pago nuevo, falló la validación de un pago, etc.).
+OpenTelemetry aborda los tres pilares, unificándolos en un único estándar de instrumentación
+y exportación. 
+ 
+### Métricas RED (Rate, Errors, Duration)
+ 
+El método RED, definido por Tom Wilkie (Grafana Labs), propone monitorear tres métricas
+fundamentales para cada servicio:
+ 
+- **Rate:** cantidad de requests por segundo que recibe el servicio. Indica el volumen de tráfico actual.
+- **Errors:** cantidad de esas requests que están fallando (respuestas 4xx/5xx). Indica la tasa de fallos que llegan al usuario.
+- **Duration:** tiempo que tarda en procesarse cada request. Indica la latencia percibida por el usuario.
+Estas tres métricas nos dan una idea de la experiencia del usuario: una tasa de error alta
+significa que los usuarios están recibiendo fallos, y una duración alta significa que el
+sitio es lento. 
+ 
+### ¿Qué es OTLP y qué ventaja tiene frente a exportar directamente a Prometheus?
+ 
+OTLP (OpenTelemetry Protocol) es el protocolo de red estándar de OpenTelemetry para
+transmitir trazas, métricas y logs desde las aplicaciones instrumentadas hacia un collector
+o backend. 
+ 
+La ventaja principal frente a exportar directamente a Prometheus es la **neutralidad de
+vendor**: con OTLP, la instrumentación del código no está acoplada a ningún backend
+específico. Cambiar el destino de los datos (por ejemplo, de Prometheus a Datadog o a
+Grafana Cloud) es un cambio de configuración en el collector (recibe los datos y los reenvia al backend), 
+no un cambio en el código de la aplicación. Si en cambio se exporta directamente al formato de 
+Prometheus, la aplicación queda atada a ese backend y cualquier migración requiere reescribir 
+la instrumentación.
+ 
+### ¿Cómo se relaciona OpenTelemetry con Grafana?
+ 
+Grafana es la capa de visualización. El flujo típico es:
+ 
+1. El SDK de OTel en la API expone métricas en formato Prometheus en el endpoint `:9464/metrics`.
+2. Prometheus scrapea ese endpoint periódicamente y almacena las series temporales.
+3. Grafana consulta Prometheus como datasource usando PromQL y visualiza los datos en dashboards.
+OTel no reemplaza a Grafana ni a Prometheus: provee los datos estandarizados que ambas
+herramientas consumen.
+
