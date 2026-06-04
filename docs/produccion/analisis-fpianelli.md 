@@ -1,0 +1,23 @@
+# Análisis de Infraestructura para Producción
+
+**Autor:** fpianelli (Felipe Pianelli)
+**Actividad:** TP Integrador - Actividad 4, Fase 1
+
+---
+
+## 1. Análisis de la infraestructura Docker actual
+
+A continuación se identifican 5 problemas respecto a buenas prácticas de producción,
+relevados de los archivos `docker-compose.yml`, `packages/api/Dockerfile` y
+`packages/web/Dockerfile`.
+
+| # | Problema | ¿Dónde ocurre? | Impacto | Solución propuesta |
+|---|----------|----------------|---------|-------------------|
+| 1 | **Imagen base sin versión fija** — La etiqueta `node:20-alpine` no es inmutable. Docker Hub la actualiza con cada patch de Node.js o Alpine (con cada nueva actualización), de modo que dos builds del mismo Dockerfile en distintos momentos pueden producir imágenes diferentes. Esto rompe la reproducibilidad y puede introducir comportamientos inesperados en producción. | `packages/api/Dockerfile` y `packages/web/Dockerfile` | Medio | Fijar la versión exacta del tag, por ejemplo `node:20.14.0-alpine3.19` |
+| 2 | **Credenciales hardcodeadas** — `POSTGRES_PASSWORD`, `POSTGRES_USER` y `DATABASE_URL` están escritas en texto plano en el archivo. Si el repositorio es público o el historial de git se filtra, las credenciales quedan expuestas permanentemente. | `docker-compose.yml` | Alto | Mover los valores sensibles a un archivo `.env` excluido del repositorio vía `.gitignore` y referenciarlos con la sintaxis `${VAR}`. En producción, debemos usar Docker secrets o variables de entorno del sistema. |
+| 3 | **Ejecución como root** — Ninguno de los dos Dockerfiles define un usuario no-root con la instrucción `USER`. Por defecto Docker ejecuta el proceso como `root` dentro del contenedor; ante cualquier vulnerabilidad de ejecución remota el atacante obtiene privilegios completos sobre el contenedor. | `packages/api/Dockerfile` y `packages/web/Dockerfile` (ausencia de instrucción `USER`) | Alto | Agregar al final del Dockerfile, antes del `CMD`, la creación y selección de un usuario sin privilegios: `RUN addgroup -S appgroup && adduser -S appuser -G appgroup` seguido de `USER appuser`. |
+| 4 | **Bind-mount del código fuente en el servicio `api`** — El volumen `. :/app` monta el directorio completo del host dentro del contenedor. Esto anula completamente la imagen buildeada: el contenedor usa los archivos de la máquina host en lugar de los copiados durante el build. Además, el contenedor tiene acceso de lectura y escritura a todo el contenido del repositorio, incluyendo archivos sensibles como `.env`. | `docker-compose.yml` | Alto | Eliminar el bind-mount de código fuente en producción. La imagen debe ser autosuficiente: todo el código necesario debe estar copiado dentro de ella durante el build. |
+| 5 | **Sin límites de recursos ni healthchecks para `api` y `web`** — Los servicios `api` y `web` no definen `deploy.resources.limits` ni `healthcheck`. Un proceso con un bug de memoria puede consumir todos los recursos del host y tirar los demás servicios. Además, Docker no puede detectar si la API está realmente lista para recibir tráfico (no conoce su estado). | `docker-compose.yml` | Medio | Agregar límites de recursos (`memory: 512m`, `cpus: "0.5"`) y healthchecks específicos: para la API un `curl -f http://localhost:3000/health` y para el frontend un `curl -f http://localhost:5173`. |
+
+---
+
