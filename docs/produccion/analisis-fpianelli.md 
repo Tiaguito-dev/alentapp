@@ -33,7 +33,7 @@ esos datos. De esta forma, el mismo código puede enviar datos a Prometheus, Gra
 cualquier herramienta compatible sin modificaciones. 
  
 Prometheus, en cambio, es un sistema de monitoreo completo. Incluye su propia base de datos 
-de series temporales (), un modelo de recolección pull-based (scraping)
+de series temporales (valor que se mide repetidamente a lo largo del tiempo), un modelo de recolección pull-based (scraping)
 y el lenguaje de consulta PromQL. A diferencia de OTel, Prometheus recolecta las métricas 
 (utilizando scraping), guarda esas métricas en su propia base de datos interna y permite hacer
 consultas sobre esos datos mediante PromQL. OTel solo hace la parte de "instrumentar y exportar":
