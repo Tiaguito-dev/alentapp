@@ -19,11 +19,14 @@ configurar `@opentelemetry/instrumentation-http` y `@opentelemetry/instrumentati
  
 | Métrica | Tipo | Descripción | Labels |
 |---------|------|-------------|--------|
-| `http.server.duration` | Histogram | Latencia de cada request HTTP. A partir de este histogram se derivan Rate (cantidad de requests por segundo), Errors (requests con status 4xx/5xx) y Duration (latencia p95/p99). | `http.request.method`, `http.route`, `http.response.status_code` |
+| `http.server.duration` (Rate) | Counter | Requests por segundo que recibe el servicio. Se deriva con `rate(http_server_duration_count[1m])`. | `method`, `route`, `status` |
+| `http.server.duration` (Errors) | Counter | Tasa de requests que resultaron en error 4xx/5xx. Se deriva filtrando por status con `rate(http_server_duration_count{status=~"5.."}[1m])`. | `method`, `route`, `status` |
+| `http.server.duration` (Duration) | Histogram | Latencia de cada request. Se deriva con `histogram_quantile(0.95, ...)` para obtener p95/p99. | `method`, `route` |
  
-Esta única métrica es suficiente para alimentar los paneles de Rate, Errors y Duration
-del dashboard RED, ya que Prometheus permite derivar las tres a partir del histogram
-usando PromQL.
+Las tres métricas RED se generan automáticamente a partir del mismo histogram
+`http.server.duration` al configurar las auto-instrumentaciones de HTTP y Fastify.
+Prometheus permite derivar Rate, Errors y Duration usando PromQL sin necesidad de
+definir métricas manuales adicionales para estas tres.
  
 #### Métricas manuales adicionales
  
