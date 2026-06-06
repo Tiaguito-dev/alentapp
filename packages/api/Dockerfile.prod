@@ -1,0 +1,84 @@
+FROM node:22-alpine AS deps
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/web/package.json ./packages/web/
+
+RUN npm ci
+
+
+FROM node:22-alpine AS build
+WORKDIR /app
+
+ENV DATABASE_URL=postgres://user:password@localhost:5432/alentapp
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/package-lock.json ./package-lock.json
+COPY --from=deps /app/packages/api/package.json ./packages/api/package.json
+COPY --from=deps /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=deps /app/packages/web/package.json ./packages/web/package.json
+
+COPY tsconfig.json ./tsconfig.json
+COPY packages/api ./packages/api
+COPY packages/shared ./packages/shared
+
+RUN npx prisma generate --config packages/api/prisma.config.ts
+RUN find packages/api/src -type f -name '*.ts' \
+  ! -name '*.d.ts' \
+    ! -name '*.test.ts' \
+    ! -name '*.integration.test.ts' \
+    ! -name '*.e2e.test.ts' -print0 | \
+    xargs -0 npx esbuild \
+      --platform=node \
+      --format=esm \
+      --target=node22 \
+      --outdir=packages/api/dist \
+      --outbase=packages/api/src
+
+RUN mkdir -p packages/api/dist/generated && \
+    cp -R packages/api/src/generated/client packages/api/dist/generated/client
+
+
+FROM node:22-alpine AS prod-deps
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY packages/api/package.json ./package.json
+
+RUN npm install --omit=dev --omit=peer --omit=optional --ignore-scripts --no-audit --no-fund && \
+  PRISMA_RT=/app/node_modules/@prisma/client/runtime && \
+  find "$PRISMA_RT" -type f \( -name '*cockroachdb*' -o -name '*mysql*' -o -name '*sqlite*' -o -name '*sqlserver*' \) -delete && \
+  find "$PRISMA_RT" -type f \( -name '*.map' -o -name '*.d.ts' -o -name '*.d.mts' \) -delete && \
+  rm -rf /app/node_modules/@prisma/client/generator-build && \
+  npm cache clean --force && \
+  rm -rf /root/.npm
+
+
+FROM alpine:3.20 AS runtime
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN apk add --no-cache libstdc++ libgcc ca-certificates && \
+  addgroup -S appgroup && adduser -S -G appgroup appuser
+
+COPY --from=deps /usr/local/bin/node /usr/local/bin/node
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/package.json ./package.json
+
+COPY --from=build /app/packages/api/dist ./dist
+COPY --from=build /app/packages/api/prisma ./prisma
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1
+
+USER appuser
+
+CMD ["node", "-e", "import('./dist/app.js').then(({ buildApp }) => { const server = buildApp(); const port = parseInt(process.env.PORT || '3000', 10); server.listen({ port, host: '0.0.0.0' }); ['SIGINT', 'SIGTERM'].forEach((signal) => process.on(signal, async () => { await server.close(); process.exit(0); })); });"]
