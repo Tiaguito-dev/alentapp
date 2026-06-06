@@ -35,7 +35,7 @@ Estas dos métricas no las captura la auto-instrumentación y deben definirse ma
 | Métrica | Tipo | Descripción | Labels | Dónde se registra |
 |---------|------|-------------|--------|-------------------|
 | `process.memory.usage` | Gauge | Memoria heap usada por el proceso Node.js en bytes. Se mide de forma periódica con `process.memoryUsage().heapUsed`. | — | `telemetry.ts` (observable, no en controllers) |
-| `http.requests.active` | Gauge | Cantidad de requests siendo procesadas en este momento. Se incrementa al inicio de cada handler y se decrementa al finalizar. | `route` | Cada controller |
+| `http.requests.active` | Gauge | Cantidad de requests siendo procesadas en este momento. Se incrementa al inicio de cada handler y se decrementa al finalizar. | `route` | `app.ts` (hook global de Fastify) |
 
 #### Aclaración
 
@@ -121,38 +121,37 @@ export const activeRequestsGauge = meter.createUpDownCounter('http.requests.acti
 > necesitamos incrementar (+1) y decrementar (-1) su valor desde los controllers.
 > Un `Gauge` estándar solo permite observar un valor en un momento dado.
  
-#### Uso en los controllers
- 
-En cada controller se importa `activeRequestsGauge` y se registra el inicio y fin
-de cada request:
- 
-```typescript
-import { activeRequestsGauge } from '../infrastructure/telemetry.js';
- 
-async handler(request, reply) {
-  const route = request.routeOptions.url;
-  activeRequestsGauge.add(1, { route });
- 
-  try {
-    // lógica del handler
-  } finally {
-    activeRequestsGauge.add(-1, { route });
-  }
-}
-```
- 
-#### `packages/api/src/app.ts`
- 
+#### Hooks globales en `app.ts`
+
 El import de `telemetry.ts` debe ser el primero del archivo para garantizar que
-el SDK esté inicializado antes de que Fastify y cualquier otro módulo carguen:
+el SDK esté inicializado antes de que Fastify y cualquier otro módulo carguen.
+ 
+En lugar de agregar la instrumentación en cada controller individualmente, se registran
+dos hooks globales de Fastify en `app.ts`. Esto centraliza la instrumentación y la aplica
+automáticamente a todas las rutas, facilitando el mantenimiento:
  
 ```typescript
 // PRIMERO: inicializar OTel antes de cualquier otro import
 import './infrastructure/telemetry.js';
+import { activeRequestsGauge } from './infrastructure/telemetry.js';
  
-// Luego el resto de imports
 import Fastify from 'fastify';
-// ...
+ 
+const fastify = Fastify();
+ 
+// Hook global: se ejecuta al inicio de cada request, para cualquier ruta
+fastify.addHook('onRequest', (request, reply, done) => {
+  activeRequestsGauge.add(1, { route: request.routeOptions.url });
+  done();
+});
+ 
+// Hook global: se ejecuta al finalizar cada request, para cualquier ruta
+fastify.addHook('onResponse', (request, reply, done) => {
+  activeRequestsGauge.add(-1, { route: request.routeOptions.url });
+  done();
+});
+ 
+// Luego el resto de la configuración...
 ```
  
 #### Requisitos no funcionales
