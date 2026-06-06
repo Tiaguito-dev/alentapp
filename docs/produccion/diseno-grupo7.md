@@ -15,7 +15,7 @@ y dos métricas manuales adicionales que la auto-instrumentación no captura.
 #### Métricas automáticas
  
 La auto-instrumentación de OTel genera automáticamente la siguiente métrica al
-configurar `@opentelemetry/instrumentation-http` y `@opentelemetry/instrumentation-fastify`:
+configurar `@opentelemetry/instrumentation-http`:
  
 | Métrica | Tipo | Descripción | Labels |
 |---------|------|-------------|--------|
@@ -24,7 +24,7 @@ configurar `@opentelemetry/instrumentation-http` y `@opentelemetry/instrumentati
 | `http.server.duration` (Duration) | Histogram | Latencia de cada request. Se deriva con `histogram_quantile(0.95, ...)` para obtener p95/p99. | `method`, `route` |
  
 Las tres métricas RED se generan automáticamente a partir del mismo histogram
-`http.server.duration` al configurar las auto-instrumentaciones de HTTP y Fastify.
+`http.server.duration` al configurar la auto-instrumentación de HTTP.
 Prometheus permite derivar Rate, Errors y Duration usando PromQL sin necesidad de
 definir métricas manuales adicionales para estas tres.
  
@@ -55,7 +55,7 @@ El SDK se configura en un único archivo de inicialización que debe ser importa
  
 ```
 packages/api/src/
-├── app.ts                          ← importa telemetry.ts como primer import
+├── app.ts                          ← importa telemetry.ts como primer import y registra hooks globales
 └── infrastructure/
     └── telemetry.ts                ← inicialización del SDK y métricas manuales
 ```
@@ -64,9 +64,9 @@ packages/api/src/
  
 Responsabilidades:
 - Configurar el `PrometheusExporter` en el puerto `9464`, endpoint `/metrics`
-- Inicializar el `NodeSDK` con las auto-instrumentaciones para HTTP y Fastify
+- Inicializar el `NodeSDK` con la auto-instrumentación para HTTP
 - Definir el Gauge `process.memory.usage` con un observable callback
-- Exportar el Gauge `http.requests.active` para uso en los controllers
+- Exportar el `activeRequestsGauge` para uso en los hooks globales de `app.ts`
 
 `PrometheusExporter` es el componente que traduce las métricas internas de OTel al formato que Prometheus entiende, y las expone en un endpoint HTTP para que Prometheus pueda hacer scraping.
 
@@ -86,13 +86,12 @@ const prometheusExporter = new PrometheusExporter({
   endpoint: '/metrics',
 });
  
-// 2. Inicializar el SDK con auto-instrumentaciones para HTTP y Fastify
+// 2. Inicializar el SDK con auto-instrumentaciones para HTTP 
 const sdk = new NodeSDK({
   metricReader: prometheusExporter,
   instrumentations: [
     getNodeAutoInstrumentations({
       '@opentelemetry/instrumentation-http': {},
-      '@opentelemetry/instrumentation-fastify': {},
     }),
   ],
 });
@@ -158,7 +157,7 @@ fastify.addHook('onResponse', (request, reply, done) => {
  
 | Requisito | Valor |
 |-----------|-------|
-| Puerto del exporter | `9464` |
-| Endpoint de métricas | `/metrics` |
-| Tiempo de inicio del SDK | Debe completarse antes del primer request | //se garantiza importando telemetry.ts como primer import en app.ts.
-| Impacto en latencia | Menor a 5ms por request (overhead de instrumentación) | //el sistema de observabilidad no debe degradar la performance de la API.
+| Puerto del exporter | `9464` (puerto estándar de OTel para Prometheus) |
+| Endpoint de métricas | `/metrics` (convención esperada por Prometheus al hacer scraping) |
+| Tiempo de inicio del SDK | Debe completarse antes del primer request (se garantiza importando `telemetry.ts` como primer import en `app.ts`) |
+| Impacto en latencia | Menor a 5ms por request (el sistema de observabilidad no debe degradar la performance de la API) |
