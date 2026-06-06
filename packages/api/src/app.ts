@@ -1,3 +1,5 @@
+import './infrastructure/telemetry.js';
+import { activeRequestsGauge } from './infrastructure/telemetry.js';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 
@@ -76,6 +78,17 @@ export function buildApp() {
                 }
                 : undefined,
         },
+    });
+
+    // Hooks globales para métrica de requests activas
+    server.addHook('onRequest', (request, reply, done) => {
+        activeRequestsGauge.add(1, { route: request.routeOptions.url });
+        done();
+    });
+
+    server.addHook('onResponse', (request, reply, done) => {
+        activeRequestsGauge.add(-1, { route: request.routeOptions.url });
+        done();
     });
 
     server.register(cors, {
