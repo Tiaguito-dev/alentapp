@@ -41,15 +41,15 @@ OpenTelemetry recopila y exporta los datos pero no los presenta. La presentació
 
 Los tres pilares fundamentales de la observabilidad son: las trazas, las métricas y los registros. OpenTelemetry aborda los tres pilares.
 
-Los logs es un evento en particular que ocurrió en un momento dado. El mejor ejemplo que se me ocurre es un console.log('pasa algo'). Sin embargo, estos consol.log en consola no son utilizables, o al menos, no de forma centralizada. Para hacer los logs utilizables se necesita una herramienta que los recopile y los presente de una forma estructurada.
+Los logs es un evento en particular que ocurrió en un momento dado. El mejor ejemplo que se me ocurre es un console.log('pasa algo'). Sin embargo, estos console.log en consola no son utilizables, o al menos, no de forma centralizada. Para hacer los logs utilizables se necesita una herramienta que los recopile y los presente de una forma estructurada.
 
 Las métricas son la forma de medir el comportamiento del sistema en un período de tiempo. Por ejemplo, la cantidad de usuarios que ingresan al sistema por hora. Nos permiten cuantificar, en cierto sentido, distintos aspectos del estado interno del sistema.
 
-Las trazas son la forma de seguir el rastro de una solicitud a través de los diferentes servicios que la componen. Por ejemplo, cuando un usuario hace clic en un botón, se genera una traza que recorre todos los servicios involucrados en la operación. OpenTelemetry lo hace automáticamente cada vez que hacemos una petición a algún servicio. Esto nos permite, por ejemplo, ver cuanto tiempo demora cada servicio en responder y detectar bottlenecks.
+Las trazas son la forma de seguir el rastro de una solicitud a través de los diferentes servicios que la componen. Por ejemplo, cuando un usuario hace clic en un botón, se genera una traza que recorre todos los servicios involucrados en la operación. OpenTelemetry lo hace automáticamente cada vez que hacemos una petición a algún servicio. Esto nos permite, por ejemplo, ver cuanto tiempo demora cada servicio en responder y detectar cuellos de botella.
 
 ### Expliquen el concepto de métricas RED (Rate, Errors, Duration). ¿Para qué sirve cada una?
 
-El concepto de métrias RED pude entenderlo como una forma estandarizada de medir el comportamiento de un servicio. Es decir, en esto que había dicho de las métricas, existe un esquema de tres tipos distintos de métricas con un propósio específico para medir el estado de un servicio desde la perspectiva del usuario: 
+El concepto de métricas RED pude entenderlo como una forma estandarizada de medir el comportamiento de un servicio. Es decir, en esto que había dicho de las métricas, existe un esquema de tres tipos distintos de métricas con un propósito específico para medir el estado de un servicio desde la perspectiva del usuario: 
 
 * **Rate (Tasa):** Cantidad de peticiones que recibe el servicio. Esta métrica nos permite saber si el servicio está siendo utilizado y si está respondiendo correctamente. Por ejemplo, si la tasa de peticiones disminuye drásticamente, puede indicar que algo está fallando.
 * **Errors (Errores):** Cantidad de peticiones que fallan. Esta métrica nos permite saber si el servicio está fallando y si está respondiendo correctamente. Por ejemplo, si la tasa de errores aumenta drásticamente, puede indicar que algo está fallando.
