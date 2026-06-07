@@ -4,6 +4,7 @@
 **Actividad:** TP Integrador - Actividad 4, Fase 2
  
 ---
+## 2.2. Diseño de la observabilidad
 
 ### Dashboard RED en Grafana
 
