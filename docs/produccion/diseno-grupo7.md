@@ -342,7 +342,7 @@ y dos métricas manuales adicionales que la auto-instrumentación no captura.
 #### Métricas automáticas
  
 La auto-instrumentación de OTel genera automáticamente la siguiente métrica al
-configurar `@opentelemetry/instrumentation-http`:
+configurar `@opentelemetry/instrumentation-http` y `@opentelemetry/instrumentation-fastify`:
  
 | Métrica | Tipo | Descripción | Labels |
 |---------|------|-------------|--------|
@@ -351,7 +351,7 @@ configurar `@opentelemetry/instrumentation-http`:
 | `http.server.duration` (Duration) | Histogram | Latencia de cada request. Se deriva con `histogram_quantile(0.95, ...)` para obtener p95/p99. | `method`, `route` |
  
 Las tres métricas RED se generan automáticamente a partir del mismo histogram
-`http.server.duration` al configurar la auto-instrumentación de HTTP.
+`http.server.duration` al configurar las auto-instrumentaciones de HTTP y Fastify.
 Prometheus permite derivar Rate, Errors y Duration usando PromQL sin necesidad de
 definir métricas manuales adicionales para estas tres.
  
@@ -391,7 +391,7 @@ packages/api/src/
  
 Responsabilidades:
 - Configurar el `PrometheusExporter` en el puerto `9464`, endpoint `/metrics`
-- Inicializar el `NodeSDK` con la auto-instrumentación para HTTP
+- Inicializar el `NodeSDK` con las auto-instrumentaciones para HTTP y Fastify
 - Definir el Gauge `process.memory.usage` con un observable callback
 - Exportar el `activeRequestsGauge` para uso en los hooks globales de `app.ts`
 
@@ -404,7 +404,8 @@ Diseño conceptual:
 ```typescript
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { FastifyInstrumentation } from '@opentelemetry/instrumentation-fastify';
 import { metrics } from '@opentelemetry/api';
  
 // 1. Configurar el exporter: expone las métricas en :9464/metrics
@@ -413,13 +414,14 @@ const prometheusExporter = new PrometheusExporter({
   endpoint: '/metrics',
 });
  
-// 2. Inicializar el SDK con auto-instrumentaciones para HTTP 
+// 2. Inicializar el SDK con auto-instrumentaciones para HTTP y Fastify
+// Se usan imports explícitos en lugar de getNodeAutoInstrumentations por
+// incompatibilidad de tipos con la versión instalada del paquete
 const sdk = new NodeSDK({
   metricReader: prometheusExporter,
   instrumentations: [
-    getNodeAutoInstrumentations({
-      '@opentelemetry/instrumentation-http': {},
-    }),
+    new HttpInstrumentation(),
+    new FastifyInstrumentation(),
   ],
 });
  
