@@ -41,7 +41,8 @@ Se utiliza una estrategia multi-stage build para separar las responsabilidades d
 5. Copia del código fuente y compilación en etapa `build`.
 6. Copia selectiva de artefactos a `runtime` (sin código fuente innecesario).
 7. Definición de usuario no-root (`appuser` o `node`).
-8. Configuración de `EXPOSE`, `HEALTHCHECK` y `CMD` final.
+8. Configuración de variables de entorno de runtime, incluyendo `ENV NODE_ENV=production` y `ENV PORT=3000`.
+9. Configuración de `EXPOSE`, `HEALTHCHECK` y `CMD` final.
 
 #### Requisitos no funcionales
 
@@ -57,6 +58,10 @@ Se utiliza una estrategia multi-stage build para separar las responsabilidades d
 	- Uso de `npm ci` y lockfile versionado.
 - Portabilidad:
 	- Imagen basada en `node:22-alpine`, priorizando compatibilidad con el entorno Node.js requerido y reducción del tamaño de la imagen.
+- Consistencia de configuración:
+	- Se recomienda definir `ENV PORT=3000` como configuración operativa del puerto de escucha de la aplicación en runtime.
+	- `EXPOSE 3000` resulta suficiente como declaración explícita del puerto esperado por la imagen.
+	- Aunque `EXPOSE $PORT` puede utilizarse, en este caso no aporta una ventaja práctica clara y agrega una indirección innecesaria en la documentación del Dockerfile.
 
 #### Consideraciones complementarias
 
