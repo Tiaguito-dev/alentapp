@@ -42,7 +42,7 @@ COPY packages/web/nginx.conf /etc/nginx/conf.d/
 
 # Copiamos los estáticos generados en la etapa de build
 COPY --from=build /app/packages/web/dist /usr/share/nginx/html
-packages/web/test
+
 # Healthcheck requerido por la cátedra
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:80/ || exit 1
