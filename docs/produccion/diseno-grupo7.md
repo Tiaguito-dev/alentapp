@@ -501,7 +501,7 @@ fastify.addHook('onResponse', (request, reply, done) => {
 * **Estructura:** Un dashboard centralizado en la interfaz de Grafana compuesto por 6 paneles independientes. Cada panel ejecuta una consulta PromQL (`rate`, `histogram_quantile`, `topk`) contra la base de datos de Prometheus.
 * **Requisitos no funcionales:** Lectura clara e intuitiva de los datos, actualización en tiempo real (o latencia mínima) y consultas eficientes para no sobrecargar el servidor de observabilidad.
 
-Diseñen un dashboard con al menos 6 paneles:
+El diseño quedaria de esta forma:
 
 | Panel | Métrica | Tipo de gráfico | Propósito |
 | :--- | :--- | :--- | :--- |
