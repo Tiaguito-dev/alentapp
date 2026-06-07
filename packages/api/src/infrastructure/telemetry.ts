@@ -19,7 +19,11 @@ const sdk = new NodeSDK({
     ],
 });
 
-sdk.start();
+try {
+    sdk.start();
+} catch (error) {
+    console.error('Error al iniciar OpenTelemetry SDK:', error);
+}
 
 // Meter: objeto que nos provee OTel para crear instrumentos de medición
 const meter = metrics.getMeter('alentapp-api');
@@ -47,3 +51,7 @@ export const requestDuration = meter.createHistogram('http.request.duration', {
     description: 'Duración de requests HTTP',
     unit: 'ms',
 });
+
+export async function shutdownTelemetry() {
+    await sdk.shutdown();
+}
