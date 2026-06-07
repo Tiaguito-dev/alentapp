@@ -140,7 +140,7 @@ para cada uno de los servicios.
 Los valores se definirán en base a métricas reales de consumo que me proporciona el comando `docker status` al correr el sistema sin límites.
 
 ### Healthcheck
-Voy a implementar u nhealthcheck para cada servicio excepto para db, que ya tiene uno. Debería quedar como algo como esto:
+Voy a implementar un healthcheck para el servicio del back y db. Debería quedar como algo como esto:
 ```
  test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
@@ -180,7 +180,7 @@ Voy a agregar un logging para cada servicio en archivos separados dentro de un v
         logging:
             driver: json-file
             options:
-                max-size: "30m"
+                max-size: "10m"
                 max-file: "3"
 ```
 
@@ -190,33 +190,22 @@ Voy a definir las siguientes redes:
 ```
 networks:
   app-network:
-    driver: overlay
+    driver: bridge
     internal: true
   web-network:
-    driver: overlay
+    driver: bridge
     internal: true
 ```
 La red de app-network estará conectada a la api y db. Mientras que a la de web solo estará conectada el servicio web y la api.
 
-Overlay hace que los contenedores se vean entre sí a pesar de estar en distintos nodos físicos o virtuales como podría pasar si utilizamos Swarm.
-
 
 ### Secrets
-Voy a declarar los secretos de la siguiente forma:
-
-```
-secrets:
-    db-password:
-        external: true
-  api_key:
-        external: true
-```
-En el back voy a darle permisos para leer db_password y api_key. Y en la db voy a declarar:
+Voy a declarar los secretos utilizando variables sensibles desde archivo .env (no hardcodeadas).
 
 ```
 POSTGRES_USER=appuser
 POSTGRES_DB=appdb
-POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+POSTGRES_PASSWORD=${DB_PASSWORD}
 ```
 
 ### Preview del docker compose
@@ -228,7 +217,7 @@ services:
         environment:
             - POSTGRES_USER=appuser
             - POSTGRES_DB=appdb
-            - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+            - POSTGRES_PASSWORD=${DB_PASSWORD}
         ports:
             - '${DB_PORT}:5432'
         volumes:
@@ -240,8 +229,6 @@ services:
             retries: 5
         networks:
             - app-network
-        secrets:
-            - db-password
         deploy:
             resources:
                 limits:
@@ -250,7 +237,7 @@ services:
         logging:
             driver: json-file
             options:
-                max-size: "30m"
+                max-size: "10m"
                 max-file: "3"
         security_opt:
             - no-new-privileges: true
@@ -263,13 +250,11 @@ services:
     api:
         build:
             context: .
-            dockerfile: packages/api/Dockerfile
+            dockerfile: packages/api/Dockerfile.prod
         container_name: alentapp-api
         environment:
-            - DATABASE_URL=postgres://appuser@db:5432/appdb
-            - DB_PASSWORD_FILE=/run/secrets/db-password
-            - CHOKIDAR_USEPOLLING=true
-            - WATCHPACK_POLLING=true
+            - DATABASE_URL=postgres://appuser:${DB_PASSWORD}@db:5432/appdb
+            - PORT=${API_PORT}
         ports:
             - '${API_PORT}:${API_PORT}'
         healthcheck:
@@ -281,9 +266,6 @@ services:
         networks:
             - app-network
             - web-network
-        secrets:
-            - db-password
-            - api-key
         deploy:
             resources:
                 limits:
@@ -292,7 +274,7 @@ services:
         logging:
             driver: json-file
             options:
-                max-size: "30m"
+                max-size: "10m"
                 max-file: "3"
         security_opt:
             - no-new-privileges: true
@@ -308,15 +290,14 @@ services:
     web:
         build:
             context: .
-            dockerfile: packages/web/Dockerfile
+            dockerfile: packages/web/Dockerfile.prod
         container_name: alentapp-web
-        environment:
-            - CHOKIDAR_USEPOLLING=true
-            - WATCHPACK_POLLING=true
         ports:
             - '${WEB_PORT}:${WEB_PORT}'
         networks:
             - web-network
+        environment:
+            - PORT=${WEB_PORT}
         deploy:
             resources:
                 limits:
@@ -325,7 +306,7 @@ services:
         logging:
             driver: json-file
             options:
-                max-size: "30m"
+                max-size: "10m"
                 max-file: "3"
         security_opt:
             - no-new-privileges: true
@@ -337,12 +318,6 @@ services:
         depends_on:
             api:
                 condition: service_healthy
-
-secrets:
-    db-password:
-        external: true
-    api-key:
-        external: true
 
 networks:
     app-network:
