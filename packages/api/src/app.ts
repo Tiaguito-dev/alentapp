@@ -1,3 +1,5 @@
+import './infrastructure/telemetry.js';
+import { activeRequestsGauge, requestCounter, errorCounter, requestDuration } from './infrastructure/telemetry.js';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 
@@ -76,6 +78,32 @@ export function buildApp() {
                 }
                 : undefined,
         },
+    });
+
+    server.addHook('onRequest', (request, reply, done) => {
+        (request as any).startTime = Date.now();
+        activeRequestsGauge.add(1, { route: request.routeOptions?.url ?? request.url });
+        done();
+    });
+
+    server.addHook('onResponse', (request, reply, done) => {
+        try {
+            const duration = Date.now() - ((request as any).startTime ?? Date.now());
+            const route = request.routeOptions?.url ?? request.url;
+            const method = request.method;
+            const status = String(reply.statusCode);
+
+            activeRequestsGauge.add(-1, { route });
+            requestCounter.add(1, { method, route, status });
+            requestDuration.record(duration, { method, route });
+
+            if (reply.statusCode >= 400) {
+                errorCounter.add(1, { method, route, status });
+            }
+        } catch (error) {
+            console.error('Error al registrar métricas:', error);
+        }
+        done();
     });
 
     server.register(cors, {
