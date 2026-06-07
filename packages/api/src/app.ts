@@ -1,5 +1,5 @@
 import './infrastructure/telemetry.js';
-import { activeRequestsGauge } from './infrastructure/telemetry.js';
+import { activeRequestsGauge, requestCounter, errorCounter, requestDuration } from './infrastructure/telemetry.js';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 
@@ -80,14 +80,25 @@ export function buildApp() {
         },
     });
 
-    // Hooks globales para métrica de requests activas
     server.addHook('onRequest', (request, reply, done) => {
+        (request as any).startTime = Date.now();
         activeRequestsGauge.add(1, { route: request.routeOptions.url });
         done();
     });
 
     server.addHook('onResponse', (request, reply, done) => {
-        activeRequestsGauge.add(-1, { route: request.routeOptions.url });
+        const duration = Date.now() - ((request as any).startTime ?? Date.now());
+        const route = request.routeOptions.url ?? request.url;
+        const method = request.method;
+        const status = String(reply.statusCode);
+
+        activeRequestsGauge.add(-1, { route });
+        requestCounter.add(1, { method, route, status });
+        requestDuration.record(duration, { method, route });
+
+        if (reply.statusCode >= 400) {
+            errorCounter.add(1, { method, route, status });
+        }
         done();
     });
 
