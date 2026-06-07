@@ -27,13 +27,6 @@ services:
             options:
                 max-size: "10m"
                 max-file: "3"
-        security_opt:
-            - no-new-privileges: true
-        read_only: true
-        cap_drop:
-            - ALL
-        cap_add:
-            - NET_BIND_SERVICE
 
     api:
         build:
@@ -45,12 +38,6 @@ services:
             - PORT=${API_PORT}
         ports:
             - '${API_PORT}:${API_PORT}'
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:${API_PORT}/health"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 40s
         networks:
             - app-network
             - web-network
@@ -65,8 +52,10 @@ services:
                 max-size: "10m"
                 max-file: "3"
         security_opt:
-            - no-new-privileges: true
+            - "no-new-privileges:true"
         read_only: true
+        tmpfs:
+            - /tmp
         cap_drop:
             - ALL
         cap_add:
@@ -81,7 +70,7 @@ services:
             dockerfile: packages/web/Dockerfile.prod
         container_name: alentapp-web
         ports:
-            - '${WEB_PORT}:$80' # externo:interno, Santi lo definió 80
+            - '${WEB_PORT}:80' # externo:interno, Santi lo definió 80
         networks:
             - web-network
         environment:
@@ -97,8 +86,12 @@ services:
                 max-size: "10m"
                 max-file: "3"
         security_opt:
-            - no-new-privileges: true
+            - "no-new-privileges:true"
         read_only: true
+        tmpfs:
+            - /var/cache/nginx
+            - /var/run
+            - /tmp
         cap_drop:
             - ALL
         cap_add:
@@ -110,10 +103,8 @@ services:
 networks:
     app-network:
         driver: bridge
-        internal: true
     web-network:
         driver: bridge
-        internal: true
 
 volumes:
     pgdata:
