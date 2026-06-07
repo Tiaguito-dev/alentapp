@@ -1,3 +1,8 @@
+# =============================================================================
+# Stage 1: deps
+# Instala TODAS las dependencias (dev + prod) para poder compilar.
+# También genera la versión mínima de runtime con solo las deps que la API necesita.
+# =============================================================================
 FROM node:22-alpine AS deps
 WORKDIR /app
 
@@ -18,7 +23,12 @@ RUN mkdir -p /opt/runtime && \
   '    "@fastify/cors": "11.2.0",' \
   '    "@prisma/adapter-pg": "7.8.0",' \
   '    "@prisma/client": "7.7.0",' \
-  '    "fastify": "5.8.5"' \
+  '    "fastify": "5.8.5",' \
+  '    "@opentelemetry/sdk-node": "^0.218.0",' \
+  '    "@opentelemetry/exporter-prometheus": "^0.218.0",' \
+  '    "@opentelemetry/auto-instrumentations-node": "^0.76.0",' \
+  '    "@opentelemetry/instrumentation-fastify": "^0.56.0",' \
+  '    "@opentelemetry/instrumentation-http": "^0.218.0"' \
   '  }' \
   '}' > /opt/runtime/package.json
 
@@ -32,7 +42,10 @@ RUN cd /opt/runtime && \
   npm cache clean --force && \
   rm -rf /root/.npm
 
-
+# =============================================================================
+# Stage 2: build
+# Compila TypeScript a JS usando esbuild y genera el cliente de Prisma
+# =============================================================================
 FROM node:22-alpine AS build
 WORKDIR /app
 
@@ -61,11 +74,13 @@ RUN find packages/api/src -type f -name '*.ts' \
       --target=node22 \
       --outdir=packages/api/dist \
       --outbase=packages/api/src
-
 RUN mkdir -p packages/api/dist/generated && \
     cp -R packages/api/src/generated/client packages/api/dist/generated/client
 
-
+# =============================================================================
+# Stage 3: runtime
+# Imagen final: JS compilado + deps mínimas de prod + usuario no-root
+# =============================================================================
 FROM node:22-alpine AS runtime
 WORKDIR /app
 
