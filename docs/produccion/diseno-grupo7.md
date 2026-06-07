@@ -505,9 +505,9 @@ Diseñen un dashboard con al menos 6 paneles:
 
 | Panel | Métrica | Tipo de gráfico | Propósito |
 | :--- | :--- | :--- | :--- |
-| 1. Requests por segundo | `rate(http.server.duration.count[1m])` | Time series | Medir el volumen de tráfico (Rate) y la carga transaccional que recibe la API. |
-| 2. Tasa de error | `rate(...{status=~"5.."}[1m]) / rate(...[1m])` | Time series | Detectar el porcentaje de fallos del servidor (Errors) para disparar alertas de fiabilidad. |
-| 3. Latencia p95/p99 | `histogram_quantile(0.95, ...)` | Time series | Monitorear el tiempo de respuesta (Duration) garantizando la experiencia del 95% de los usuarios. |
-| 4. Por status code | `sum by(status) (rate(...))` | Stacked area | Clasificar las respuestas HTTP para identificar anomalías de red o ruteo. |
-| 5. Memoria del proceso | `process.memory.usage` | Time series | Controlar el consumo de RAM del contenedor Node.js para prevenir caídas por Out Of Memory. |
-| 6. Endpoints más lentos | `topk(5, ...)` | Bar chart (horizontal) | Aislar las 5 rutas con peor rendimiento para futuras optimizaciones de código. |
+| 1. Requests por segundo | `rate(http_server_duration_count[1m])` | Time series | Medir el volumen de tráfico (Rate) y la carga transaccional que recibe la API. |
+| 2. Tasa de error | `sum(rate(http_server_duration_count{status=~"5.."}[1m])) / sum(rate(http_server_duration_count[1m]))` | Time series | Detectar el porcentaje de fallos del servidor (Errors) para disparar alertas de fiabilidad. |
+| 3. Latencia p95 | `histogram_quantile(0.95, sum by (le) (rate(http_server_duration_bucket[5m])))` | Time series | Monitorear el tiempo de respuesta (Duration) garantizando la experiencia del 95% de los usuarios. |
+| 4. Por status code | `sum by (status) (rate(http_server_duration_count[5m]))` | Stacked area | Clasificar las respuestas HTTP para identificar anomalías de red o ruteo. |
+| 5. Memoria del proceso | `process_memory_usage_bytes / 1024 / 1024` | Time series | Controlar el consumo de RAM del contenedor Node.js para prevenir caídas por Out Of Memory. |
+| 6. Endpoints más lentos | `topk(5, avg by (route) (http_server_duration_ms))` | Bar chart (horizontal) | Aislar las 5 rutas con peor rendimiento para futuras optimizaciones de código. |
