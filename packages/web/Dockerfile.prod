@@ -20,6 +20,9 @@ RUN npm ci
 FROM node:22-alpine AS build
 WORKDIR /app
 
+# Atrapamos la variable que manda el docker-compose
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 # Copiamos los node_modules de la etapa anterior
 COPY --from=deps /app/node_modules ./node_modules
 # Copiamos todo el código fuente

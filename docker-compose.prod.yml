@@ -69,6 +69,8 @@ services:
         build:
             context: .
             dockerfile: packages/web/Dockerfile.prod
+            args:
+                - VITE_API_URL=${VITE_API_URL}
         container_name: alentapp-web
         ports:
             - '${WEB_PORT}:80' # externo:interno, Santi lo definió 80
