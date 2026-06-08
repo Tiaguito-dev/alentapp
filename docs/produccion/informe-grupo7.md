@@ -54,3 +54,9 @@ Durante el despliegue de la infraestructura surgieron diversos desafíos técnic
 - **Dependencias de Prisma en el Build:** La generación del cliente Prisma requería una variable `DATABASE_URL` válida durante la etapa de compilación. Se solucionó definiendo una URL temporal (dummy URL) que permitiera finalizar el build sin necesidad de tener la base de datos productiva activa en ese momento.
 
 - **Errores en scripts de NPM:** La instalación de dependencias en el runtime fallaba por scripts innecesarios. Se corrigió utilizando `npm ci --omit=dev --ignore-scripts`, garantizando un entorno limpio y reproducible.
+
+---
+
+## 4. Imágenes del dashboard RED funcionando con datos
+
+Las imágenes se encuentran en esta misma carpeta bajoel nombre: `DASHBOARD-GRAFANA-1.png` y `DASHBOARD-GRAFANA-2.png`.
