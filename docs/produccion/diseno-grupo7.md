@@ -359,10 +359,23 @@ definir métricas manuales adicionales para estas tres.
  
 Estas dos métricas no las captura la auto-instrumentación y deben definirse manualmente:
  
+Las siguientes métricas se definen manualmente en `telemetry.ts`:
+ 
 | Métrica | Tipo | Descripción | Labels | Dónde se registra |
 |---------|------|-------------|--------|-------------------|
-| `process.memory.usage` | Gauge | Memoria heap usada por el proceso Node.js en bytes. Se mide de forma periódica con `process.memoryUsage().heapUsed`. | — | `telemetry.ts` (observable, no en controllers) |
-| `http.requests.active` | Gauge | Cantidad de requests siendo procesadas en este momento. Se incrementa al inicio de cada handler y se decrementa al finalizar. | `route` | `app.ts` (hook global de Fastify) |
+| `process.memory.usage` | Gauge | Memoria heap usada por el proceso Node.js en bytes. Se mide periódicamente con `process.memoryUsage().heapUsed`. | — | `telemetry.ts` (observable, no en controllers) |
+| `http.requests.active` | Gauge (UpDownCounter) | Cantidad de requests siendo procesadas en este momento. | `route` | `app.ts` (hook global de Fastify) |
+| `http.requests.total` | Counter | Total de requests HTTP recibidas. | `method`, `route`, `status` | `app.ts` (hook `onResponse`) |
+| `http.requests.errors` | Counter | Total de requests que resultaron en error (status >= 400). | `method`, `route`, `status` | `app.ts` (hook `onResponse`) |
+| `http.request.duration` | Histogram | Duración de cada request en ms. | `method`, `route` | `app.ts` (hook `onResponse`) |
+ 
+> ⚠️ **Nota sobre duplicación**: Las métricas `http.requests.total`, `http.requests.errors`
+> y `http.request.duration` miden lo mismo que ya captura automáticamente `HttpInstrumentation`
+> a través de `http.server.duration`. Esto genera datos duplicados en Prometheus.
+> La decisión correcta hubiera sido usar solo las métricas automáticas para métricas HTTP,
+> reservando las métricas manuales únicamente para lo que la auto-instrumentación no captura
+> (`process.memory.usage` y `http.requests.active`). Se reconoce esta duplicidad y se mantiene
+> la implementación realizada.
 
 #### Aclaración
 
@@ -408,41 +421,67 @@ import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { FastifyInstrumentation } from '@opentelemetry/instrumentation-fastify';
 import { metrics } from '@opentelemetry/api';
  
-// 1. Configurar el exporter: expone las métricas en :9464/metrics
+// Expone las métricas en http://localhost:9464/metrics para que Prometheus haga scraping
 const prometheusExporter = new PrometheusExporter({
-  port: 9464,
-  endpoint: '/metrics',
+    port: 9464,
+    endpoint: '/metrics',
 });
  
-// 2. Inicializar el SDK con auto-instrumentaciones para HTTP y Fastify
+// Inicializa el SDK con auto-instrumentaciones para HTTP y Fastify
 // Se usan imports explícitos en lugar de getNodeAutoInstrumentations por
-// incompatibilidad de tipos con la versión instalada del paquete
+// incompatibilidad de tipos con la versión instalada del paquete (0.76.0)
 const sdk = new NodeSDK({
-  metricReader: prometheusExporter,
-  instrumentations: [
-    new HttpInstrumentation(),
-    new FastifyInstrumentation(),
-  ],
+    metricReader: prometheusExporter,
+    instrumentations: [
+        new HttpInstrumentation(),
+        new FastifyInstrumentation(),
+    ],
 });
  
-sdk.start();
+// El try/catch evita que un fallo en OTel tire la API
+try {
+    sdk.start();
+} catch (error) {
+    console.error('Error al iniciar OpenTelemetry SDK:', error);
+}
  
-// 3. Obtener el meter para métricas manuales
-// meter es el objeto que nos da OTel para crear instrumentos de medición (como, por ejemplo, counters, gauges, histogramas), es decir, objetos para medir cosas específicas
+// Meter: objeto que nos da OTel para crear instrumentos de medición
+// (counters, gauges, histogramas), es decir, objetos para medir cosas específicas
 const meter = metrics.getMeter('alentapp-api');
  
-// 4. Gauge: memoria del proceso (observable, se mide automáticamente).  
+// Gauge observable: OTel llama al callback automáticamente cada vez que
+// Prometheus hace scraping, leyendo la memoria heap actual del proceso
 meter.createObservableGauge('process.memory.usage', {
-  description: 'Memoria heap usada por el proceso Node.js',
-  unit: 'bytes',
+    description: 'Memoria heap usada por el proceso Node.js',
+    unit: 'bytes',
 }).addCallback((result) => {
-  result.observe(process.memoryUsage().heapUsed);
+    result.observe(process.memoryUsage().heapUsed);
 });
  
-// 5. Gauge: requests activas (se exporta para usar en los controllers)
+// UpDownCounter: se exporta para usarlo en los hooks globales de app.ts
 export const activeRequestsGauge = meter.createUpDownCounter('http.requests.active', {
-  description: 'Requests HTTP siendo procesadas actualmente',
+    description: 'Requests HTTP siendo procesadas actualmente',
 });
+ 
+// ⚠️ Las siguientes tres métricas duplican las que genera automáticamente HttpInstrumentation.
+// Se mantienen por decisión del equipo, para mantener el diseño acorde a la implementación.
+export const requestCounter = meter.createCounter('http.requests.total', {
+    description: 'Total de requests HTTP',
+});
+ 
+export const errorCounter = meter.createCounter('http.requests.errors', {
+    description: 'Total de errores HTTP',
+});
+ 
+export const requestDuration = meter.createHistogram('http.request.duration', {
+    description: 'Duración de requests HTTP',
+    unit: 'ms',
+});
+ 
+// Cierre ordenado del SDK al apagar la API
+export async function shutdownTelemetry() {
+    await sdk.shutdown();
+}
 ```
 
 > Se usa `UpDownCounter` en lugar de `Gauge` para `http.requests.active` porque
@@ -461,26 +500,51 @@ automáticamente a todas las rutas, facilitando el mantenimiento:
 ```typescript
 // PRIMERO: inicializar OTel antes de cualquier otro import
 import './infrastructure/telemetry.js';
-import { activeRequestsGauge } from './infrastructure/telemetry.js';
+import { activeRequestsGauge, requestCounter, errorCounter, requestDuration } from './infrastructure/telemetry.js';
  
 import Fastify from 'fastify';
  
-const fastify = Fastify();
+const server = Fastify();
  
-// Hook global: se ejecuta al inicio de cada request, para cualquier ruta
-fastify.addHook('onRequest', (request, reply, done) => {
-  activeRequestsGauge.add(1, { route: request.routeOptions.url });
-  done();
+// Hook global: se ejecuta al inicio de cada request
+// Guarda el timestamp para calcular duración y suma 1 al contador de requests activas
+server.addHook('onRequest', (request, reply, done) => {
+    (request as any).startTime = Date.now();
+    activeRequestsGauge.add(1, { route: request.routeOptions?.url ?? request.url });
+    done();
 });
  
-// Hook global: se ejecuta al finalizar cada request, para cualquier ruta
-fastify.addHook('onResponse', (request, reply, done) => {
-  activeRequestsGauge.add(-1, { route: request.routeOptions.url });
-  done();
+// Hook global: se ejecuta al finalizar cada request
+// Calcula duración, registra métricas y resta 1 al contador de requests activas
+server.addHook('onResponse', (request, reply, done) => {
+    try {
+        const duration = Date.now() - ((request as any).startTime ?? Date.now());
+        const route = request.routeOptions?.url ?? request.url;
+        const method = request.method;
+        const status = String(reply.statusCode);
+ 
+        activeRequestsGauge.add(-1, { route });
+        requestCounter.add(1, { method, route, status });       // ⚠️ duplica http.server.duration
+        requestDuration.record(duration, { method, route });    // ⚠️ duplica http.server.duration
+ 
+        if (reply.statusCode >= 400) {
+            errorCounter.add(1, { method, route, status });     // ⚠️ duplica http.server.duration
+        }
+    } catch (error) {
+        console.error('Error al registrar métricas:', error);
+    }
+    done();
 });
  
 // Luego el resto de la configuración...
 ```
+ 
+> El `try/catch` en `onResponse` evita que un fallo al registrar métricas interrumpa
+> la respuesta HTTP al cliente.
+ 
+> El `request.routeOptions?.url ?? request.url` usa el patrón de la ruta
+> (`/api/v1/socios/:id`) en lugar de la URL cruda, evitando generar una métrica
+> distinta por cada ID diferente.
  
 #### Requisitos no funcionales
  
